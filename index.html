@@ -114,6 +114,7 @@
   .grid--3{grid-template-columns:repeat(3,1fr);}
   @media(max-width:760px){.grid--3{grid-template-columns:1fr;}}
   @media(min-width:761px) and (max-width:900px){.grid--3{grid-template-columns:repeat(2,1fr);}}
+  .grid--solo{grid-template-columns:minmax(240px,340px);}
   .subgroup-label{display:flex;align-items:center;gap:8px;font:600 11px var(--font-mono);letter-spacing:.1em;
     text-transform:uppercase;color:var(--ink-45);margin:0 0 12px;}
   .subgroup-label--spaced{margin-top:32px;}
@@ -292,6 +293,20 @@
             <span class="card__name">ZuKo Bauteil-Editor</span>
             <p class="card__desc">Systeme, Bauteile und Klemmenbelegungen frei pflegen — teilt die Bibliothek mit dem Kabelplan-Generator.</p>
             <span class="card__spec">zuko-systeme-bibliothek.json</span>
+            <span class="card__open">Öffnen <span aria-hidden="true">→</span></span>
+          </span>
+        </a>
+    </div>
+
+    <p class="subgroup-label subgroup-label--spaced"><span class="subgroup-mark" aria-hidden="true"></span>Verwaltung</p>
+    <div class="grid grid--solo">
+        <a class="card card--noshot" href="admin.html">
+          <span class="card__body">
+            <span class="card__corner" aria-hidden="true"></span>
+            <span class="card__tag">Verwaltung</span>
+            <span class="card__name">Admin-Bereich</span>
+            <p class="card__desc">Mitarbeitercodes und Artikelnummern pflegen — lokal auf diesem Gerät, mit Export für den zentralen Rollout.</p>
+            <span class="card__spec">ma-codes.json · artikel.json</span>
             <span class="card__open">Öffnen <span aria-hidden="true">→</span></span>
           </span>
         </a>

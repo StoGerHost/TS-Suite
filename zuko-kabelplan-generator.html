@@ -162,6 +162,24 @@
 </style>
 </head>
 <body>
+<div class="stober-backbar">
+  <a href="index.html" class="stober-backbar__link">&larr; STOBER Werkzeuge</a>
+  <span class="stober-backbar__slash" aria-hidden="true">/</span>
+  <span class="stober-backbar__current">ZuKo Kabelplan-Generator</span>
+</div>
+<style>
+  .stober-backbar{position:sticky;top:0;z-index:99999;display:flex;align-items:center;gap:10px;
+    background:#0a0a0c;color:#e9edf2;padding:10px 16px;
+    font:600 12px/1.4 ui-monospace,'JetBrains Mono','SFMono-Regular',Consolas,monospace;
+    letter-spacing:.03em;border-bottom:1px solid rgba(58,123,213,.35);}
+  .stober-backbar__link{color:#e9edf2;text-decoration:none;display:inline-flex;align-items:center;gap:6px;
+    transition:color .15s ease;white-space:nowrap;}
+  .stober-backbar__link:hover{color:#3a7bd5;}
+  .stober-backbar__slash{color:rgba(233,237,242,.35);}
+  .stober-backbar__current{color:#3a7bd5;font-weight:700;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+  @media(max-width:480px){.stober-backbar{font-size:10.5px;padding:8px 12px;gap:8px;}}
+</style>
+
 <div class="wrap">
 
   <p class="eyebrow">Stober · Zutrittskontrolle</p>

@@ -1,0 +1,420 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#0a0a0c">
+<title>STOBER Werkzeuge — Admin</title>
+<style>
+  :root{
+    --bg:#0a0a0c;
+    --surface:#111318;
+    --surface-hover:#141821;
+    --surface-alt:#0d0f13;
+    --ink:#e9edf2;
+    --ink-80:rgba(233,237,242,.8);
+    --ink-70:rgba(233,237,242,.7);
+    --ink-60:rgba(233,237,242,.6);
+    --ink-50:rgba(233,237,242,.5);
+    --ink-45:rgba(233,237,242,.45);
+    --ink-40:rgba(233,237,242,.4);
+    --accent:#3a7bd5;
+    --accent-dark:#2f66b3;
+    --glow:#5eead4;
+    --danger:#e05a4e;
+    --line-20:rgba(58,123,213,.2);
+    --line-25:rgba(58,123,213,.25);
+    --line-30:rgba(58,123,213,.3);
+    --line-35:rgba(58,123,213,.35);
+    --font-display:'Inter',system-ui,-apple-system,'Segoe UI',Roboto,Arial,sans-serif;
+    --font-mono:ui-monospace,'JetBrains Mono','SFMono-Regular',Consolas,Menlo,monospace;
+  }
+  *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
+  body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--font-display);line-height:1.55;
+    -webkit-font-smoothing:antialiased;min-height:100vh;padding-bottom:60px;
+    background-image:linear-gradient(rgba(255,255,255,.03) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.03) 1px,transparent 1px);
+    background-size:34px 34px;}
+  input,button{font-family:inherit;}
+  a{color:inherit;}
+
+  .stober-backbar{position:sticky;top:0;z-index:99999;display:flex;align-items:center;gap:10px;
+    background:#0a0a0c;color:#e9edf2;padding:10px 16px;
+    font:600 12px/1.4 var(--font-mono);letter-spacing:.03em;border-bottom:1px solid var(--line-35);flex-wrap:wrap;}
+  .stober-backbar__link{color:#e9edf2;text-decoration:none;display:inline-flex;align-items:center;gap:6px;
+    transition:color .15s ease;white-space:nowrap;}
+  .stober-backbar__link:hover{color:var(--accent);}
+  .stober-backbar__slash{color:var(--ink-40);}
+  .stober-backbar__current{color:var(--accent);font-weight:700;}
+
+  #hdr{padding:26px 18px 22px;display:flex;align-items:center;gap:14px;border-bottom:1px solid var(--line-20);}
+  #hdr .ico{width:38px;height:38px;border:1.5px solid var(--accent);display:flex;align-items:center;justify-content:center;
+    font-size:17px;flex-shrink:0;}
+  #hdr h1{font:700 19px var(--font-display);color:#fff;}
+  #hdr p{font:500 12px var(--font-mono);color:var(--ink-45);margin-top:3px;letter-spacing:.02em;}
+
+  .wrap{max-width:900px;margin:0 auto;padding:22px 18px;}
+  @media(max-width:480px){.wrap{padding:18px 14px;}}
+
+  .tabs{display:flex;gap:10px;margin-bottom:20px;}
+  .tab-btn{flex:1;padding:12px 10px;border-radius:2px;border:1px solid var(--line-30);background:var(--surface);
+    font:700 12.5px var(--font-mono);letter-spacing:.03em;text-transform:uppercase;color:var(--ink-60);cursor:pointer;
+    transition:.15s;}
+  .tab-btn.active{border-color:var(--accent);color:var(--accent);background:var(--surface-hover);}
+
+  .panel{display:none;}
+  .panel.active{display:block;}
+
+  .card{background:var(--surface);border:1px solid var(--line-30);padding:20px;margin-bottom:16px;}
+  .card h2{font:700 15px var(--font-display);color:var(--ink);margin-bottom:6px;}
+  .card .hint{font:400 12.5px/1.55 var(--font-display);color:var(--ink-50);margin-bottom:16px;}
+
+  .row{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px;}
+  .row input{flex:1;min-width:120px;padding:11px 12px;border:1px solid var(--line-30);border-radius:2px;
+    background:var(--bg);color:var(--ink);font-size:14px;outline:none;transition:border-color .15s;}
+  .row input::placeholder{color:var(--ink-40);}
+  .row input:focus{border-color:var(--accent);}
+
+  .btn{padding:11px 16px;border:1px solid transparent;border-radius:2px;background:var(--accent);color:var(--bg);
+    font:700 12.5px var(--font-mono);letter-spacing:.02em;cursor:pointer;white-space:nowrap;transition:filter .15s,border-color .15s,color .15s,background .15s;}
+  .btn:hover{filter:brightness(1.1);}
+  .btn.ghost{background:transparent;color:var(--ink-70);border-color:var(--line-30);}
+  .btn.ghost:hover{border-color:var(--accent);color:var(--accent);}
+  .btn.danger{background:var(--danger);color:#1a0d0b;}
+  .btn.small{padding:6px 10px;font-size:11px;}
+
+  table{width:100%;border-collapse:collapse;font-size:13px;}
+  th{text-align:left;padding:8px 6px;color:var(--ink-40);font:600 10.5px var(--font-mono);text-transform:uppercase;
+    letter-spacing:.05em;border-bottom:1px solid var(--line-25);}
+  td{padding:9px 6px;border-bottom:1px solid var(--line-20);vertical-align:middle;color:var(--ink-80);}
+  tr:last-child td{border-bottom:none;}
+  .mono{font-family:var(--font-mono);font-size:11.5px;color:var(--ink-45);}
+  .src-tag{font-size:10px;font-weight:700;padding:2px 8px;border-radius:20px;letter-spacing:.03em;font-family:var(--font-mono);
+    text-transform:uppercase;display:inline-block;}
+  .src-lokal{background:rgba(58,123,213,.15);color:var(--accent);}
+  .src-zentral{background:rgba(94,234,212,.12);color:var(--glow);}
+  .src-leer{background:rgba(224,90,78,.14);color:var(--danger);}
+
+  .empty{color:var(--ink-40);font-size:13px;padding:14px 4px;text-align:center;}
+
+  .search{margin-bottom:16px;}
+  .search input{width:100%;padding:12px 14px;border:1px solid var(--line-30);border-radius:2px;
+    background:var(--bg);color:var(--ink);font-size:14px;outline:none;}
+  .search input:focus{border-color:var(--accent);}
+  .search input::placeholder{color:var(--ink-40);}
+
+  .group-head{display:flex;align-items:center;gap:8px;margin:22px 0 10px;font:700 13.5px var(--font-display);color:var(--ink);}
+  .group-head .mark{width:8px;height:8px;border:1.5px solid var(--accent);flex-shrink:0;}
+  .subgroup-head{font:600 11px var(--font-mono);text-transform:uppercase;letter-spacing:.05em;color:var(--ink-40);
+    margin:14px 0 6px;}
+
+  .art-row input{width:120px;padding:7px 9px;border:1px solid var(--line-25);border-radius:2px;
+    background:var(--bg);color:var(--ink);font-size:12.5px;}
+  .art-row td:first-child{max-width:260px;}
+  .key-label{font-weight:600;font-size:12.5px;color:var(--ink);}
+
+  .export-row{display:flex;gap:8px;margin-top:16px;flex-wrap:wrap;}
+  .toast{position:fixed;bottom:18px;left:50%;transform:translateX(-50%);background:var(--surface);color:var(--ink);
+    border:1px solid var(--accent);padding:11px 20px;border-radius:2px;font:600 12.5px var(--font-mono);
+    opacity:0;pointer-events:none;transition:opacity .25s,transform .25s;z-index:99999;}
+  .toast.show{opacity:1;transform:translateX(-50%) translateY(-6px);}
+</style>
+</head>
+<body>
+
+<div class="stober-backbar">
+  <a href="index.html" class="stober-backbar__link">&larr; STOBER Werkzeuge</a>
+  <span class="stober-backbar__slash" aria-hidden="true">/</span>
+  <a href="#" id="referer-link" class="stober-backbar__link" style="display:none"></a>
+  <span class="stober-backbar__slash" id="referer-slash" aria-hidden="true" style="display:none">/</span>
+  <span class="stober-backbar__current">Admin</span>
+</div>
+
+<div id="hdr">
+  <span class="ico" aria-hidden="true">&#9881;</span>
+  <div>
+    <h1>Admin-Bereich</h1>
+    <p>Mitarbeitercodes &amp; Artikelnummern &middot; lokal auf diesem Gerät</p>
+  </div>
+</div>
+
+<div class="wrap">
+
+  <div class="tabs">
+    <button class="tab-btn active" data-tab="codes">Mitarbeitercodes</button>
+    <button class="tab-btn" data-tab="artikel">Artikelnummern</button>
+  </div>
+
+  <!-- ═══════════ TAB: MITARBEITERCODES ═══════════ -->
+  <div class="panel active" id="panel-codes">
+
+    <div class="card">
+      <h2>Neuen Code hinzufügen</h2>
+      <p class="hint">Gilt sofort &ndash; aber nur auf diesem Gerät/Browser. Für alle Geräte dauerhaft: unten
+        exportieren und den Inhalt in <span class="mono">ma-codes.json</span> im Repository übernehmen.</p>
+      <div class="row">
+        <input id="new-code" type="text" inputmode="numeric" maxlength="10" placeholder="Code, z.B. 78090">
+        <input id="new-name" type="text" placeholder="Name, z.B. Max Mustermann">
+        <button class="btn" onclick="addCode()">+ Hinzufügen</button>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>Lokal auf diesem Gerät</h2>
+      <p class="hint">Diese Codes ergänzen die zentrale Liste, nur hier im Browser.</p>
+      <table id="tbl-local"><thead><tr><th>Code</th><th>Name</th><th></th></tr></thead><tbody></tbody></table>
+      <p class="empty" id="local-empty" style="display:none">Noch keine lokalen Codes angelegt.</p>
+      <div class="export-row">
+        <button class="btn ghost" onclick="exportCodes()">Als ma-codes.json exportieren</button>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>Zentral (ma-codes.json)</h2>
+      <p class="hint">Fest im Repository hinterlegt &ndash; hier nur les- und durchsuchbar.</p>
+      <table id="tbl-central"><thead><tr><th>Code</th><th>Name</th></tr></thead><tbody></tbody></table>
+      <p class="empty" id="central-empty" style="display:none">ma-codes.json konnte nicht geladen werden.</p>
+    </div>
+
+  </div>
+
+  <!-- ═══════════ TAB: ARTIKELNUMMERN ═══════════ -->
+  <div class="panel" id="panel-artikel">
+
+    <div class="card">
+      <h2>Artikelnummern pflegen</h2>
+      <p class="hint">Änderungen gelten sofort auf diesem Gerät (höchste Priorität). Für alle Geräte dauerhaft:
+        unten exportieren und den Inhalt in <span class="mono">artikel.json</span> im Repository übernehmen.</p>
+      <div class="search"><input id="art-search" type="text" placeholder="Suchen, z.B. ed100, Verkleidung, dormakaba …" oninput="renderArtikel()"></div>
+      <div id="artikel-groups"></div>
+      <div class="export-row">
+        <button class="btn ghost" onclick="exportArtikel()">Als artikel.json exportieren</button>
+        <button class="btn ghost" onclick="if(confirm('Alle lokalen Artikelnummer-Überschreibungen auf diesem Gerät löschen?'))resetArtikelLocal()">Lokale Änderungen zurücksetzen</button>
+      </div>
+    </div>
+
+  </div>
+
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+
+// ─── Referer (welcher Konfigurator hat hierher verlinkt) ───────────────────
+(function(){
+  var ref = sessionStorage.getItem('stober_admin_referer');
+  if(ref){
+    var link=document.getElementById('referer-link'), slash=document.getElementById('referer-slash');
+    var label = ref.indexOf('schiebetuer')>-1 ? 'Schiebetür-Konfigurator' : 'Drehtür-Konfigurator';
+    link.textContent = '\u2190 ' + label;
+    link.href = ref;
+    link.style.display = 'inline-flex';
+    slash.style.display = 'inline';
+  }
+})();
+
+// ─── Tabs ───────────────────────────────────────────────────────────────
+document.querySelectorAll('.tab-btn').forEach(function(btn){
+  btn.addEventListener('click', function(){
+    document.querySelectorAll('.tab-btn').forEach(function(b){b.classList.remove('active');});
+    document.querySelectorAll('.panel').forEach(function(p){p.classList.remove('active');});
+    btn.classList.add('active');
+    document.getElementById('panel-'+btn.dataset.tab).classList.add('active');
+  });
+});
+
+function toast(msg){
+  var t=document.getElementById('toast');
+  t.textContent=msg; t.classList.add('show');
+  clearTimeout(window._toastTimer);
+  window._toastTimer=setTimeout(function(){t.classList.remove('show');},2200);
+}
+
+// ═══════════════════ MITARBEITERCODES ═══════════════════
+var MA_LOCAL_KEY='stober_ma_codes_local';
+var MA_CENTRAL={};
+
+function loadLocalCodes(){
+  try{ return JSON.parse(localStorage.getItem(MA_LOCAL_KEY)||'{}'); }catch(e){ return {}; }
+}
+function saveLocalCodes(obj){ localStorage.setItem(MA_LOCAL_KEY, JSON.stringify(obj)); }
+
+function renderCodes(){
+  var local = loadLocalCodes();
+  var localKeys = Object.keys(local).sort();
+  var tb = document.querySelector('#tbl-local tbody'); tb.innerHTML='';
+  document.getElementById('local-empty').style.display = localKeys.length ? 'none' : 'block';
+  localKeys.forEach(function(code){
+    var tr=document.createElement('tr');
+    tr.innerHTML = '<td class="mono">'+esc(code)+'</td><td>'+esc(local[code])+'</td>'+
+      '<td style="text-align:right"><button class="btn danger small" onclick="removeCode(\''+esc(code)+'\')">Entfernen</button></td>';
+    tb.appendChild(tr);
+  });
+
+  var centralKeys = Object.keys(MA_CENTRAL).sort();
+  var tbc = document.querySelector('#tbl-central tbody'); tbc.innerHTML='';
+  document.getElementById('central-empty').style.display = centralKeys.length ? 'none' : 'block';
+  centralKeys.forEach(function(code){
+    var tr=document.createElement('tr');
+    tr.innerHTML = '<td class="mono">'+esc(code)+'</td><td>'+esc(MA_CENTRAL[code])+'</td>';
+    tbc.appendChild(tr);
+  });
+}
+
+function addCode(){
+  var code=document.getElementById('new-code').value.trim();
+  var name=document.getElementById('new-name').value.trim();
+  if(!code || !name){ toast('Bitte Code und Name eingeben'); return; }
+  if(MA_CENTRAL[code]){ toast('Code existiert bereits zentral: '+MA_CENTRAL[code]); return; }
+  var local=loadLocalCodes();
+  local[code]=name;
+  saveLocalCodes(local);
+  document.getElementById('new-code').value='';
+  document.getElementById('new-name').value='';
+  renderCodes();
+  toast('Code hinzugefügt (lokal auf diesem Gerät)');
+}
+function removeCode(code){
+  var local=loadLocalCodes();
+  delete local[code];
+  saveLocalCodes(local);
+  renderCodes();
+  toast('Code entfernt');
+}
+function exportCodes(){
+  var merged=Object.assign({}, MA_CENTRAL, loadLocalCodes());
+  downloadJSON(merged, 'ma-codes.json');
+}
+
+fetch('ma-codes.json',{cache:'no-store'})
+  .then(function(r){ if(!r.ok) throw new Error('fetch failed'); return r.json(); })
+  .then(function(json){ MA_CENTRAL=json; renderCodes(); })
+  .catch(function(){ renderCodes(); });
+
+// ═══════════════════ ARTIKELNUMMERN ═══════════════════
+var ART_LOCAL_KEY='stober_artikel';
+var ART_CENTRAL={};
+var ART_GROUPED={"drehtuer": {"dk": [["betriebsart.full.ed100", "drehtuer.dk.betriebsart.full.ed100", "10385422"], ["betriebsart.full.ed250", "drehtuer.dk.betriebsart.full.ed250", "10385423"], ["modell.ed100", "drehtuer.dk.modell.ed100", "10513882"], ["modell.ed250", "drehtuer.dk.modell.ed250", "10513889"], ["modell.ed250pa", "drehtuer.dk.modell.ed250pa", ""], ["montage.bgs", "drehtuer.dk.montage.bgs", "10176432"], ["montage.bs", "drehtuer.dk.montage.bs", "10513893"], ["montage.gestaenge", "drehtuer.dk.montage.gestaenge", "10176432"], ["motioniq.ja", "drehtuer.dk.motioniq.ja", ""], ["notfunktion.notstrom", "drehtuer.dk.notfunktion.notstrom", ""], ["schliessfolge.ja", "drehtuer.dk.schliessfolge.ja", "10529214"], ["sensorik.flatscan", "drehtuer.dk.sensorik.flatscan", "10805080"], ["sensorik.flatscan3d", "drehtuer.dk.sensorik.flatscan3d", ""], ["sensorik.irs4", "drehtuer.dk.sensorik.irs4", "10282489"], ["tuerart.brandschutz.ed100", "drehtuer.dk.tuerart.brandschutz.ed100", ""], ["tuerart.brandschutz.ed250", "drehtuer.dk.tuerart.brandschutz.ed250", "10385421"], ["tuerart.rauchschutz.ed100", "drehtuer.dk.tuerart.rauchschutz.ed100", ""], ["tuerart.rauchschutz.ed250", "drehtuer.dk.tuerart.rauchschutz.ed250", "10385421"], ["verkleidung.basic", "drehtuer.dk.verkleidung.basic", ""], ["verkleidung.basic_rm", "drehtuer.dk.verkleidung.basic_rm", ""], ["verkleidung.professionell", "drehtuer.dk.verkleidung.professionell", ""], ["verkleidung.vario", "drehtuer.dk.verkleidung.vario", ""], ["zubehoer.brandmeldeanlage", "drehtuer.dk.zubehoer.brandmeldeanlage", ""], ["zubehoer.fingerprint", "drehtuer.dk.zubehoer.fingerprint", ""], ["zubehoer.gegensprechanlage", "drehtuer.dk.zubehoer.gegensprechanlage", ""], ["zubehoer.nottaster", "drehtuer.dk.zubehoer.nottaster", ""], ["zubehoer.profil", "drehtuer.dk.zubehoer.profil", ""], ["zubehoer.radar", "drehtuer.dk.zubehoer.radar", ""], ["zubehoer.rauchdetektor", "drehtuer.dk.zubehoer.rauchdetektor", ""], ["zubehoer.schluessel", "drehtuer.dk.zubehoer.schluessel", ""], ["zubehoer.taster", "drehtuer.dk.zubehoer.taster", ""], ["zubehoer.zutrittskontrolle", "drehtuer.dk.zubehoer.zutrittskontrolle", ""]], "rc": [["modell.dfa127", "drehtuer.rc.modell.dfa127", ""], ["modell.dfa127fp", "drehtuer.rc.modell.dfa127fp", ""], ["modell.dfa830", "drehtuer.rc.modell.dfa830", ""], ["montage.bgs", "drehtuer.rc.montage.bgs", ""], ["montage.bs", "drehtuer.rc.montage.bs", ""], ["montage.gestaenge", "drehtuer.rc.montage.gestaenge", ""], ["notfunktion.notstrom", "drehtuer.rc.notfunktion.notstrom", ""]], "gi": [["modell.fd20", "drehtuer.gi.modell.fd20", ""], ["montage.bgs", "drehtuer.gi.montage.bgs", ""], ["montage.bs", "drehtuer.gi.montage.bs", ""], ["montage.gestaenge", "drehtuer.gi.montage.gestaenge", ""], ["notfunktion.notstrom", "drehtuer.gi.notfunktion.notstrom", ""]], "gz": [["modell.f", "drehtuer.gz.modell.f", ""], ["modell.fis", "drehtuer.gz.modell.fis", ""], ["modell.fr", "drehtuer.gz.modell.fr", ""], ["modell.fris", "drehtuer.gz.modell.fris", ""], ["modell.frists", "drehtuer.gz.modell.frists", ""], ["modell.ists", "drehtuer.gz.modell.ists", ""], ["modell.std", "drehtuer.gz.modell.std", ""], ["montage.bgs", "drehtuer.gz.montage.bgs", ""], ["montage.bs", "drehtuer.gz.montage.bs", ""], ["montage.gestaenge", "drehtuer.gz.montage.gestaenge", ""], ["notfunktion.notstrom", "drehtuer.gz.notfunktion.notstrom", ""]]}, "schiebetuer": {"dk": [["modell.es250fst", "schiebetuer.dk.modell.es250fst", ""], ["modell.es250pro", "schiebetuer.dk.modell.es250pro", ""], ["modell.es250t", "schiebetuer.dk.modell.es250t", ""], ["modell.es250tfst", "schiebetuer.dk.modell.es250tfst", ""], ["modell.es400fst", "schiebetuer.dk.modell.es400fst", ""], ["modell.es400pro", "schiebetuer.dk.modell.es400pro", ""], ["modell.es400t", "schiebetuer.dk.modell.es400t", ""], ["modell.es400tfst", "schiebetuer.dk.modell.es400tfst", ""], ["notfunktion.akku", "schiebetuer.dk.notfunktion.akku", ""], ["sensorik.ixiod", "schiebetuer.dk.sensorik.ixiod", ""], ["sensorik.ixiodp3", "schiebetuer.dk.sensorik.ixiodp3", ""], ["sensorik.ixiodt3", "schiebetuer.dk.sensorik.ixiodt3", ""], ["sensorik.ixiost", "schiebetuer.dk.sensorik.ixiost", ""], ["zubehoer.bma", "schiebetuer.dk.zubehoer.bma", ""], ["zubehoer.dpi", "schiebetuer.dk.zubehoer.dpi", ""], ["zubehoer.nebenkante", "schiebetuer.dk.zubehoer.nebenkante", ""], ["zubehoer.potausgl", "schiebetuer.dk.zubehoer.potausgl", ""], ["zubehoer.rauchschalter", "schiebetuer.dk.zubehoer.rauchschalter", ""], ["zubehoer.schleuse", "schiebetuer.dk.zubehoer.schleuse", ""], ["zubehoer.sensorverk", "schiebetuer.dk.zubehoer.sensorverk", ""], ["zubehoer.teiloeff", "schiebetuer.dk.zubehoer.teiloeff", ""]], "rc": [["modell.tsa20", "schiebetuer.rc.modell.tsa20", ""], ["modell.tsa21", "schiebetuer.rc.modell.tsa21", ""], ["modell.tsa22", "schiebetuer.rc.modell.tsa22", ""], ["modell.tsaduo", "schiebetuer.rc.modell.tsaduo", ""], ["notfunktion.akku", "schiebetuer.rc.notfunktion.akku", ""], ["sensorik.ixiod", "schiebetuer.rc.sensorik.ixiod", ""], ["sensorik.ixiodp3", "schiebetuer.rc.sensorik.ixiodp3", ""], ["sensorik.ixiodt3", "schiebetuer.rc.sensorik.ixiodt3", ""], ["sensorik.ixiost", "schiebetuer.rc.sensorik.ixiost", ""]], "gi": [["modell.sl35", "schiebetuer.gi.modell.sl35", ""], ["modell.slxm", "schiebetuer.gi.modell.slxm", ""], ["notfunktion.akku", "schiebetuer.gi.notfunktion.akku", ""], ["sensorik.ixiod", "schiebetuer.gi.sensorik.ixiod", ""], ["sensorik.ixiodp3", "schiebetuer.gi.sensorik.ixiodp3", ""], ["sensorik.ixiodt3", "schiebetuer.gi.sensorik.ixiodt3", ""], ["sensorik.ixiost", "schiebetuer.gi.sensorik.ixiost", ""]], "gz": [["modell.ecdrive", "schiebetuer.gz.modell.ecdrive", ""], ["modell.ecdrivefr", "schiebetuer.gz.modell.ecdrivefr", ""], ["modell.powerdrfr", "schiebetuer.gz.modell.powerdrfr", ""], ["modell.powerdrive", "schiebetuer.gz.modell.powerdrive", ""], ["modell.slimdrive", "schiebetuer.gz.modell.slimdrive", ""], ["modell.slimfr", "schiebetuer.gz.modell.slimfr", ""], ["modell.slimntfr", "schiebetuer.gz.modell.slimntfr", ""], ["modell.slimrc2", "schiebetuer.gz.modell.slimrc2", ""], ["modell.slimrd", "schiebetuer.gz.modell.slimrd", ""], ["modell.slimt", "schiebetuer.gz.modell.slimt", ""], ["notfunktion.akku", "schiebetuer.gz.notfunktion.akku", ""], ["sensorik.ixiod", "schiebetuer.gz.sensorik.ixiod", ""], ["sensorik.ixiodp3", "schiebetuer.gz.sensorik.ixiodp3", ""], ["sensorik.ixiodt3", "schiebetuer.gz.sensorik.ixiodt3", ""], ["sensorik.ixiost", "schiebetuer.gz.sensorik.ixiost", ""], ["zubehoer.bacnet", "schiebetuer.gz.zubehoer.bacnet", ""], ["zubehoer.bma", "schiebetuer.gz.zubehoer.bma", ""], ["zubehoer.can", "schiebetuer.gz.zubehoer.can", ""], ["zubehoer.geze_conn", "schiebetuer.gz.zubehoer.geze_conn", ""], ["zubehoer.nebenkante", "schiebetuer.gz.zubehoer.nebenkante", ""], ["zubehoer.rauch", "schiebetuer.gz.zubehoer.rauch", ""], ["zubehoer.schleuse", "schiebetuer.gz.zubehoer.schleuse", ""], ["zubehoer.teiloeff", "schiebetuer.gz.zubehoer.teiloeff", ""]]}};
+var TOOL_LABEL={"drehtuer": "Drehtür-Konfigurator", "schiebetuer": "Schiebetür-Konfigurator"};
+var MARKEN_LABEL={"dk": "dormakaba", "rc": "record", "gi": "Gilgen", "gz": "GEZE"};
+
+function loadLocalArtikel(){
+  try{ return JSON.parse(localStorage.getItem(ART_LOCAL_KEY)||'{}'); }catch(e){ return {}; }
+}
+function saveLocalArtikel(obj){ localStorage.setItem(ART_LOCAL_KEY, JSON.stringify(obj)); }
+
+function prettyLabel(rest){
+  return rest.split('.').map(function(s){ return s.charAt(0).toUpperCase()+s.slice(1); }).join(' \u203a ');
+}
+
+function effectiveValue(fullKey, centralVal){
+  var local = loadLocalArtikel();
+  if(local[fullKey]!==undefined && local[fullKey]!=='') return {val:local[fullKey], src:'lokal'};
+  if(centralVal!==undefined && centralVal!=='') return {val:centralVal, src:'zentral'};
+  return {val:'', src:'leer'};
+}
+
+function renderArtikel(){
+  var q = document.getElementById('art-search').value.trim().toLowerCase();
+  var container = document.getElementById('artikel-groups');
+  container.innerHTML = '';
+
+  Object.keys(ART_GROUPED).forEach(function(tool){
+    var toolHasMatch = false;
+    var toolHtml = '<div class="group-head"><span class="mark" aria-hidden="true"></span>'+esc(TOOL_LABEL[tool]||tool)+'</div>';
+
+    Object.keys(ART_GROUPED[tool]).forEach(function(marke){
+      var rows = ART_GROUPED[tool][marke];
+      var visibleRows = rows.filter(function(r){
+        var rest=r[0], fullKey=r[1];
+        var label = prettyLabel(rest);
+        var hay = (label+' '+fullKey+' '+(MARKEN_LABEL[marke]||marke)).toLowerCase();
+        return !q || hay.indexOf(q) > -1;
+      });
+      if(!visibleRows.length) return;
+      toolHasMatch = true;
+      toolHtml += '<div class="subgroup-head">'+esc(MARKEN_LABEL[marke]||marke)+'</div>';
+      toolHtml += '<table class="art-row"><tbody>';
+      visibleRows.forEach(function(r){
+        var rest=r[0], fullKey=r[1], centralVal=r[2];
+        var eff = effectiveValue(fullKey, centralVal);
+        var srcClass = eff.src==='lokal' ? 'src-lokal' : (eff.src==='zentral' ? 'src-zentral' : 'src-leer');
+        var srcLabel = eff.src==='lokal' ? 'Lokal' : (eff.src==='zentral' ? 'Zentral' : 'Leer');
+        toolHtml += '<tr>'+
+          '<td><div class="key-label">'+esc(prettyLabel(rest))+'</div><div class="mono">'+esc(fullKey)+'</div></td>'+
+          '<td><span class="src-tag '+srcClass+'">'+srcLabel+'</span></td>'+
+          '<td><input type="text" data-key="'+esc(fullKey)+'" value="'+esc(eff.val)+'" placeholder="Artikelnr."></td>'+
+          '<td style="white-space:nowrap"><button class="btn small" onclick="saveArtikelRow(this)">Speichern</button> '+
+          '<button class="btn ghost small" onclick="resetArtikelRow(this)">&#8635;</button></td>'+
+          '</tr>';
+      });
+      toolHtml += '</tbody></table>';
+    });
+
+    if(toolHasMatch) container.innerHTML += toolHtml;
+  });
+
+  if(!container.innerHTML){
+    container.innerHTML = '<p class="empty">Keine Treffer.</p>';
+  }
+}
+
+function saveArtikelRow(btn){
+  var tr = btn.closest('tr');
+  var input = tr.querySelector('input[data-key]');
+  var key = input.dataset.key;
+  var val = input.value.trim();
+  var local = loadLocalArtikel();
+  if(val){ local[key]=val; } else { delete local[key]; }
+  saveLocalArtikel(local);
+  toast('Gespeichert (lokal auf diesem Gerät)');
+  renderArtikel();
+}
+function resetArtikelRow(btn){
+  var tr = btn.closest('tr');
+  var input = tr.querySelector('input[data-key]');
+  var key = input.dataset.key;
+  var local = loadLocalArtikel();
+  delete local[key];
+  saveLocalArtikel(local);
+  toast('Lokale Überschreibung entfernt');
+  renderArtikel();
+}
+function resetArtikelLocal(){
+  localStorage.removeItem(ART_LOCAL_KEY);
+  renderArtikel();
+  toast('Alle lokalen Artikelnummern zurückgesetzt');
+}
+function exportArtikel(){
+  var merged = Object.assign({}, ART_CENTRAL, loadLocalArtikel());
+  downloadJSON(merged, 'artikel.json');
+}
+
+fetch('artikel.json',{cache:'no-store'})
+  .then(function(r){ if(!r.ok) throw new Error('fetch failed'); return r.json(); })
+  .then(function(json){ ART_CENTRAL=json; renderArtikel(); })
+  .catch(function(){ renderArtikel(); });
+
+renderArtikel();
+
+// ─── Utils ──────────────────────────────────────────────────────────────
+function esc(s){
+  return String(s==null?'':s).replace(/[&<>"']/g, function(c){
+    return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];
+  });
+}
+function downloadJSON(obj, filename){
+  var sorted = {};
+  Object.keys(obj).sort().forEach(function(k){ sorted[k]=obj[k]; });
+  var blob = new Blob([JSON.stringify(sorted, null, 2)], {type:'application/json'});
+  var url = URL.createObjectURL(blob);
+  var a = document.createElement('a');
+  a.href = url; a.download = filename;
+  document.body.appendChild(a); a.click(); document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+  toast(filename+' heruntergeladen');
+}
+
+</script>
+</body>
+</html>
