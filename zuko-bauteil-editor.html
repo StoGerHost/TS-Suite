@@ -1,0 +1,692 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ZuKo Bauteil-Editor</title>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600;700&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    /* Planungstool-Palette (siehe index.html), 1:1 übernommen */
+    --ink:#16222c;
+    --ink-soft:#3a4a56;
+    --paper:#f5f2ea;
+    --card:#ffffff;
+    --line:#e0dac9;
+    --accent:#d6601f;
+    --accent-dark:#a84a16;
+    --ok:#2e7d63;
+    --warn:#c1432b;
+    --warn-bg:#fbeae6;
+    --muted:#6b7280;
+    --chip-bg:#eef0ee;
+
+    /* Bestehende Blueprint-Variablennamen auf die neue Palette gemappt,
+       damit der gesamte restliche CSS-/SVG-Code unverändert bleibt. */
+    --bp-bg:var(--paper); --bp-grid:var(--line); --bp-line:var(--ink); --bp-line-dim:var(--line);
+    --bp-power:var(--accent); --bp-data:var(--ok); --bp-safety:var(--warn); --bp-signal:var(--ink-soft);
+    --bp-power-plus:#c0202c; --bp-power-gnd:var(--ink); --bp-wire-data:#b8901f;
+    --bp-panel:var(--card); --bp-panel2:#faf7f0;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    background: var(--bp-bg);
+    color: var(--bp-line);
+    font-family:'IBM Plex Sans', sans-serif;
+    min-height:100vh;
+    padding: 18px 14px 80px;
+  }
+  .wrap{max-width: 1000px; margin:0 auto;}
+  .eyebrow{font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:var(--bp-data);margin:0 0 6px;}
+  h1{font-family:'IBM Plex Mono',monospace;font-weight:700;font-size:clamp(20px,5vw,28px);margin:0 0 4px;}
+  .sub{color:var(--ink-soft);font-size:13px;margin:0 0 18px;line-height:1.5;}
+
+  .tabs{display:flex;gap:6px;margin-bottom:16px;flex-wrap:wrap;}
+  .tab-btn{
+    font-family:'IBM Plex Mono',monospace;font-size:12px;letter-spacing:.03em;
+    background:var(--bp-panel2);border:1px solid var(--bp-line-dim);color:var(--bp-signal);
+    padding:9px 14px;border-radius:3px;cursor:pointer;
+  }
+  .tab-btn.active{border-color:var(--bp-power);color:var(--accent-dark);background:rgba(214,96,31,.1);}
+  .tab{display:none;}
+  .tab.active{display:block;}
+
+  .card{border:1px solid var(--bp-line-dim);border-radius:5px;background:var(--bp-panel);padding:16px;margin-bottom:14px;}
+  .card h2{font-family:'IBM Plex Mono',monospace;font-size:14px;margin:0 0 12px;color:var(--bp-power);}
+  .card h3{font-family:'IBM Plex Mono',monospace;font-size:12.5px;margin:14px 0 8px;color:var(--bp-data);}
+
+  label{display:block;font-family:'IBM Plex Mono',monospace;font-size:10.5px;letter-spacing:.04em;color:var(--bp-signal);margin:0 0 4px;text-transform:uppercase;}
+  input[type=text], input[type=date], select, textarea{
+    width:100%;background:var(--bp-panel2);border:1px solid var(--bp-line-dim);color:var(--bp-line);
+    padding:8px 9px;border-radius:3px;font-family:'IBM Plex Sans',sans-serif;font-size:13.5px;margin-bottom:10px;
+  }
+  input:focus, select:focus, textarea:focus{outline:2px solid var(--bp-data);outline-offset:1px;}
+  .row{display:flex;gap:10px;flex-wrap:wrap;}
+  .row > div{flex:1;min-width:140px;}
+
+  button{
+    font-family:'IBM Plex Mono',monospace;font-size:12px;cursor:pointer;border-radius:3px;
+    border:1px solid var(--bp-line-dim);background:var(--bp-panel2);color:var(--bp-line);padding:8px 13px;
+  }
+  button.primary{border-color:var(--bp-power);color:var(--accent-dark);background:rgba(214,96,31,.1);}
+  button.danger{border-color:var(--bp-safety);color:var(--bp-safety);background:var(--warn-bg);}
+  button.ghost{border-color:var(--bp-line-dim);color:var(--bp-signal);background:transparent;}
+  button:disabled{opacity:.35;cursor:not-allowed;}
+  button + button{margin-left:6px;}
+
+  .system-item{border:1px solid var(--bp-line-dim);border-radius:4px;padding:10px 12px;margin-bottom:8px;background:var(--bp-panel2);}
+  .system-item summary{cursor:pointer;font-family:'IBM Plex Mono',monospace;font-size:13px;color:var(--bp-line);list-style:none;display:flex;justify-content:space-between;align-items:center;}
+  .system-item summary::-webkit-details-marker{display:none;}
+  .system-item summary .meta{color:var(--bp-signal);font-size:11px;font-weight:400;}
+
+  .bauteil-block{border-left:2px solid var(--bp-data);padding:10px 0 10px 12px;margin:12px 0;}
+  .bauteil-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;gap:10px;flex-wrap:wrap;}
+  .bauteil-name-wrap{display:flex;align-items:center;gap:8px;flex-wrap:wrap;}
+  .bauteil-head .name-input{
+    width:auto;max-width:220px;margin:0;padding:4px 7px;font-size:13px;
+    font-family:'IBM Plex Mono',monospace;color:var(--bp-line);background:var(--bp-panel);
+  }
+  .bauteil-head .typ{font-size:10px;color:var(--bp-signal);text-transform:uppercase;letter-spacing:.05em;}
+
+  table{width:100%;border-collapse:collapse;font-size:12.5px;}
+  th{font-family:'IBM Plex Mono',monospace;font-size:10px;text-transform:uppercase;letter-spacing:.04em;color:var(--bp-signal);text-align:left;padding:6px 6px;border-bottom:1px solid var(--bp-line-dim);}
+  td{padding:5px 6px;border-bottom:1px solid rgba(77,110,140,.3);vertical-align:middle;}
+  td input, td select{margin-bottom:0;padding:5px 6px;font-size:12.5px;}
+
+  .quickadd{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px;}
+  .quickadd button{font-size:11px;padding:6px 10px;}
+
+  .status{font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--bp-signal);margin-left:8px;}
+  .status.ok{color:var(--bp-data);}
+
+  .diagram-box{border:1px solid var(--bp-line-dim);border-radius:4px;background:var(--chip-bg);padding:8px;margin:14px 0;}
+  svg{width:100%;height:auto;display:block;}
+  .node rect{fill:var(--bp-panel2);stroke:var(--bp-line-dim);stroke-width:1.5;rx:5;}
+  .node text{fill:var(--bp-line);font-family:'IBM Plex Mono',monospace;font-size:12px;}
+  .wire{fill:none;stroke-linecap:round;}
+  .wire.power{stroke:var(--bp-power);stroke-width:2.5;}
+  .wire.power.plus{stroke:var(--bp-power-plus);}
+  .wire.power.gnd{stroke:var(--bp-power-gnd);}
+  .wire-halo{fill:none;stroke:var(--line);stroke-opacity:.95;stroke-width:5;stroke-linecap:round;}
+  .wire.data{stroke:var(--bp-wire-data);stroke-width:2;stroke-dasharray:6 5;}
+  .wire.signal{stroke:var(--bp-signal);stroke-width:1.5;}
+  .wire.safety{stroke:var(--bp-safety);stroke-width:4;stroke-dasharray:9 6;}
+  .wire.valid{stroke:var(--ok) !important;filter:drop-shadow(0 0 2px var(--ok));}
+  .wlabel{font-family:'IBM Plex Mono',monospace;font-size:8.5px;fill:var(--ink-soft);}
+  .wlabel.valid{fill:var(--ok);}
+  .wlabel-bg{fill:var(--card);fill-opacity:.95;stroke:var(--bp-line-dim);stroke-width:.75;}
+  .wlabel-end{font-family:'IBM Plex Mono',monospace;font-size:9px;fill:var(--bp-line);font-weight:600;}
+
+  .schema-controls{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:4px;}
+  .schema-controls > div{flex:1;min-width:180px;}
+  .schema-status{font-family:'IBM Plex Mono',monospace;font-size:11.5px;color:var(--bp-signal);margin:0 0 12px;}
+  .schema-status.ok{color:var(--ok);}
+  .node.komponente rect{stroke:var(--bp-power);}
+  .node.quelle rect{stroke:var(--bp-data);}
+  .node.steuerung rect{stroke:var(--bp-signal);}
+
+  .legend{display:flex;flex-wrap:wrap;gap:12px 18px;font-family:'IBM Plex Mono',monospace;font-size:10.5px;color:var(--ink-soft);margin:0 0 6px;}
+  .legend .sw{display:inline-flex;align-items:center;gap:6px;}
+  .legend .ln{width:20px;height:0;border-top-width:3px;border-top-style:solid;display:inline-block;}
+  .ln.power{border-color:var(--bp-power);} .ln.data{border-color:var(--bp-wire-data);border-top-style:dashed;}
+  .ln.power-plus{border-color:var(--bp-power-plus);}
+  .ln.power-gnd{border-color:var(--bp-power-gnd);}
+  .ln.signal{border-color:var(--bp-signal);} .ln.safety{border-color:var(--bp-safety);border-top-style:dashed;border-top-width:4px;}
+
+  .empty{color:var(--muted);font-size:12.5px;font-style:italic;padding:8px 0;}
+  .plan-item{display:flex;justify-content:space-between;align-items:center;border:1px solid var(--bp-line-dim);border-radius:4px;padding:10px 12px;margin-bottom:8px;background:var(--bp-panel2);}
+  .plan-item .pname{font-family:'IBM Plex Mono',monospace;font-size:13px;}
+  .plan-item .pmeta{font-size:11px;color:var(--bp-signal);}
+
+  .no-print{}
+  @media print{
+    body{background:#fff;color:#111;padding:0;}
+    .tabs, .no-print, .quickadd, #tab-systeme, #tab-plaene, #tab-schema{display:none !important;}
+    .card{border:1px solid #999;background:#fff;color:#111;box-shadow:none;}
+    .card h2{color:#111;}
+    table th{color:#444;border-color:#999;}
+    table td{border-color:#ccc;color:#111;}
+    .diagram-box{background:#fff;border-color:#999;}
+    .node rect{fill:#fff;stroke:#333;}
+    .node text{fill:#111;}
+    .wlabel{fill:#333;}
+    .wlabel-bg{fill:#fff;stroke:#999;}
+    .wlabel-end{fill:#111;}
+    .legend{color:#333;}
+  }
+
+  .sync-note{font-size:12px;color:var(--muted);line-height:1.5;margin:0 0 14px;}
+  .io-row{display:flex;gap:8px;flex-wrap:wrap;align-items:center;}
+  input[type=file]{display:none;}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <p class="eyebrow">Stober · Zutrittskontrolle</p>
+  <h1>ZuKo Bauteil-Editor</h1>
+  <p class="sub">Systeme, Bauteile und Klemmenbelegungen frei anlegen und benennen — eigenständig nutzbar, unabhängig vom Kabelplan Generator.</p>
+  <p class="sync-note">
+    Läuft dieser Editor im selben Browser/Gerät wie der Kabelplan Generator (z.B. beide von derselben Stelle geöffnet), teilen sie sich denselben Speicher — Bauteile tauchen dann automatisch dort auf.
+    Auf einem anderen Gerät oder nach Cache-Löschung funktioniert das nicht automatisch — dafür unten <strong>Bibliothek exportieren</strong> und im Kabelplan Generator (Tab „Systeme &amp; Klemmen") importieren.
+  </p>
+
+  <div class="card">
+    <h2>Neues System anlegen</h2>
+    <div class="row">
+      <div>
+        <label>Hersteller</label>
+        <input type="text" id="new-hersteller" list="hersteller-list" placeholder="z.B. dormakaba">
+        <datalist id="hersteller-list"><option value="dormakaba"><option value="GEZE"><option value="Sonstige"></datalist>
+      </div>
+      <div>
+        <label>Modell / Produktlinie</label>
+        <input type="text" id="new-modell" placeholder="z.B. evolo, ECstar...">
+      </div>
+    </div>
+    <button class="primary" id="btn-add-system">+ System anlegen</button>
+  </div>
+
+  <div class="card">
+    <h2>Vorhandene Systeme <span class="status" id="save-status"></span></h2>
+    <div id="systeme-list"><p class="empty">Noch keine Systeme angelegt.</p></div>
+  </div>
+
+  <div class="card">
+    <h2>Bibliothek sichern / übertragen</h2>
+    <div class="io-row">
+      <button id="btn-export" class="ghost">⭳ Bibliothek exportieren (JSON)</button>
+      <button id="btn-import-trigger" class="ghost">⭱ Bibliothek importieren</button>
+      <input type="file" id="file-import" accept="application/json">
+    </div>
+    <p class="status" id="io-status"></p>
+  </div>
+
+</div>
+
+<script>
+const TYP_LABEL = {power:'Strom', data:'Daten', signal:'Meldung', safety:'Sicherheit'};
+const BAUTEIL_TYPES = [
+  {id:'netzteil', name:'Netzteil'}, {id:'steuerung', name:'Steuerung'}, {id:'leser', name:'Leser'},
+  {id:'verriegelung', name:'Türöffner/Verriegelung'}, {id:'tuerkontakt', name:'Türkontakt'},
+  {id:'riegelkontakt', name:'Riegelkontakt'}, {id:'taster', name:'Taster Notentriegelung'}, {id:'sonstiges', name:'Sonstiges'}
+];
+
+let systeme = [];
+
+const uid = () => (crypto.randomUUID ? crypto.randomUUID() : 'id-'+Date.now()+'-'+Math.random().toString(16).slice(2));
+
+// Identische Speicher-Abstraktion wie im Kabelplan Generator: nutzt window.storage
+// falls vorhanden (Claude-Umgebung), sonst localStorage. Gleicher Storage-Key
+// ('systeme-bibliothek') wie dort, damit Daten bei gemeinsamer Origin automatisch
+// geteilt werden.
+const appStorage = {
+  hasNative(){
+    return !!(window.storage && typeof window.storage.get === 'function' && typeof window.storage.set === 'function');
+  },
+  async get(key, shared){
+    if(this.hasNative()){
+      return await window.storage.get(key, shared);
+    }
+    const raw = localStorage.getItem(key);
+    return raw === null ? null : { key, value: raw, shared: !!shared };
+  },
+  async set(key, value, shared){
+    if(this.hasNative()){
+      return await window.storage.set(key, value, shared);
+    }
+    localStorage.setItem(key, value);
+    return { key, value, shared: !!shared };
+  }
+};
+
+function seedKlemme(nr, bezeichnung, funktion, info){ return {id: uid(), nr, bezeichnung, funktion, info}; }
+
+function seedSysteme(){
+  return [
+    {
+      id: uid(), hersteller: 'dormakaba', modell: 'Kompaktleser 91 04 (E300 V4) — steckbare Anschlussklemme',
+      bauteile: [
+        { id: uid(), typ:'leser', name:'Kompaktleser 91 04', klemmen: [
+          seedKlemme('1','DC- / AC','power','Stromversorgung 12-27V AC oder 10-34V DC'),
+          seedKlemme('2','DC+ / AC','power','Stromversorgung, siehe Klemme 1'),
+          seedKlemme('3','NC (normally closed)','signal','Relaisausgang Türöffner, max. 2A'),
+          seedKlemme('4','COM','signal','Relaisausgang Türöffner, gemeinsamer Kontakt'),
+          seedKlemme('5','NO (normally open)','signal','Relaisausgang Türöffner, max. 2A'),
+          seedKlemme('6','GND (gemeinsame Masse)','signal','Bezugsmasse für digitale Eingänge'),
+          seedKlemme('7','IN1','signal','Drückerkontakt oder Türöffnertaster (REX)'),
+          seedKlemme('8','-','signal','nicht belegt (Funktion abhängig von Parametrierung)'),
+          seedKlemme('9','-','signal',''),
+          seedKlemme('10','-','signal',''),
+          seedKlemme('11','-','signal',''),
+          seedKlemme('12','-','signal','')
+        ]}
+      ],
+      quelle: 'dormakaba Technisches Handbuch Kompaktleser 91 04, Dok. 04046476, Stand 10/2018 — bitte gegen verbaute Geräterevision prüfen.'
+    },
+    {
+      id: uid(), hersteller: 'SimonsVoss', modell: 'WaveNet System 3060 — LockNode WN.LN.C (verkabelt)',
+      bauteile: [
+        { id: uid(), typ:'sonstiges', name:'LockNode WN.LN.C', klemmen: [
+          seedKlemme('DC','Energieversorgung','power','6-24V DC, polaritätsabhängig. Stromaufnahme LockNode ca. 15 mA'),
+          seedKlemme('A','Datenleitung D+','data','RS485, polaritätsabhängig'),
+          seedKlemme('B','Datenleitung D-','data','RS485, polaritätsabhängig'),
+          seedKlemme('Schirm','Abschirmung','signal','An jedem LockNode/RouterNode durchverbinden, isolieren, einseitig auf PE auflegen')
+        ]},
+        { id: uid(), typ:'sonstiges', name:'RouterNode — RS485-Bus (8-pol. Phoenix-Stecker)', klemmen: [
+          seedKlemme('A','Data + (A)','data','Busleitung zum RS485-Modul, Ader grün'),
+          seedKlemme('B','Data - (B)','data','Busleitung zum RS485-Modul, Ader orange'),
+          seedKlemme('GND','Ground','signal','Bezugsmasse Busleitung')
+        ]}
+      ],
+      quelle: 'SimonsVoss WaveNet-Handbuch (System 3065/3060) — bitte gegen verbaute Geräterevision prüfen.'
+    },
+    {
+      id: uid(), hersteller: 'SimonsVoss', modell: 'Smart Relais Serie (1. Generation) — SREL / SREL.ZK / SREL.ADV',
+      bauteile: [
+        { id: uid(), typ:'sonstiges', name:'SmartRelais SREL / SREL.ZK / SREL.ADV', klemmen: [
+          seedKlemme('+/~','Netzteil +','power','Pluspol bei 5-24V DC oder ein Wechselspannungsanschluss 12V AC'),
+          seedKlemme('-/~','Netzteil -','power','Minuspol bei DC oder zweiter Wechselspannungsanschluss 12V AC. Kein Verpolungsschutz!'),
+          seedKlemme('Batt','Batterie SREL.BAT','power','Steckeranschluss für Batteriebetrieb ohne Netzteil'),
+          seedKlemme('NC','Relais NC','signal','Wechslerkontakt, im Ruhezustand geschlossen gegen COM'),
+          seedKlemme('COM','Relais COM','signal','Gemeinsamer Kontakt des Wechslerrelais'),
+          seedKlemme('NO','Relais NO','signal','Wechslerkontakt, im geschalteten Zustand geschlossen gegen COM'),
+          seedKlemme('C','RS-485 COM','data','Nur SREL.ADV — Busanschluss für externe Module'),
+          seedKlemme('A','RS-485 A','data','Nur SREL.ADV — Busanschluss für externe Module'),
+          seedKlemme('B','RS-485 B','data','Nur SREL.ADV — Busanschluss für externe Module'),
+          seedKlemme('+V','+ Vaux','power','Nur SREL.ADV — typ. 3,0-5,0V für externe LED/Buzzer, max. 10mA'),
+          seedKlemme('F3','LED/Buzzer/Input1/CLS','signal','Nur SREL.ADV — Multifunktionsanschluss'),
+          seedKlemme('F2','Seriell 1 / Input 2','signal','Nur SREL.ADV — Multifunktionsanschluss'),
+          seedKlemme('F1','Seriell 2','signal','Nur SREL.ADV — Multifunktionsanschluss'),
+          seedKlemme('BN/WH/GN/GY/YL','Externe Antenne SREL.AV','signal','Braun/Weiß/Grün/Grau/Gelb — Anschluss für ausgelagerte Antenne')
+        ]}
+      ],
+      quelle: 'SimonsVoss Handbuch SmartRelais 3063 (SREL/SREL.ZK/SREL.ADV), Stand 06.2006 — älteres, aber offizielles Dokument. Bitte gegen verbaute Geräterevision prüfen.'
+    },
+    {
+      id: uid(), hersteller: 'SimonsVoss', modell: 'SmartRelais 3 Advanced — Controller + Leser + SmartOutput-Modul',
+      bauteile: [
+        { id: uid(), typ:'steuerung', name:'SREL3-Controller', klemmen: [
+          seedKlemme('1','GND','power','Optionaler Anschluss externe Stromversorgung, Masse'),
+          seedKlemme('2','+VIN','power','Optionaler Anschluss externe Stromversorgung, Pluspol'),
+          seedKlemme('3','Relais 1 NO','signal','Schaltet gegen C (Common)'),
+          seedKlemme('4','Relais 1 C','signal','Gemeinsamer Kontakt Wechselkontakt'),
+          seedKlemme('5','Relais 1 NC','signal','Trennt von C beim Schalten'),
+          seedKlemme('6','Relais 2 NO','signal','Verfügbarkeit firmwareabhängig'),
+          seedKlemme('7','Relais 2 C','signal','Verfügbarkeit firmwareabhängig'),
+          seedKlemme('8','Relais 2 NC','signal','Verfügbarkeit firmwareabhängig'),
+          seedKlemme('9','Leser 1 +','power','Stromversorgung Leser 1, entspricht VIN-1V bzw. 12V-1V (PoE)'),
+          seedKlemme('10','Leser 1 GND','power',''),
+          seedKlemme('11','Leser 1 B','data','RS-485 Datenleitung B'),
+          seedKlemme('12','Leser 1 A','data','RS-485 Datenleitung A'),
+          seedKlemme('13','Leser 2 +','power','Stromversorgung Leser 2'),
+          seedKlemme('14','Leser 2 GND','power',''),
+          seedKlemme('15','Leser 2 B','data','RS-485 Datenleitung B'),
+          seedKlemme('16','Leser 2 A','data','RS-485 Datenleitung A'),
+          seedKlemme('17','Leser 3 +','power','Stromversorgung Leser 3'),
+          seedKlemme('18','Leser 3 GND','power',''),
+          seedKlemme('19','Leser 3 / SmartOutput B','data','RS-485 Datenleitung B'),
+          seedKlemme('20','Leser 3 / SmartOutput A','data','RS-485 Datenleitung A'),
+          seedKlemme('21','Serielle Schnittstelle D4','signal','Open-Drain'),
+          seedKlemme('22','Serielle Schnittstelle D3','signal','Open-Drain'),
+          seedKlemme('23','Serielle Schnittstelle D2','signal','Open-Drain'),
+          seedKlemme('24','Serielle Schnittstelle D1','signal','Open-Drain'),
+          seedKlemme('25','Serielle Schnittstelle +','power','Entspricht VIN-1V bzw. 12V-1V (PoE)'),
+          seedKlemme('26','Eingang 3 (Push-to-open)','signal','Relais schaltet sobald verbunden mit I+ (Klemme 30)'),
+          seedKlemme('27','Eingang 2','signal','Anschluss externer Komponenten'),
+          seedKlemme('28','Eingang 1','signal','Anschluss externer Komponenten'),
+          seedKlemme('29','Ausgang GND','power',''),
+          seedKlemme('30','Ausgang I+','power','Entspricht VIN-1V bzw. 12V-1V (PoE)')
+        ]},
+        { id: uid(), typ:'leser', name:'SREL3-Leser (SR30HYS_F)', klemmen: [
+          seedKlemme('A','Datenleitung A','data','RS-485, an Controller A1/A2/A3'),
+          seedKlemme('B','Datenleitung B','data','RS-485, an Controller B1/B2/B3'),
+          seedKlemme('-','GND','power','Gemeinsames Massebezugspotential für Datenleitungen'),
+          seedKlemme('+','VIN','power','Stromversorgung extern oder durch Controller'),
+          seedKlemme('- (opt)','GND extern','power','Nur bei externer Stromversorgung, elektrisch mit Leseranschluss 3 verbunden')
+        ]},
+        { id: uid(), typ:'sonstiges', name:'SmartOutput-Modul (MOD.SOM8)', klemmen: [
+          seedKlemme('1','Brownout-Erkennung Out','signal','Open-Collector, schaltet bei Unterspannung < 10,0V'),
+          seedKlemme('4','Controller B','data','Datenleitung B, an Leser-3-Kontakt des Controllers'),
+          seedKlemme('5','Controller A','data','Datenleitung A, an Leser-3-Kontakt des Controllers'),
+          seedKlemme('6','Controller C','power','Masse, an Leser-3-Kontakt des Controllers'),
+          seedKlemme('7/8','Relais 4 a/b','signal','Potentialfreier Kontakt, abhängig von Berechtigung'),
+          seedKlemme('9/10','Relais 3 a/b','signal','Potentialfreier Kontakt'),
+          seedKlemme('11/12','Relais 2 a/b','signal','Potentialfreier Kontakt'),
+          seedKlemme('13/14','Relais 1 a/b','signal','Potentialfreier Kontakt'),
+          seedKlemme('15/16','Relais 5 b/a','signal','Potentialfreier Kontakt'),
+          seedKlemme('17/18','Relais 6 b/a','signal','Potentialfreier Kontakt'),
+          seedKlemme('19/20','Relais 7 b/a','signal','Potentialfreier Kontakt'),
+          seedKlemme('21/22','Relais 8 b/a','signal','Potentialfreier Kontakt'),
+          seedKlemme('23','AUX-Relais K2','signal','NO-Kontakt, ab Werk verbrückt mit Klemme 24'),
+          seedKlemme('24','+VIN','power','Stromversorgung, ab Werk verbrückt mit Klemme 23'),
+          seedKlemme('25','AUX-Relais A+','power','Spulen-Pluspol, ab Werk verbrückt mit Klemme 26'),
+          seedKlemme('26','AUX-Relais K1','signal','Schließer-Kontakt, ab Werk verbrückt mit Klemme 25'),
+          seedKlemme('27','AUX-Relais A-','power','Spulen-Minuspol'),
+          seedKlemme('28','GND','power','Stromversorgung Masse')
+        ]}
+      ],
+      quelle: 'SimonsVoss Handbuch SmartRelais 3 System (SREL3 ADV), Stand 06.08.2025 — offizielles, aktuelles Handbuch. Bitte gegen verbaute Geräterevision prüfen.'
+    },
+    {
+      id: uid(), hersteller: 'dormakaba', modell: 'Remoteleser 91 15 — Access Manager / MATRIX TP4-Client',
+      bauteile: [
+        { id: uid(), typ:'leser', name:'Remoteleser 91 15', klemmen: [
+          seedKlemme('AC-','Stromversorgung -','power','12-27V AC oder 10-34V DC'),
+          seedKlemme('AC+','Stromversorgung +','power','12-27V AC oder 10-34V DC'),
+          seedKlemme('C','RS-485 C','data','Verbindung zum übergeordneten Zutrittsmanager'),
+          seedKlemme('A','RS-485 A','data','Verbindung zum übergeordneten Zutrittsmanager'),
+          seedKlemme('B','RS-485 B','data','Verbindung zum übergeordneten Zutrittsmanager'),
+          seedKlemme('Ant.','HF RFID Antenne','signal','Koaxialkabel zur Erfassungseinheit, 50 Ohm'),
+          seedKlemme('NC','Relaisausgang NC','signal','Türöffner, Kontaktbelastbarkeit 30V AC/DC max. 2A'),
+          seedKlemme('COM','Relaisausgang COM','signal','Türöffner, gemeinsamer Kontakt'),
+          seedKlemme('NO','Relaisausgang NO','signal','Türöffner, Kontaktbelastbarkeit 30V AC/DC max. 2A'),
+          seedKlemme('IN1','Digitaler Eingang 1','signal','z.B. Türrahmenkontakt, leitungsüberwachbar'),
+          seedKlemme('IN2','Digitaler Eingang 2','signal','leitungsüberwachbar'),
+          seedKlemme('GND','Bezugsmasse Eingänge','signal','Gemeinsame Masse für IN1/IN2')
+        ]}
+      ],
+      quelle: 'dormakaba Technisches Handbuch Remoteleser 91 15, Dok. 04047115, Stand 11/2018 — verbindet sich per RS-485 mit dem übergeordneten Zutrittsmanager 92 00. Für den Zutrittsmanager 92 00 selbst (Controller-Box) war keine öffentlich zugängliche, detaillierte Klemmenliste auffindbar — diese liegt im geschützten dormakaba-Partnerbereich (Extranet). Allgemeine Eckdaten: 4 überwachte digitale Eingänge, 3 Relaisausgänge, RS-485, Ethernet, 10-34V DC.'
+    },
+    {
+      id: uid(), hersteller: 'SimonsVoss', modell: 'RouterNode 2 / GatewayNode 2 / SmartBridge — IO-Connector',
+      bauteile: [
+        { id: uid(), typ:'sonstiges', name:'RouterNode 2 — IO-Connector (nur RouterNode 2 nutzbar)', klemmen: [
+          seedKlemme('IO-Vout','IO Spannungsausgang','power','+3,3V Versorgung für externe Beschaltung'),
+          seedKlemme('AI','Analog Input','signal','Analoge Signalauswertung 0-3,3V DC'),
+          seedKlemme('DI1','Digitaler Eingang 1','signal','0V=Low, ab +2,0V=High'),
+          seedKlemme('DI2','Digitaler Eingang 2','signal',''),
+          seedKlemme('DI3','Digitaler Eingang 3','signal',''),
+          seedKlemme('O1.NC','Relais 1 NC','signal','Max. Schaltspannung 12V DC'),
+          seedKlemme('O1.NO','Relais 1 NO','signal','Max. Schaltspannung 12V DC'),
+          seedKlemme('O1.COM','Relais 1 COM','signal','Gemeinsamer Kontakt')
+        ]},
+        { id: uid(), typ:'netzteil', name:'RouterNode 2 / GatewayNode 2 / SmartBridge — Stromversorgung', klemmen: [
+          seedKlemme('DC In','Rundstecker 5,5mm','power','Pin 2,0mm — externes Netzteil, Vorrang wenn >12V DC vor PoE'),
+          seedKlemme('PoE','RJ45 Power-over-Ethernet','power','Netzwerk + Stromversorgung kombiniert'),
+          seedKlemme('+/-','2-pol. Schraubklemme','power','Stromversorgung für externe Applikationen, 0,14-1,5mm²')
+        ]}
+      ],
+      quelle: 'SimonsVoss Kurzanleitung/Handbuch RouterNode 2, GatewayNode 2, SmartBridge (NW10.900210, Stand 05.03.2024). IO-Connector nur am RouterNode 2 nutzbar, nicht an GatewayNode 2/SmartBridge.'
+    },
+    {
+      id: uid(), hersteller: 'GEZE', modell: 'Powerturn (DCU800/DCU802) — Drehtürantrieb',
+      bauteile: [
+        { id: uid(), typ:'steuerung', name:'Steuerung DCU800/DCU802', klemmen: [
+          seedKlemme('1','GND','power','Bezugsmasse, Steuerspannung 24V DC ±10%'),
+          seedKlemme('2','24V','power','Steuerspannung für externe Komponenten, max. 1200mA dauernd / 1800mA kurzzeitig (5s)'),
+          seedKlemme('20','KB','signal','Kontaktgeber Berechtigt'),
+          seedKlemme('3','KB 24V','power','Versorgung Kontaktgeber Berechtigt'),
+          seedKlemme('21','KI','signal','Kontaktgeber Innen'),
+          seedKlemme('4','KI 24VSens','power','Versorgung Kontaktgeber Innen'),
+          seedKlemme('23','KA','signal','Kontaktgeber Außen'),
+          seedKlemme('4','KA 24VSens','power','Versorgung Kontaktgeber Außen (gleiche Klemme wie KI)'),
+          seedKlemme('11','SIS','signal','Sicherheitssensor Schließen'),
+          seedKlemme('10','SIS TST','signal','Testsignal Sicherheitssensor Schließen'),
+          seedKlemme('13','SIO','signal','Sicherheitssensor Öffnen'),
+          seedKlemme('10','SIO TST','signal','Testsignal Sicherheitssensor Öffnen (gleiche Klemme wie SIS TST)'),
+          seedKlemme('31','TOEA','power','Türöffner Anschluss A'),
+          seedKlemme('32','TOEB','power','Türöffner Anschluss B'),
+          seedKlemme('33','RM','signal','Riegelmeldung (Rückmeldung Motorschloss/Verriegelung)'),
+          seedKlemme('51','PE1','signal','Parametrierbarer Eingang 1 (z.B. Sabotage, Schließlage, Stop, Brandalarm)'),
+          seedKlemme('52','PE2','signal','Parametrierbarer Eingang 2 (z.B. MPS, Notverriegelung, Stop)'),
+          seedKlemme('53','PE3','signal','Parametrierbarer Eingang 3 (analog zu PE2)'),
+          seedKlemme('55','PA1A','signal','Parametrierbarer Ausgang 1 — potentialfreier Relaiskontakt, max. 24V AC/DC 0,5A'),
+          seedKlemme('56','PA1B','signal','Parametrierbarer Ausgang 1 — Gegenkontakt'),
+          seedKlemme('57','PA2','signal','Parametrierbarer Ausgang 2 — Transistorausgang, max. 24V DC 0,5A'),
+          seedKlemme('9','DO','signal','Programmschalter Daueroffen'),
+          seedKlemme('8','AU','signal','Programmschalter Automatik'),
+          seedKlemme('7','LS','signal','Programmschalter Ladenschluss'),
+          seedKlemme('6','NA','signal','Programmschalter Nacht'),
+          seedKlemme('0','OFF','signal','Programmschalter Aus'),
+          seedKlemme('41','RS485-B','data','Datenleitung B zu DPS / zweitem Antrieb (2-flügelig)'),
+          seedKlemme('42','RS485-A','data','Datenleitung A zu DPS / zweitem Antrieb (2-flügelig)'),
+          seedKlemme('43','SCR','data','Schirm RS485-Leitung'),
+          seedKlemme('95','24V (Frei)','power','Freie Leitungsverbindung über Flachbandkabel DCU802↔DCU800'),
+          seedKlemme('98','GND (Frei)','power','Freie Leitungsverbindung über Flachbandkabel DCU802↔DCU800')
+        ]},
+        { id: uid(), typ:'verriegelung', name:'Türöffner (TOE, an DCU800/802)', klemmen: [
+          seedKlemme('31','TOEA','power','Antriebsseitig versorgt: 24V DC (Arbeits-/Ruhestrom) — bauseitig versorgt: 12V AC max. 1A'),
+          seedKlemme('32','TOEB','power','Gegenkontakt TOE'),
+          seedKlemme('33','RM','signal','Riegelmeldung — schaltet DPS bei aktivem Signal in Betriebsart Nacht'),
+          seedKlemme('2','24V','power','Bei antriebsseitiger Versorgung'),
+          seedKlemme('1','GND','power','Bei antriebsseitiger Versorgung')
+        ]},
+        { id: uid(), typ:'tuerkontakt', name:'Rauchschalterzentrale RSZ (DCU801, Brandschutz-Kit, optional)', klemmen: [
+          seedKlemme('62','RSZ 24V','power','Versorgung Rauchschalterzentrale'),
+          seedKlemme('61','RSZ GND','power','Bezugsmasse Rauchschalterzentrale'),
+          seedKlemme('63','zweiter Antrieb','power','Brücke zum zweiten Antrieb bei 2-flügeliger Anlage'),
+          seedKlemme('2','24V','power','Allgemeine Versorgung DCU801'),
+          seedKlemme('1','GND','power','Allgemeine Masse DCU801')
+        ]}
+      ],
+      quelle: 'GEZE Powerturn Anschlussplan, Mat.-Nr. 154919-03, gültig ab Software DCU8 V1.8 / Hardware Revision DCU800 Rev F. Vom Nutzer per PDF bereitgestellt und Klemmenwerte direkt daraus übernommen.'
+    },
+    {
+      id: uid(), hersteller: 'DOM Sicherheitstechnik (Tapkey)', modell: 'DOM Tapkey AccessManager V1 — Steuerung (Compact/HiSec)',
+      bauteile: [
+        { id: uid(), typ:'steuerung', name:'DOM Tapkey AccessManager (Steuerung)', klemmen: [
+          seedKlemme('7','DC In + (12-24V)','power','Spannungsversorgung der Einheit, Pluspol — externe Spannungsquelle 12-24V DC'),
+          seedKlemme('8','DC In – (12-24V)','power','Spannungsversorgung der Einheit, Minuspol'),
+          seedKlemme('9','DC Out +','power','Bereitstellung Spannung extern — versorgt optional einen angeschlossenen DOM PassivLeser (HiSec) mit'),
+          seedKlemme('10','DC Out –','power','Bereitstellung Spannung extern, Bezugspotential zu Klemme 9'),
+          seedKlemme('11','IN1','signal','Eingang 1 — werkseitig Türkontakt (Öffner)'),
+          seedKlemme('12','GND (Eingang 1)','signal','Bezugsmasse zu IN1'),
+          seedKlemme('13','IN2','signal','Eingang 2 — werkseitig Freigabetaster (Schließer)'),
+          seedKlemme('14','GND (Eingang 2)','signal','Bezugsmasse zu IN2'),
+          seedKlemme('15','Ö (NC)','signal','Relais-Wechslerkontakt — Öffnerkontakt (Normally Closed), Ansteuerung Stellglied/Türöffner'),
+          seedKlemme('16','C','signal','Relais-Wechslerkontakt — gemeinsamer Kontakt (COM)'),
+          seedKlemme('17','S (NO)','signal','Relais-Wechslerkontakt — Schließerkontakt (Normally Open)'),
+          seedKlemme('18','RxD','data','RS232/RS485 zum DOM PassivLeser (nur HiSec-Variante)'),
+          seedKlemme('19','TxD','data','RS232/RS485 zum DOM PassivLeser (nur HiSec-Variante)'),
+          seedKlemme('20','GND (RS232/RS485)','signal','Bezugsmasse für die Datenleitung zum PassivLeser')
+        ]},
+        { id: uid(), typ:'verriegelung', name:'E-Öffner (Türöffner, generisch 2-Draht)', klemmen: [
+          seedKlemme('1','Anschluss 1','signal','Generischer Türöffner-Anschluss — exakte Klemmenbezeichnung (oft 1/2, +/-, oder AC1/AC2) je nach verbautem Modell/Hersteller prüfen. Anschluss an den Relais-Wechsler der Steuerung: Klemme Ö (15, Ruhestrom/NC) bei Fluchtweg-/Brandschutztüren zwingend erforderlich, Klemme S (17, Arbeitsstrom/NO) nur bei normalen Zutrittstüren ohne Fluchtwegfunktion.'),
+          seedKlemme('2','Anschluss 2','signal','Zweiter Türöffner-Anschluss, siehe Klemme 1. Bei Gleichspannungs-Türöffnern Polarität beachten und Freilaufdiode antiparallel zur Spule einsetzen (induktive Last) — siehe Montageanleitung der Steuerung.')
+        ]}
+      ],
+      quelle: 'DOM/ENiQ/ELS Montage- und Bedienungsanleitung (Wandleser AccessManager etc.), Systemfamilien ENiQ, ELS und DOM Tapkey, Ausgabe 01/2022, Kap. "Klemmenbelegung der Geräte" — Klemmen 1-6 (Ethernet/PoE) entfallen beim DOM Tapkey Gerät, da dieses laut Anleitung über keine Ethernet-Funktion verfügt (nur BLE). Bitte gegen verbaute Geräterevision (V1) prüfen. Der E-Öffner ist bewusst generisch gehalten (kein spezifisches Herstellermodell) — exakte Klemmenbezeichnung und Ruhestrom/Arbeitsstrom-Anforderung immer gegen das tatsächlich verbaute Türöffner-Modell und die Brandschutz-/Fluchtwegvorgaben der Tür prüfen.'
+    }
+  ];
+}
+
+async function loadSysteme(){
+  try{
+    const s = await appStorage.get('systeme-bibliothek', false);
+    systeme = s ? JSON.parse(s.value) : [];
+  }catch(e){ systeme = []; }
+  const seeds = seedSysteme();
+  let changed = false;
+  seeds.forEach(seed => {
+    const exists = systeme.some(s => s.hersteller === seed.hersteller && s.modell === seed.modell);
+    if(!exists){ systeme.push(seed); changed = true; }
+  });
+  if(changed){
+    try{ await appStorage.set('systeme-bibliothek', JSON.stringify(systeme), false); }catch(e){}
+  }
+  renderSysteme();
+}
+
+async function saveSysteme(){
+  const statusEl = document.getElementById('save-status');
+  statusEl.textContent = 'Speichert…';
+  try{
+    await appStorage.set('systeme-bibliothek', JSON.stringify(systeme), false);
+    statusEl.textContent = 'Gespeichert ✓';
+    statusEl.classList.add('ok');
+  }catch(e){
+    statusEl.textContent = 'Fehler beim Speichern';
+    statusEl.classList.remove('ok');
+  }
+  setTimeout(()=>{ statusEl.textContent=''; }, 2000);
+}
+
+function escAttr(s){ return (s||'').replace(/&/g,'&amp;').replace(/"/g,'&quot;'); }
+function typLabelFor(typId){ return BAUTEIL_TYPES.find(t=>t.id===typId)?.name || typId; }
+function findSys(id){ return systeme.find(s=>s.id===id); }
+function findBauteil(sysId, bId){ return findSys(sysId)?.bauteile.find(b=>b.id===bId); }
+function renderSysteme(){
+  const list = document.getElementById('systeme-list');
+  if(systeme.length === 0){ list.innerHTML = '<p class="empty">Noch keine Systeme angelegt.</p>'; return; }
+  list.innerHTML = systeme.map(sys => `
+    <details class="system-item" data-sys="${sys.id}">
+      <summary>${sys.hersteller} — ${sys.modell} <span class="meta">${sys.bauteile.length} Bauteil(e)</span></summary>
+      <div style="margin-top:10px;">
+        ${sys.quelle ? `<p class="empty" style="margin-bottom:10px;">Quelle: ${sys.quelle}</p>` : ''}
+        <button class="danger no-print" data-action="del-system" data-sys="${sys.id}">System löschen</button>
+        <h3>Bauteil hinzufügen</h3>
+        <div class="quickadd">
+          ${BAUTEIL_TYPES.map(t=>`<button class="ghost" data-action="add-bauteil" data-sys="${sys.id}" data-typ="${t.id}" data-typname="${t.name}">+ ${t.name}</button>`).join('')}
+        </div>
+        ${sys.bauteile.map(b => renderBauteilBlock(sys.id, b)).join('') || '<p class="empty">Noch keine Bauteile.</p>'}
+      </div>
+    </details>
+  `).join('');
+  attachSystemeHandlers();
+}
+function renderBauteilBlock(sysId, b){
+  return `
+    <div class="bauteil-block" data-bauteil="${b.id}">
+      <div class="bauteil-head">
+        <span class="bauteil-name-wrap"><input type="text" class="name-input" value="${escAttr(b.name)}" data-field="name" placeholder="Bauteilname"> <span class="typ">${typLabelFor(b.typ)}</span></span>
+        <button class="danger no-print" data-action="del-bauteil" data-sys="${sysId}" data-bauteil="${b.id}">Entfernen</button>
+      </div>
+      <table>
+        <thead><tr><th>Klemme</th><th>Bezeichnung</th><th>Funktion</th><th>Info</th><th class="no-print"></th></tr></thead>
+        <tbody>
+          ${b.klemmen.map(k => `
+            <tr data-klemme="${k.id}">
+              <td><input type="text" value="${escAttr(k.nr)}" data-field="nr" style="width:70px"></td>
+              <td><input type="text" value="${escAttr(k.bezeichnung)}" data-field="bezeichnung"></td>
+              <td><select data-field="funktion">
+                ${Object.keys(TYP_LABEL).map(t=>`<option value="${t}" ${k.funktion===t?'selected':''}>${TYP_LABEL[t]}</option>`).join('')}
+              </select></td>
+              <td><input type="text" value="${escAttr(k.info||'')}" data-field="info"></td>
+              <td class="no-print"><button class="danger" data-action="del-klemme" data-sys="${sysId}" data-bauteil="${b.id}" data-klemme="${k.id}">×</button></td>
+            </tr>`).join('')}
+        </tbody>
+      </table>
+      <button class="ghost no-print" data-action="add-klemme" data-sys="${sysId}" data-bauteil="${b.id}" style="margin-top:6px;">+ Klemme hinzufügen</button>
+    </div>
+  `;
+}
+function attachSystemeHandlers(){
+  const list = document.getElementById('systeme-list');
+  list.querySelectorAll('[data-action="del-system"]').forEach(btn=>{
+    btn.addEventListener('click', async ()=>{
+      if(!confirm('System wirklich löschen?')) return;
+      systeme = systeme.filter(s=>s.id!==btn.dataset.sys);
+      await saveSysteme(); renderSysteme(); fillSystemSelect();
+    });
+  });
+  list.querySelectorAll('[data-action="add-bauteil"]').forEach(btn=>{
+    btn.addEventListener('click', async ()=>{
+      const sys = findSys(btn.dataset.sys);
+      sys.bauteile.push({ id: uid(), typ: btn.dataset.typ, name: btn.dataset.typname, klemmen: [] });
+      await saveSysteme(); renderSysteme();
+    });
+  });
+  list.querySelectorAll('[data-action="del-bauteil"]').forEach(btn=>{
+    btn.addEventListener('click', async ()=>{
+      const sys = findSys(btn.dataset.sys);
+      sys.bauteile = sys.bauteile.filter(b=>b.id!==btn.dataset.bauteil);
+      await saveSysteme(); renderSysteme();
+    });
+  });
+  list.querySelectorAll('[data-action="add-klemme"]').forEach(btn=>{
+    btn.addEventListener('click', async ()=>{
+      const b = findBauteil(btn.dataset.sys, btn.dataset.bauteil);
+      b.klemmen.push({ id: uid(), nr:'', bezeichnung:'', funktion:'signal', info:'' });
+      await saveSysteme(); renderSysteme();
+    });
+  });
+  list.querySelectorAll('[data-action="del-klemme"]').forEach(btn=>{
+    btn.addEventListener('click', async ()=>{
+      const b = findBauteil(btn.dataset.sys, btn.dataset.bauteil);
+      b.klemmen = b.klemmen.filter(k=>k.id!==btn.dataset.klemme);
+      await saveSysteme(); renderSysteme();
+    });
+  });
+  list.querySelectorAll('.bauteil-block').forEach(block=>{
+    const sysId = block.closest('[data-sys]').dataset.sys;
+    const bId = block.dataset.bauteil;
+    const nameInp = block.querySelector('.name-input');
+    if(nameInp){
+      nameInp.addEventListener('change', async ()=>{
+        const b = findBauteil(sysId, bId);
+        b.name = nameInp.value.trim() || typLabelFor(b.typ);
+        nameInp.value = b.name;
+        await saveSysteme();
+      });
+    }
+    block.querySelectorAll('tr[data-klemme] input, tr[data-klemme] select').forEach(inp=>{
+      inp.addEventListener('change', async ()=>{
+        const b = findBauteil(sysId, bId);
+        const row = inp.closest('tr');
+        const k = b.klemmen.find(k=>k.id===row.dataset.klemme);
+        k[inp.dataset.field] = inp.value;
+        await saveSysteme();
+      });
+    });
+  });
+}
+
+document.getElementById('btn-add-system').addEventListener('click', async ()=>{
+  const h = document.getElementById('new-hersteller').value.trim();
+  const m = document.getElementById('new-modell').value.trim();
+  if(!h || !m){ alert('Bitte Hersteller und Modell angeben.'); return; }
+  systeme.push({ id: uid(), hersteller:h, modell:m, bauteile:[] });
+  document.getElementById('new-hersteller').value='';
+  document.getElementById('new-modell').value='';
+  await saveSysteme();
+  renderSysteme();
+});
+
+// ---------- EXPORT / IMPORT (Sync-Sicherheitsnetz über Geräte-/Origin-Grenzen hinweg) ----------
+document.getElementById('btn-export').addEventListener('click', ()=>{
+  const blob = new Blob([JSON.stringify(systeme, null, 2)], {type:'application/json'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = 'zuko-systeme-bibliothek.json';
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  URL.revokeObjectURL(url);
+});
+
+document.getElementById('btn-import-trigger').addEventListener('click', ()=>{
+  document.getElementById('file-import').click();
+});
+
+document.getElementById('file-import').addEventListener('change', async (e)=>{
+  const file = e.target.files[0];
+  if(!file) return;
+  const ioStatus = document.getElementById('io-status');
+  try{
+    const text = await file.text();
+    const imported = JSON.parse(text);
+    if(!Array.isArray(imported)) throw new Error('Kein gültiges Bibliotheks-Format.');
+    let added = 0, skipped = 0;
+    imported.forEach(sys=>{
+      const exists = systeme.some(s => s.hersteller === sys.hersteller && s.modell === sys.modell);
+      if(exists){ skipped++; }
+      else { systeme.push(sys); added++; }
+    });
+    await saveSysteme();
+    renderSysteme();
+    ioStatus.textContent = `Import: ${added} System(e) hinzugefügt, ${skipped} bereits vorhanden (übersprungen, um Duplikate zu vermeiden).`;
+    ioStatus.classList.add('ok');
+  }catch(err){
+    ioStatus.textContent = 'Import fehlgeschlagen: ' + err.message;
+    ioStatus.classList.remove('ok');
+  }
+  e.target.value = '';
+});
+
+loadSysteme();
+</script>
+</body>
+</html>

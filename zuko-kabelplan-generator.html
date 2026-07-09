@@ -1,0 +1,1648 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ZuKo Kabelplan-Generator</title>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600;700&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    /* Planungstool-Palette (siehe index.html), 1:1 übernommen */
+    --ink:#16222c;
+    --ink-soft:#3a4a56;
+    --paper:#f5f2ea;
+    --card:#ffffff;
+    --line:#e0dac9;
+    --accent:#d6601f;
+    --accent-dark:#a84a16;
+    --ok:#2e7d63;
+    --warn:#c1432b;
+    --warn-bg:#fbeae6;
+    --muted:#6b7280;
+    --chip-bg:#eef0ee;
+
+    /* Bestehende Blueprint-Variablennamen auf die neue Palette gemappt,
+       damit der gesamte restliche CSS-/SVG-Code unverändert bleibt. */
+    --bp-bg:var(--paper); --bp-grid:var(--line); --bp-line:var(--ink); --bp-line-dim:var(--line);
+    --bp-power:var(--accent); --bp-data:var(--ok); --bp-safety:var(--warn); --bp-signal:var(--ink-soft);
+    --bp-power-plus:#c0202c; --bp-power-gnd:var(--ink); --bp-wire-data:#b8901f;
+    --bp-panel:var(--card); --bp-panel2:#faf7f0;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    background: var(--bp-bg);
+    color: var(--bp-line);
+    font-family:'IBM Plex Sans', sans-serif;
+    min-height:100vh;
+    padding: 18px 14px 80px;
+  }
+  .wrap{max-width: 1000px; margin:0 auto;}
+  .eyebrow{font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:var(--bp-data);margin:0 0 6px;}
+  h1{font-family:'IBM Plex Mono',monospace;font-weight:700;font-size:clamp(20px,5vw,28px);margin:0 0 4px;}
+  .sub{color:var(--ink-soft);font-size:13px;margin:0 0 18px;line-height:1.5;}
+
+  .tabs{display:flex;gap:6px;margin-bottom:16px;flex-wrap:wrap;}
+  .tab-btn{
+    font-family:'IBM Plex Mono',monospace;font-size:12px;letter-spacing:.03em;
+    background:var(--bp-panel2);border:1px solid var(--bp-line-dim);color:var(--bp-signal);
+    padding:9px 14px;border-radius:3px;cursor:pointer;
+  }
+  .tab-btn.active{border-color:var(--bp-power);color:var(--accent-dark);background:rgba(214,96,31,.1);}
+  .tab{display:none;}
+  .tab.active{display:block;}
+
+  .card{border:1px solid var(--bp-line-dim);border-radius:5px;background:var(--bp-panel);padding:16px;margin-bottom:14px;}
+  .card h2{font-family:'IBM Plex Mono',monospace;font-size:14px;margin:0 0 12px;color:var(--bp-power);}
+  .card h3{font-family:'IBM Plex Mono',monospace;font-size:12.5px;margin:14px 0 8px;color:var(--bp-data);}
+
+  label{display:block;font-family:'IBM Plex Mono',monospace;font-size:10.5px;letter-spacing:.04em;color:var(--bp-signal);margin:0 0 4px;text-transform:uppercase;}
+  input[type=text], input[type=date], select, textarea{
+    width:100%;background:var(--bp-panel2);border:1px solid var(--bp-line-dim);color:var(--bp-line);
+    padding:8px 9px;border-radius:3px;font-family:'IBM Plex Sans',sans-serif;font-size:13.5px;margin-bottom:10px;
+  }
+  input:focus, select:focus, textarea:focus{outline:2px solid var(--bp-data);outline-offset:1px;}
+  .row{display:flex;gap:10px;flex-wrap:wrap;}
+  .row > div{flex:1;min-width:140px;}
+
+  button{
+    font-family:'IBM Plex Mono',monospace;font-size:12px;cursor:pointer;border-radius:3px;
+    border:1px solid var(--bp-line-dim);background:var(--bp-panel2);color:var(--bp-line);padding:8px 13px;
+  }
+  button.primary{border-color:var(--bp-power);color:var(--accent-dark);background:rgba(214,96,31,.1);}
+  button.danger{border-color:var(--bp-safety);color:var(--bp-safety);background:var(--warn-bg);}
+  button.ghost{border-color:var(--bp-line-dim);color:var(--bp-signal);background:transparent;}
+  button:disabled{opacity:.35;cursor:not-allowed;}
+  button + button{margin-left:6px;}
+
+  .system-item{border:1px solid var(--bp-line-dim);border-radius:4px;padding:10px 12px;margin-bottom:8px;background:var(--bp-panel2);}
+  .system-item summary{cursor:pointer;font-family:'IBM Plex Mono',monospace;font-size:13px;color:var(--bp-line);list-style:none;display:flex;justify-content:space-between;align-items:center;}
+  .system-item summary::-webkit-details-marker{display:none;}
+  .system-item summary .meta{color:var(--bp-signal);font-size:11px;font-weight:400;}
+
+  .bauteil-block{border-left:2px solid var(--bp-data);padding:10px 0 10px 12px;margin:12px 0;}
+  .bauteil-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;gap:10px;flex-wrap:wrap;}
+  .bauteil-name-wrap{display:flex;align-items:center;gap:8px;flex-wrap:wrap;}
+  .bauteil-head .name-input{
+    width:auto;max-width:220px;margin:0;padding:4px 7px;font-size:13px;
+    font-family:'IBM Plex Mono',monospace;color:var(--bp-line);background:var(--bp-panel);
+  }
+  .bauteil-head .typ{font-size:10px;color:var(--bp-signal);text-transform:uppercase;letter-spacing:.05em;}
+
+  table{width:100%;border-collapse:collapse;font-size:12.5px;}
+  th{font-family:'IBM Plex Mono',monospace;font-size:10px;text-transform:uppercase;letter-spacing:.04em;color:var(--bp-signal);text-align:left;padding:6px 6px;border-bottom:1px solid var(--bp-line-dim);}
+  td{padding:5px 6px;border-bottom:1px solid rgba(77,110,140,.3);vertical-align:middle;}
+  td input, td select{margin-bottom:0;padding:5px 6px;font-size:12.5px;}
+
+  .quickadd{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px;}
+  .quickadd button{font-size:11px;padding:6px 10px;}
+
+  .status{font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--bp-signal);margin-left:8px;}
+  .status.ok{color:var(--bp-data);}
+
+  .diagram-box{border:1px solid var(--bp-line-dim);border-radius:4px;background:var(--chip-bg);padding:8px;margin:14px 0;}
+  svg{width:100%;height:auto;display:block;}
+  .node rect{fill:var(--bp-panel2);stroke:var(--bp-line-dim);stroke-width:1.5;rx:5;}
+  .node text{fill:var(--bp-line);font-family:'IBM Plex Mono',monospace;font-size:12px;}
+  .wire{fill:none;stroke-linecap:round;}
+  .wire.power{stroke:var(--bp-power);stroke-width:2.5;}
+  .wire.power.plus{stroke:var(--bp-power-plus);}
+  .wire.power.gnd{stroke:var(--bp-power-gnd);}
+  .wire-halo{fill:none;stroke:var(--line);stroke-opacity:.95;stroke-width:5;stroke-linecap:round;}
+  .wire.data{stroke:var(--bp-wire-data);stroke-width:2;stroke-dasharray:6 5;}
+  .wire.signal{stroke:var(--bp-signal);stroke-width:1.5;}
+  .wire.safety{stroke:var(--bp-safety);stroke-width:4;stroke-dasharray:9 6;}
+  .wire.valid{stroke:var(--ok) !important;filter:drop-shadow(0 0 2px var(--ok));}
+  .wlabel{font-family:'IBM Plex Mono',monospace;font-size:8.5px;fill:var(--ink-soft);}
+  .wlabel.valid{fill:var(--ok);}
+  .wlabel-bg{fill:var(--card);fill-opacity:.95;stroke:var(--bp-line-dim);stroke-width:.75;}
+  .wlabel-end{font-family:'IBM Plex Mono',monospace;font-size:9px;fill:var(--bp-line);font-weight:600;}
+
+  .schema-controls{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:4px;}
+  .schema-controls > div{flex:1;min-width:180px;}
+  .schema-status{font-family:'IBM Plex Mono',monospace;font-size:11.5px;color:var(--bp-signal);margin:0 0 12px;}
+  .schema-status.ok{color:var(--ok);}
+  .node.komponente rect{stroke:var(--bp-power);}
+  .node.quelle rect{stroke:var(--bp-data);}
+  .node.steuerung rect{stroke:var(--bp-signal);}
+
+  .legend{display:flex;flex-wrap:wrap;gap:12px 18px;font-family:'IBM Plex Mono',monospace;font-size:10.5px;color:var(--ink-soft);margin:0 0 6px;}
+  .legend .sw{display:inline-flex;align-items:center;gap:6px;}
+  .legend .ln{width:20px;height:0;border-top-width:3px;border-top-style:solid;display:inline-block;}
+  .ln.power{border-color:var(--bp-power);} .ln.data{border-color:var(--bp-wire-data);border-top-style:dashed;}
+  .ln.power-plus{border-color:var(--bp-power-plus);}
+  .ln.power-gnd{border-color:var(--bp-power-gnd);}
+  .ln.signal{border-color:var(--bp-signal);} .ln.safety{border-color:var(--bp-safety);border-top-style:dashed;border-top-width:4px;}
+
+  .empty{color:var(--muted);font-size:12.5px;font-style:italic;padding:8px 0;}
+  .plan-item{display:flex;justify-content:space-between;align-items:center;border:1px solid var(--bp-line-dim);border-radius:4px;padding:10px 12px;margin-bottom:8px;background:var(--bp-panel2);}
+  .plan-item .pname{font-family:'IBM Plex Mono',monospace;font-size:13px;}
+  .plan-item .pmeta{font-size:11px;color:var(--bp-signal);}
+
+  .bauteil-search-group{margin-bottom:12px;}
+  .bauteil-search-group h3{margin:0 0 6px;}
+  #kp-bauteil-search{margin-bottom:12px;}
+
+  .no-print{}
+  @media print{
+    body{background:#fff;color:#111;padding:0;}
+    .tabs, .no-print, .quickadd, #tab-systeme, #tab-plaene, #tab-schema{display:none !important;}
+    .card{border:1px solid #999;background:#fff;color:#111;box-shadow:none;}
+    .card h2{color:#111;}
+    table th{color:#444;border-color:#999;}
+    table td{border-color:#ccc;color:#111;}
+    .diagram-box{background:#fff;border-color:#999;}
+    .node rect{fill:#fff;stroke:#333;}
+    .node text{fill:#111;}
+    .wlabel{fill:#333;}
+    .wlabel-bg{fill:#fff;stroke:#999;}
+    .wlabel-end{fill:#111;}
+    .legend{color:#333;}
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <p class="eyebrow">Stober · Zutrittskontrolle</p>
+  <h1>ZuKo Kabelplan-Generator</h1>
+  <p class="sub">System wählen, Bauteile auswählen, Klemmen verbinden — fertig ist Diagramm + Klemmenliste. Klemmenbelegungen pflegst Du selbst pro Modell, einmalig.</p>
+
+  <div class="tabs no-print">
+    <button class="tab-btn active" data-tab="systeme">SYSTEME &amp; KLEMMEN</button>
+    <button class="tab-btn" data-tab="kabelplan">KABELPLAN ERSTELLEN</button>
+    <button class="tab-btn" data-tab="schema">ZUTRITT-SCHEMA</button>
+    <button class="tab-btn" data-tab="plaene">GESPEICHERTE PLÄNE</button>
+  </div>
+
+  <!-- TAB: SYSTEME -->
+  <div class="tab active" id="tab-systeme">
+    <div class="card">
+      <h2>Neues System anlegen</h2>
+      <div class="row">
+        <div>
+          <label>Hersteller</label>
+          <input type="text" id="new-hersteller" list="hersteller-list" placeholder="z.B. dormakaba">
+          <datalist id="hersteller-list"><option value="dormakaba"><option value="GEZE"><option value="Sonstige"></datalist>
+        </div>
+        <div>
+          <label>Modell / Produktlinie</label>
+          <input type="text" id="new-modell" placeholder="z.B. evolo, ECstar...">
+        </div>
+      </div>
+      <button class="primary" id="btn-add-system">+ System anlegen</button>
+    </div>
+
+    <div class="card">
+      <h2>Vorhandene Systeme <span class="status" id="save-status"></span></h2>
+      <div id="systeme-list"><p class="empty">Noch keine Systeme angelegt.</p></div>
+    </div>
+
+    <div class="card">
+      <h2>Bibliothek sichern / übertragen</h2>
+      <p class="empty" style="font-style:normal;">Nützlich z.B. wenn Bauteile im eigenständigen ZuKo Bauteil-Editor auf einem anderen Gerät angelegt wurden.</p>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;">
+        <button id="btn-export-sys" class="ghost">⭳ Bibliothek exportieren (JSON)</button>
+        <button id="btn-import-sys-trigger" class="ghost">⭱ Bibliothek importieren</button>
+        <input type="file" id="file-import-sys" accept="application/json" style="display:none;">
+      </div>
+      <p class="status" id="io-status-sys"></p>
+    </div>
+  </div>
+
+  <!-- TAB: KABELPLAN -->
+  <div class="tab" id="tab-kabelplan">
+    <div class="card">
+      <h2>Projekt</h2>
+      <div class="row">
+        <div><label>Projekt / Kunde</label><input type="text" id="kp-projekt" placeholder="z.B. Bürogebäude Musterstr."></div>
+        <div><label>Türbezeichnung</label><input type="text" id="kp-tuer" placeholder="z.B. Eingang Nord, Tür 3"></div>
+      </div>
+    </div>
+
+    <div class="card" id="kp-bauteile-card">
+      <h2>Verbaute Bauteile</h2>
+      <p class="empty" style="font-style:normal;margin-bottom:10px;">Bauteile beliebig systemübergreifend auswählen — z.B. Steuerung von Hersteller A kombiniert mit Antrieb von Hersteller B.</p>
+      <input type="text" id="kp-bauteil-search" placeholder="Suchen nach Bauteil, Hersteller oder Modell…">
+      <div id="kp-bauteile-checks"></div>
+    </div>
+
+    <div class="card no-print" id="kp-connect-card" style="display:none;">
+      <h2>Verbindungen</h2>
+      <p class="empty" style="margin-bottom:10px;">Schlägt Verbindungen anhand der Klemmen-Funktion (Strom/Daten/Meldung) automatisch vor. Bei mehreren gleichartigen Bauteilen (z.B. 3 Leser) nur wenn die Klemmenbezeichnung am Hub die Nummer benennt (z.B. "Leser 2"). Immer prüfen, bevor gedruckt wird — vor allem Sicherheits-/Fluchtwegleitungen bitte manuell anlegen.</p>
+      <button class="primary" id="btn-auto-suggest">⚡ Verbindungen automatisch vorschlagen</button>
+      <h3>Verbindung manuell hinzufügen</h3>
+      <div class="row">
+        <div><label>Von Bauteil</label><select id="kp-von-bauteil"></select></div>
+        <div><label>Von Klemme</label><select id="kp-von-klemme"></select></div>
+      </div>
+      <div class="row">
+        <div><label>Nach Bauteil</label><select id="kp-nach-bauteil"></select></div>
+        <div><label>Nach Klemme</label><select id="kp-nach-klemme"></select></div>
+      </div>
+      <div class="row">
+        <div><label>Typ</label>
+          <select id="kp-typ">
+            <option value="power">Stromversorgung</option>
+            <option value="data">Datenleitung (Bus)</option>
+            <option value="signal">Meldeleitung (Kontakt)</option>
+            <option value="safety">Sicherheits-/Fluchtwegleitung</option>
+          </select>
+        </div>
+        <div id="kp-polaritaet-wrap"><label>Polarität</label>
+          <select id="kp-polaritaet">
+            <option value="">– unbestimmt –</option>
+            <option value="plus">+ (Plus)</option>
+            <option value="gnd">GND (Minus)</option>
+          </select>
+        </div>
+      </div>
+      <div class="row">
+        <div><label>Notiz (optional)</label><input type="text" id="kp-notiz" placeholder="z.B. Kabeltyp, Länge..."></div>
+      </div>
+      <button class="primary" id="btn-add-connection">+ Verbindung hinzufügen</button>
+    </div>
+
+    <div class="card" id="kp-list-card" style="display:none;">
+      <h2>Verbindungsliste</h2>
+      <table id="kp-conn-table">
+        <thead><tr><th>Von</th><th>Klemme</th><th>Nach</th><th>Klemme</th><th>Typ</th><th>Notiz</th><th class="no-print"></th></tr></thead>
+        <tbody></tbody>
+      </table>
+    </div>
+
+    <div class="card" id="kp-diagram-card" style="display:none;">
+      <h2>Schaltbild</h2>
+      <div class="legend">
+        <span class="sw"><span class="ln power-plus"></span> Strom +</span>
+        <span class="sw"><span class="ln power-gnd"></span> Strom GND</span>
+        <span class="sw"><span class="ln data"></span> Daten/Bus</span>
+        <span class="sw"><span class="ln signal"></span> Meldung</span>
+        <span class="sw"><span class="ln safety"></span> Sicherheit/Fluchtweg</span>
+      </div>
+      <div class="diagram-box"><svg id="kp-svg" viewBox="0 0 1000 620"></svg></div>
+    </div>
+
+    <div class="card" id="kp-klemmen-ref-card" style="display:none;">
+      <h2>Klemmenbelegung – Referenz</h2>
+      <div id="kp-klemmen-ref"></div>
+    </div>
+
+    <div class="card no-print" id="kp-actions-card" style="display:none;">
+      <button class="primary" id="btn-save-plan">Plan speichern</button>
+      <button class="ghost" id="btn-print-plan">PDF exportieren</button>
+      <button class="ghost" id="btn-reset-plan">Neuer Plan</button>
+    </div>
+  </div>
+  <p class="empty no-print" id="pdf-status" style="margin-top:-6px;"></p>
+
+  <!-- TAB: SCHEMA -->
+  <div class="tab" id="tab-schema">
+    <div class="card">
+      <h2>Zutrittskontrolle – Schnellschema</h2>
+      <p class="sub" style="margin-bottom:14px;">Stromquelle und beliebig viele Komponenten wählen — die Steuerung bleibt die Mitte, jede Komponente hängt als eigener Zweig daran. Dient als schnelle Übersicht, ersetzt nicht den detaillierten Kabelplan.</p>
+      <div class="schema-controls">
+        <div>
+          <label>Komponenten (Mehrfachauswahl)</label>
+          <div id="sch-komponenten-checks" style="margin-bottom:10px;">
+            <label style="display:flex;align-items:center;gap:6px;text-transform:none;font-family:'IBM Plex Sans',sans-serif;font-size:13px;margin-bottom:6px;">
+              <input type="checkbox" value="oeffner" style="width:auto;margin:0;"> E-Öffner
+            </label>
+            <label style="display:flex;align-items:center;gap:6px;text-transform:none;font-family:'IBM Plex Sans',sans-serif;font-size:13px;margin-bottom:6px;">
+              <input type="checkbox" value="antrieb" style="width:auto;margin:0;"> Antrieb (Automatiktür)
+            </label>
+            <label style="display:flex;align-items:center;gap:6px;text-transform:none;font-family:'IBM Plex Sans',sans-serif;font-size:13px;margin-bottom:6px;">
+              <input type="checkbox" value="fluchtweg" style="width:auto;margin:0;"> Fluchtwegsystem
+            </label>
+          </div>
+        </div>
+        <div>
+          <label>Stromquelle</label>
+          <select id="sch-quelle">
+            <option value="">– wählen –</option>
+            <option value="netzteil">Netzteil</option>
+            <option value="antrieb">Antrieb (interne Versorgung)</option>
+          </select>
+        </div>
+        <div id="sch-spannung-wrap" style="display:none;">
+          <label>Spannung Netzteil</label>
+          <select id="sch-spannung">
+            <option value="12">12 V DC</option>
+            <option value="24">24 V DC</option>
+          </select>
+        </div>
+      </div>
+      <p class="schema-status" id="sch-status">Bitte Komponente(n) und Stromquelle auswählen.</p>
+
+      <div class="legend">
+        <span class="sw"><span class="ln power"></span> Strom</span>
+        <span class="sw"><span class="ln data"></span> Daten/Bus</span>
+        <span class="sw"><span class="ln signal"></span> Meldung</span>
+        <span class="sw"><span class="ln safety"></span> Sicherheit/Fluchtweg</span>
+      </div>
+      <div class="diagram-box"><svg id="sch-svg" viewBox="0 0 1000 660"></svg></div>
+    </div>
+  </div>
+
+  <!-- TAB: PLÄNE -->
+  <div class="tab" id="tab-plaene">
+    <div class="card">
+      <h2>Gespeicherte Kabelpläne</h2>
+      <div id="plaene-list"><p class="empty">Noch keine Pläne gespeichert.</p></div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+const TYP_LABEL = {power:'Strom', data:'Daten', signal:'Meldung', safety:'Sicherheit'};
+const BAUTEIL_TYPES = [
+  {id:'netzteil', name:'Netzteil'}, {id:'steuerung', name:'Steuerung'}, {id:'leser', name:'Leser'},
+  {id:'verriegelung', name:'Türöffner/Verriegelung'}, {id:'tuerkontakt', name:'Türkontakt'},
+  {id:'riegelkontakt', name:'Riegelkontakt'}, {id:'taster', name:'Taster Notentriegelung'}, {id:'sonstiges', name:'Sonstiges'}
+];
+
+let systeme = [];
+let plaene = [];
+let currentPlan = { id:null, projekt:'', tuer:'', bauteilIds:[], connections:[] };
+
+const uid = () => (crypto.randomUUID ? crypto.randomUUID() : 'id-'+Date.now()+'-'+Math.random().toString(16).slice(2));
+
+// Speicher-Abstraktion: nutzt window.storage, falls vorhanden (z.B. innerhalb von Claude).
+// Außerhalb dieser Umgebung (z.B. als eigenständige Datei oder von GitHub Pages aus
+// geöffnet) existiert window.storage nicht — dann wird automatisch auf localStorage
+// zurückgefallen, damit Speichern/Laden trotzdem funktioniert.
+const appStorage = {
+  hasNative(){
+    return !!(window.storage && typeof window.storage.get === 'function' && typeof window.storage.set === 'function');
+  },
+  async get(key, shared){
+    if(this.hasNative()){
+      return await window.storage.get(key, shared);
+    }
+    const raw = localStorage.getItem(key);
+    return raw === null ? null : { key, value: raw, shared: !!shared };
+  },
+  async set(key, value, shared){
+    if(this.hasNative()){
+      return await window.storage.set(key, value, shared);
+    }
+    localStorage.setItem(key, value);
+    return { key, value, shared: !!shared };
+  }
+};
+
+function seedKlemme(nr, bezeichnung, funktion, info){ return {id: uid(), nr, bezeichnung, funktion, info}; }
+
+function seedSysteme(){
+  return [
+    {
+      id: uid(), hersteller: 'dormakaba', modell: 'Kompaktleser 91 04 (E300 V4) — steckbare Anschlussklemme',
+      bauteile: [
+        { id: uid(), typ:'leser', name:'Kompaktleser 91 04', klemmen: [
+          seedKlemme('1','DC- / AC','power','Stromversorgung 12-27V AC oder 10-34V DC'),
+          seedKlemme('2','DC+ / AC','power','Stromversorgung, siehe Klemme 1'),
+          seedKlemme('3','NC (normally closed)','signal','Relaisausgang Türöffner, max. 2A'),
+          seedKlemme('4','COM','signal','Relaisausgang Türöffner, gemeinsamer Kontakt'),
+          seedKlemme('5','NO (normally open)','signal','Relaisausgang Türöffner, max. 2A'),
+          seedKlemme('6','GND (gemeinsame Masse)','signal','Bezugsmasse für digitale Eingänge'),
+          seedKlemme('7','IN1','signal','Drückerkontakt oder Türöffnertaster (REX)'),
+          seedKlemme('8','-','signal','nicht belegt (Funktion abhängig von Parametrierung)'),
+          seedKlemme('9','-','signal',''),
+          seedKlemme('10','-','signal',''),
+          seedKlemme('11','-','signal',''),
+          seedKlemme('12','-','signal','')
+        ]}
+      ],
+      quelle: 'dormakaba Technisches Handbuch Kompaktleser 91 04, Dok. 04046476, Stand 10/2018 — bitte gegen verbaute Geräterevision prüfen.'
+    },
+    {
+      id: uid(), hersteller: 'SimonsVoss', modell: 'WaveNet System 3060 — LockNode WN.LN.C (verkabelt)',
+      bauteile: [
+        { id: uid(), typ:'sonstiges', name:'LockNode WN.LN.C', klemmen: [
+          seedKlemme('DC','Energieversorgung','power','6-24V DC, polaritätsabhängig. Stromaufnahme LockNode ca. 15 mA'),
+          seedKlemme('A','Datenleitung D+','data','RS485, polaritätsabhängig'),
+          seedKlemme('B','Datenleitung D-','data','RS485, polaritätsabhängig'),
+          seedKlemme('Schirm','Abschirmung','signal','An jedem LockNode/RouterNode durchverbinden, isolieren, einseitig auf PE auflegen')
+        ]},
+        { id: uid(), typ:'sonstiges', name:'RouterNode — RS485-Bus (8-pol. Phoenix-Stecker)', klemmen: [
+          seedKlemme('A','Data + (A)','data','Busleitung zum RS485-Modul, Ader grün'),
+          seedKlemme('B','Data - (B)','data','Busleitung zum RS485-Modul, Ader orange'),
+          seedKlemme('GND','Ground','signal','Bezugsmasse Busleitung')
+        ]}
+      ],
+      quelle: 'SimonsVoss WaveNet-Handbuch (System 3065/3060) — bitte gegen verbaute Geräterevision prüfen.'
+    },
+    {
+      id: uid(), hersteller: 'SimonsVoss', modell: 'Smart Relais Serie (1. Generation) — SREL / SREL.ZK / SREL.ADV',
+      bauteile: [
+        { id: uid(), typ:'sonstiges', name:'SmartRelais SREL / SREL.ZK / SREL.ADV', klemmen: [
+          seedKlemme('+/~','Netzteil +','power','Pluspol bei 5-24V DC oder ein Wechselspannungsanschluss 12V AC'),
+          seedKlemme('-/~','Netzteil -','power','Minuspol bei DC oder zweiter Wechselspannungsanschluss 12V AC. Kein Verpolungsschutz!'),
+          seedKlemme('Batt','Batterie SREL.BAT','power','Steckeranschluss für Batteriebetrieb ohne Netzteil'),
+          seedKlemme('NC','Relais NC','signal','Wechslerkontakt, im Ruhezustand geschlossen gegen COM'),
+          seedKlemme('COM','Relais COM','signal','Gemeinsamer Kontakt des Wechslerrelais'),
+          seedKlemme('NO','Relais NO','signal','Wechslerkontakt, im geschalteten Zustand geschlossen gegen COM'),
+          seedKlemme('C','RS-485 COM','data','Nur SREL.ADV — Busanschluss für externe Module'),
+          seedKlemme('A','RS-485 A','data','Nur SREL.ADV — Busanschluss für externe Module'),
+          seedKlemme('B','RS-485 B','data','Nur SREL.ADV — Busanschluss für externe Module'),
+          seedKlemme('+V','+ Vaux','power','Nur SREL.ADV — typ. 3,0-5,0V für externe LED/Buzzer, max. 10mA'),
+          seedKlemme('F3','LED/Buzzer/Input1/CLS','signal','Nur SREL.ADV — Multifunktionsanschluss'),
+          seedKlemme('F2','Seriell 1 / Input 2','signal','Nur SREL.ADV — Multifunktionsanschluss'),
+          seedKlemme('F1','Seriell 2','signal','Nur SREL.ADV — Multifunktionsanschluss'),
+          seedKlemme('BN/WH/GN/GY/YL','Externe Antenne SREL.AV','signal','Braun/Weiß/Grün/Grau/Gelb — Anschluss für ausgelagerte Antenne')
+        ]}
+      ],
+      quelle: 'SimonsVoss Handbuch SmartRelais 3063 (SREL/SREL.ZK/SREL.ADV), Stand 06.2006 — älteres, aber offizielles Dokument. Bitte gegen verbaute Geräterevision prüfen.'
+    },
+    {
+      id: uid(), hersteller: 'SimonsVoss', modell: 'SmartRelais 3 Advanced — Controller + Leser + SmartOutput-Modul',
+      bauteile: [
+        { id: uid(), typ:'steuerung', name:'SREL3-Controller', klemmen: [
+          seedKlemme('1','GND','power','Optionaler Anschluss externe Stromversorgung, Masse'),
+          seedKlemme('2','+VIN','power','Optionaler Anschluss externe Stromversorgung, Pluspol'),
+          seedKlemme('3','Relais 1 NO','signal','Schaltet gegen C (Common)'),
+          seedKlemme('4','Relais 1 C','signal','Gemeinsamer Kontakt Wechselkontakt'),
+          seedKlemme('5','Relais 1 NC','signal','Trennt von C beim Schalten'),
+          seedKlemme('6','Relais 2 NO','signal','Verfügbarkeit firmwareabhängig'),
+          seedKlemme('7','Relais 2 C','signal','Verfügbarkeit firmwareabhängig'),
+          seedKlemme('8','Relais 2 NC','signal','Verfügbarkeit firmwareabhängig'),
+          seedKlemme('9','Leser 1 +','power','Stromversorgung Leser 1, entspricht VIN-1V bzw. 12V-1V (PoE)'),
+          seedKlemme('10','Leser 1 GND','power',''),
+          seedKlemme('11','Leser 1 B','data','RS-485 Datenleitung B'),
+          seedKlemme('12','Leser 1 A','data','RS-485 Datenleitung A'),
+          seedKlemme('13','Leser 2 +','power','Stromversorgung Leser 2'),
+          seedKlemme('14','Leser 2 GND','power',''),
+          seedKlemme('15','Leser 2 B','data','RS-485 Datenleitung B'),
+          seedKlemme('16','Leser 2 A','data','RS-485 Datenleitung A'),
+          seedKlemme('17','Leser 3 +','power','Stromversorgung Leser 3'),
+          seedKlemme('18','Leser 3 GND','power',''),
+          seedKlemme('19','Leser 3 / SmartOutput B','data','RS-485 Datenleitung B'),
+          seedKlemme('20','Leser 3 / SmartOutput A','data','RS-485 Datenleitung A'),
+          seedKlemme('21','Serielle Schnittstelle D4','signal','Open-Drain'),
+          seedKlemme('22','Serielle Schnittstelle D3','signal','Open-Drain'),
+          seedKlemme('23','Serielle Schnittstelle D2','signal','Open-Drain'),
+          seedKlemme('24','Serielle Schnittstelle D1','signal','Open-Drain'),
+          seedKlemme('25','Serielle Schnittstelle +','power','Entspricht VIN-1V bzw. 12V-1V (PoE)'),
+          seedKlemme('26','Eingang 3 (Push-to-open)','signal','Relais schaltet sobald verbunden mit I+ (Klemme 30)'),
+          seedKlemme('27','Eingang 2','signal','Anschluss externer Komponenten'),
+          seedKlemme('28','Eingang 1','signal','Anschluss externer Komponenten'),
+          seedKlemme('29','Ausgang GND','power',''),
+          seedKlemme('30','Ausgang I+','power','Entspricht VIN-1V bzw. 12V-1V (PoE)')
+        ]},
+        { id: uid(), typ:'leser', name:'SREL3-Leser (SR30HYS_F)', klemmen: [
+          seedKlemme('A','Datenleitung A','data','RS-485, an Controller A1/A2/A3'),
+          seedKlemme('B','Datenleitung B','data','RS-485, an Controller B1/B2/B3'),
+          seedKlemme('-','GND','power','Gemeinsames Massebezugspotential für Datenleitungen'),
+          seedKlemme('+','VIN','power','Stromversorgung extern oder durch Controller'),
+          seedKlemme('- (opt)','GND extern','power','Nur bei externer Stromversorgung, elektrisch mit Leseranschluss 3 verbunden')
+        ]},
+        { id: uid(), typ:'sonstiges', name:'SmartOutput-Modul (MOD.SOM8)', klemmen: [
+          seedKlemme('1','Brownout-Erkennung Out','signal','Open-Collector, schaltet bei Unterspannung < 10,0V'),
+          seedKlemme('4','Controller B','data','Datenleitung B, an Leser-3-Kontakt des Controllers'),
+          seedKlemme('5','Controller A','data','Datenleitung A, an Leser-3-Kontakt des Controllers'),
+          seedKlemme('6','Controller C','power','Masse, an Leser-3-Kontakt des Controllers'),
+          seedKlemme('7/8','Relais 4 a/b','signal','Potentialfreier Kontakt, abhängig von Berechtigung'),
+          seedKlemme('9/10','Relais 3 a/b','signal','Potentialfreier Kontakt'),
+          seedKlemme('11/12','Relais 2 a/b','signal','Potentialfreier Kontakt'),
+          seedKlemme('13/14','Relais 1 a/b','signal','Potentialfreier Kontakt'),
+          seedKlemme('15/16','Relais 5 b/a','signal','Potentialfreier Kontakt'),
+          seedKlemme('17/18','Relais 6 b/a','signal','Potentialfreier Kontakt'),
+          seedKlemme('19/20','Relais 7 b/a','signal','Potentialfreier Kontakt'),
+          seedKlemme('21/22','Relais 8 b/a','signal','Potentialfreier Kontakt'),
+          seedKlemme('23','AUX-Relais K2','signal','NO-Kontakt, ab Werk verbrückt mit Klemme 24'),
+          seedKlemme('24','+VIN','power','Stromversorgung, ab Werk verbrückt mit Klemme 23'),
+          seedKlemme('25','AUX-Relais A+','power','Spulen-Pluspol, ab Werk verbrückt mit Klemme 26'),
+          seedKlemme('26','AUX-Relais K1','signal','Schließer-Kontakt, ab Werk verbrückt mit Klemme 25'),
+          seedKlemme('27','AUX-Relais A-','power','Spulen-Minuspol'),
+          seedKlemme('28','GND','power','Stromversorgung Masse')
+        ]}
+      ],
+      quelle: 'SimonsVoss Handbuch SmartRelais 3 System (SREL3 ADV), Stand 06.08.2025 — offizielles, aktuelles Handbuch. Bitte gegen verbaute Geräterevision prüfen.'
+    },
+    {
+      id: uid(), hersteller: 'dormakaba', modell: 'Remoteleser 91 15 — Access Manager / MATRIX TP4-Client',
+      bauteile: [
+        { id: uid(), typ:'leser', name:'Remoteleser 91 15', klemmen: [
+          seedKlemme('AC-','Stromversorgung -','power','12-27V AC oder 10-34V DC'),
+          seedKlemme('AC+','Stromversorgung +','power','12-27V AC oder 10-34V DC'),
+          seedKlemme('C','RS-485 C','data','Verbindung zum übergeordneten Zutrittsmanager'),
+          seedKlemme('A','RS-485 A','data','Verbindung zum übergeordneten Zutrittsmanager'),
+          seedKlemme('B','RS-485 B','data','Verbindung zum übergeordneten Zutrittsmanager'),
+          seedKlemme('Ant.','HF RFID Antenne','signal','Koaxialkabel zur Erfassungseinheit, 50 Ohm'),
+          seedKlemme('NC','Relaisausgang NC','signal','Türöffner, Kontaktbelastbarkeit 30V AC/DC max. 2A'),
+          seedKlemme('COM','Relaisausgang COM','signal','Türöffner, gemeinsamer Kontakt'),
+          seedKlemme('NO','Relaisausgang NO','signal','Türöffner, Kontaktbelastbarkeit 30V AC/DC max. 2A'),
+          seedKlemme('IN1','Digitaler Eingang 1','signal','z.B. Türrahmenkontakt, leitungsüberwachbar'),
+          seedKlemme('IN2','Digitaler Eingang 2','signal','leitungsüberwachbar'),
+          seedKlemme('GND','Bezugsmasse Eingänge','signal','Gemeinsame Masse für IN1/IN2')
+        ]}
+      ],
+      quelle: 'dormakaba Technisches Handbuch Remoteleser 91 15, Dok. 04047115, Stand 11/2018 — verbindet sich per RS-485 mit dem übergeordneten Zutrittsmanager 92 00. Für den Zutrittsmanager 92 00 selbst (Controller-Box) war keine öffentlich zugängliche, detaillierte Klemmenliste auffindbar — diese liegt im geschützten dormakaba-Partnerbereich (Extranet). Allgemeine Eckdaten: 4 überwachte digitale Eingänge, 3 Relaisausgänge, RS-485, Ethernet, 10-34V DC.'
+    },
+    {
+      id: uid(), hersteller: 'SimonsVoss', modell: 'RouterNode 2 / GatewayNode 2 / SmartBridge — IO-Connector',
+      bauteile: [
+        { id: uid(), typ:'sonstiges', name:'RouterNode 2 — IO-Connector (nur RouterNode 2 nutzbar)', klemmen: [
+          seedKlemme('IO-Vout','IO Spannungsausgang','power','+3,3V Versorgung für externe Beschaltung'),
+          seedKlemme('AI','Analog Input','signal','Analoge Signalauswertung 0-3,3V DC'),
+          seedKlemme('DI1','Digitaler Eingang 1','signal','0V=Low, ab +2,0V=High'),
+          seedKlemme('DI2','Digitaler Eingang 2','signal',''),
+          seedKlemme('DI3','Digitaler Eingang 3','signal',''),
+          seedKlemme('O1.NC','Relais 1 NC','signal','Max. Schaltspannung 12V DC'),
+          seedKlemme('O1.NO','Relais 1 NO','signal','Max. Schaltspannung 12V DC'),
+          seedKlemme('O1.COM','Relais 1 COM','signal','Gemeinsamer Kontakt')
+        ]},
+        { id: uid(), typ:'netzteil', name:'RouterNode 2 / GatewayNode 2 / SmartBridge — Stromversorgung', klemmen: [
+          seedKlemme('DC In','Rundstecker 5,5mm','power','Pin 2,0mm — externes Netzteil, Vorrang wenn >12V DC vor PoE'),
+          seedKlemme('PoE','RJ45 Power-over-Ethernet','power','Netzwerk + Stromversorgung kombiniert'),
+          seedKlemme('+/-','2-pol. Schraubklemme','power','Stromversorgung für externe Applikationen, 0,14-1,5mm²')
+        ]}
+      ],
+      quelle: 'SimonsVoss Kurzanleitung/Handbuch RouterNode 2, GatewayNode 2, SmartBridge (NW10.900210, Stand 05.03.2024). IO-Connector nur am RouterNode 2 nutzbar, nicht an GatewayNode 2/SmartBridge.'
+    },
+    {
+      id: uid(), hersteller: 'GEZE', modell: 'Powerturn (DCU800/DCU802) — Drehtürantrieb',
+      bauteile: [
+        { id: uid(), typ:'steuerung', name:'Steuerung DCU800/DCU802', klemmen: [
+          seedKlemme('1','GND','power','Bezugsmasse, Steuerspannung 24V DC ±10%'),
+          seedKlemme('2','24V','power','Steuerspannung für externe Komponenten, max. 1200mA dauernd / 1800mA kurzzeitig (5s)'),
+          seedKlemme('20','KB','signal','Kontaktgeber Berechtigt'),
+          seedKlemme('3','KB 24V','power','Versorgung Kontaktgeber Berechtigt'),
+          seedKlemme('21','KI','signal','Kontaktgeber Innen'),
+          seedKlemme('4','KI 24VSens','power','Versorgung Kontaktgeber Innen'),
+          seedKlemme('23','KA','signal','Kontaktgeber Außen'),
+          seedKlemme('4','KA 24VSens','power','Versorgung Kontaktgeber Außen (gleiche Klemme wie KI)'),
+          seedKlemme('11','SIS','signal','Sicherheitssensor Schließen'),
+          seedKlemme('10','SIS TST','signal','Testsignal Sicherheitssensor Schließen'),
+          seedKlemme('13','SIO','signal','Sicherheitssensor Öffnen'),
+          seedKlemme('10','SIO TST','signal','Testsignal Sicherheitssensor Öffnen (gleiche Klemme wie SIS TST)'),
+          seedKlemme('31','TOEA','power','Türöffner Anschluss A'),
+          seedKlemme('32','TOEB','power','Türöffner Anschluss B'),
+          seedKlemme('33','RM','signal','Riegelmeldung (Rückmeldung Motorschloss/Verriegelung)'),
+          seedKlemme('51','PE1','signal','Parametrierbarer Eingang 1 (z.B. Sabotage, Schließlage, Stop, Brandalarm)'),
+          seedKlemme('52','PE2','signal','Parametrierbarer Eingang 2 (z.B. MPS, Notverriegelung, Stop)'),
+          seedKlemme('53','PE3','signal','Parametrierbarer Eingang 3 (analog zu PE2)'),
+          seedKlemme('55','PA1A','signal','Parametrierbarer Ausgang 1 — potentialfreier Relaiskontakt, max. 24V AC/DC 0,5A'),
+          seedKlemme('56','PA1B','signal','Parametrierbarer Ausgang 1 — Gegenkontakt'),
+          seedKlemme('57','PA2','signal','Parametrierbarer Ausgang 2 — Transistorausgang, max. 24V DC 0,5A'),
+          seedKlemme('9','DO','signal','Programmschalter Daueroffen'),
+          seedKlemme('8','AU','signal','Programmschalter Automatik'),
+          seedKlemme('7','LS','signal','Programmschalter Ladenschluss'),
+          seedKlemme('6','NA','signal','Programmschalter Nacht'),
+          seedKlemme('0','OFF','signal','Programmschalter Aus'),
+          seedKlemme('41','RS485-B','data','Datenleitung B zu DPS / zweitem Antrieb (2-flügelig)'),
+          seedKlemme('42','RS485-A','data','Datenleitung A zu DPS / zweitem Antrieb (2-flügelig)'),
+          seedKlemme('43','SCR','data','Schirm RS485-Leitung'),
+          seedKlemme('95','24V (Frei)','power','Freie Leitungsverbindung über Flachbandkabel DCU802↔DCU800'),
+          seedKlemme('98','GND (Frei)','power','Freie Leitungsverbindung über Flachbandkabel DCU802↔DCU800')
+        ]},
+        { id: uid(), typ:'verriegelung', name:'Türöffner (TOE, an DCU800/802)', klemmen: [
+          seedKlemme('31','TOEA','power','Antriebsseitig versorgt: 24V DC (Arbeits-/Ruhestrom) — bauseitig versorgt: 12V AC max. 1A'),
+          seedKlemme('32','TOEB','power','Gegenkontakt TOE'),
+          seedKlemme('33','RM','signal','Riegelmeldung — schaltet DPS bei aktivem Signal in Betriebsart Nacht'),
+          seedKlemme('2','24V','power','Bei antriebsseitiger Versorgung'),
+          seedKlemme('1','GND','power','Bei antriebsseitiger Versorgung')
+        ]},
+        { id: uid(), typ:'tuerkontakt', name:'Rauchschalterzentrale RSZ (DCU801, Brandschutz-Kit, optional)', klemmen: [
+          seedKlemme('62','RSZ 24V','power','Versorgung Rauchschalterzentrale'),
+          seedKlemme('61','RSZ GND','power','Bezugsmasse Rauchschalterzentrale'),
+          seedKlemme('63','zweiter Antrieb','power','Brücke zum zweiten Antrieb bei 2-flügeliger Anlage'),
+          seedKlemme('2','24V','power','Allgemeine Versorgung DCU801'),
+          seedKlemme('1','GND','power','Allgemeine Masse DCU801')
+        ]}
+      ],
+      quelle: 'GEZE Powerturn Anschlussplan, Mat.-Nr. 154919-03, gültig ab Software DCU8 V1.8 / Hardware Revision DCU800 Rev F. Vom Nutzer per PDF bereitgestellt und Klemmenwerte direkt daraus übernommen.'
+    },
+    {
+      id: uid(), hersteller: 'DOM Sicherheitstechnik (Tapkey)', modell: 'DOM Tapkey AccessManager V1 — Steuerung (Compact/HiSec)',
+      bauteile: [
+        { id: uid(), typ:'steuerung', name:'DOM Tapkey AccessManager (Steuerung)', klemmen: [
+          seedKlemme('7','DC In + (12-24V)','power','Spannungsversorgung der Einheit, Pluspol — externe Spannungsquelle 12-24V DC'),
+          seedKlemme('8','DC In – (12-24V)','power','Spannungsversorgung der Einheit, Minuspol'),
+          seedKlemme('9','DC Out +','power','Bereitstellung Spannung extern — versorgt optional einen angeschlossenen DOM PassivLeser (HiSec) mit'),
+          seedKlemme('10','DC Out –','power','Bereitstellung Spannung extern, Bezugspotential zu Klemme 9'),
+          seedKlemme('11','IN1','signal','Eingang 1 — werkseitig Türkontakt (Öffner)'),
+          seedKlemme('12','GND (Eingang 1)','signal','Bezugsmasse zu IN1'),
+          seedKlemme('13','IN2','signal','Eingang 2 — werkseitig Freigabetaster (Schließer)'),
+          seedKlemme('14','GND (Eingang 2)','signal','Bezugsmasse zu IN2'),
+          seedKlemme('15','Ö (NC)','signal','Relais-Wechslerkontakt — Öffnerkontakt (Normally Closed), Ansteuerung Stellglied/Türöffner'),
+          seedKlemme('16','C','signal','Relais-Wechslerkontakt — gemeinsamer Kontakt (COM)'),
+          seedKlemme('17','S (NO)','signal','Relais-Wechslerkontakt — Schließerkontakt (Normally Open)'),
+          seedKlemme('18','RxD','data','RS232/RS485 zum DOM PassivLeser (nur HiSec-Variante)'),
+          seedKlemme('19','TxD','data','RS232/RS485 zum DOM PassivLeser (nur HiSec-Variante)'),
+          seedKlemme('20','GND (RS232/RS485)','signal','Bezugsmasse für die Datenleitung zum PassivLeser')
+        ]},
+        { id: uid(), typ:'verriegelung', name:'E-Öffner (Türöffner, generisch 2-Draht)', klemmen: [
+          seedKlemme('1','Anschluss 1','signal','Generischer Türöffner-Anschluss — exakte Klemmenbezeichnung (oft 1/2, +/-, oder AC1/AC2) je nach verbautem Modell/Hersteller prüfen. Anschluss an den Relais-Wechsler der Steuerung: Klemme Ö (15, Ruhestrom/NC) bei Fluchtweg-/Brandschutztüren zwingend erforderlich, Klemme S (17, Arbeitsstrom/NO) nur bei normalen Zutrittstüren ohne Fluchtwegfunktion.'),
+          seedKlemme('2','Anschluss 2','signal','Zweiter Türöffner-Anschluss, siehe Klemme 1. Bei Gleichspannungs-Türöffnern Polarität beachten und Freilaufdiode antiparallel zur Spule einsetzen (induktive Last) — siehe Montageanleitung der Steuerung.')
+        ]}
+      ],
+      quelle: 'DOM/ENiQ/ELS Montage- und Bedienungsanleitung (Wandleser AccessManager etc.), Systemfamilien ENiQ, ELS und DOM Tapkey, Ausgabe 01/2022, Kap. "Klemmenbelegung der Geräte" — Klemmen 1-6 (Ethernet/PoE) entfallen beim DOM Tapkey Gerät, da dieses laut Anleitung über keine Ethernet-Funktion verfügt (nur BLE). Bitte gegen verbaute Geräterevision (V1) prüfen. Der E-Öffner ist bewusst generisch gehalten (kein spezifisches Herstellermodell) — exakte Klemmenbezeichnung und Ruhestrom/Arbeitsstrom-Anforderung immer gegen das tatsächlich verbaute Türöffner-Modell und die Brandschutz-/Fluchtwegvorgaben der Tür prüfen.'
+    }
+  ];
+}
+
+async function loadAll(){
+  try{
+    const s = await appStorage.get('systeme-bibliothek', false);
+    systeme = s ? JSON.parse(s.value) : [];
+  }catch(e){ systeme = []; }
+  const seeds = seedSysteme();
+  let changed = false;
+  seeds.forEach(seed => {
+    const exists = systeme.some(s => s.hersteller === seed.hersteller && s.modell === seed.modell);
+    if(!exists){ systeme.push(seed); changed = true; }
+  });
+  if(changed){
+    try{ await appStorage.set('systeme-bibliothek', JSON.stringify(systeme), false); }catch(e){}
+  }
+  try{
+    const p = await appStorage.get('kabelplaene', false);
+    plaene = p ? JSON.parse(p.value) : [];
+  }catch(e){ plaene = []; }
+  renderSysteme();
+  renderPlaene();
+  renderKabelplanBauteile();
+}
+
+async function saveSysteme(){
+  const statusEl = document.getElementById('save-status');
+  statusEl.textContent = 'Speichert…';
+  try{
+    await appStorage.set('systeme-bibliothek', JSON.stringify(systeme), false);
+    statusEl.textContent = 'Gespeichert ✓';
+    statusEl.classList.add('ok');
+  }catch(e){
+    statusEl.textContent = 'Fehler beim Speichern';
+    statusEl.classList.remove('ok');
+  }
+  setTimeout(()=>{ statusEl.textContent=''; }, 2000);
+}
+async function savePlaene(){
+  try{ await appStorage.set('kabelplaene', JSON.stringify(plaene), false); }catch(e){ alert('Fehler beim Speichern des Plans.'); }
+}
+
+// ---------- TABS ----------
+document.querySelectorAll('.tab-btn').forEach(btn=>{
+  btn.addEventListener('click', ()=>{
+    document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
+    document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+    btn.classList.add('active');
+    document.getElementById('tab-'+btn.dataset.tab).classList.add('active');
+  });
+});
+
+// ---------- SYSTEME TAB ----------
+document.getElementById('btn-add-system').addEventListener('click', async ()=>{
+  const h = document.getElementById('new-hersteller').value.trim();
+  const m = document.getElementById('new-modell').value.trim();
+  if(!h || !m){ alert('Bitte Hersteller und Modell angeben.'); return; }
+  systeme.push({ id: uid(), hersteller:h, modell:m, bauteile:[] });
+  document.getElementById('new-hersteller').value='';
+  document.getElementById('new-modell').value='';
+  await saveSysteme();
+  renderSysteme();
+  renderKabelplanBauteile();
+});
+
+document.getElementById('btn-export-sys').addEventListener('click', ()=>{
+  const blob = new Blob([JSON.stringify(systeme, null, 2)], {type:'application/json'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = 'zuko-systeme-bibliothek.json';
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  URL.revokeObjectURL(url);
+});
+
+document.getElementById('btn-import-sys-trigger').addEventListener('click', ()=>{
+  document.getElementById('file-import-sys').click();
+});
+
+document.getElementById('file-import-sys').addEventListener('change', async (e)=>{
+  const file = e.target.files[0];
+  if(!file) return;
+  const ioStatus = document.getElementById('io-status-sys');
+  try{
+    const text = await file.text();
+    const imported = JSON.parse(text);
+    if(!Array.isArray(imported)) throw new Error('Kein gültiges Bibliotheks-Format.');
+    let added = 0, skipped = 0;
+    imported.forEach(sys=>{
+      const exists = systeme.some(s => s.hersteller === sys.hersteller && s.modell === sys.modell);
+      if(exists){ skipped++; }
+      else { systeme.push(sys); added++; }
+    });
+    await saveSysteme();
+    renderSysteme();
+    renderKabelplanBauteile();
+    ioStatus.textContent = `Import: ${added} System(e) hinzugefügt, ${skipped} bereits vorhanden (übersprungen).`;
+    ioStatus.classList.add('ok');
+  }catch(err){
+    ioStatus.textContent = 'Import fehlgeschlagen: ' + err.message;
+    ioStatus.classList.remove('ok');
+  }
+  e.target.value = '';
+});
+
+function renderSysteme(){
+  const list = document.getElementById('systeme-list');
+  if(systeme.length === 0){ list.innerHTML = '<p class="empty">Noch keine Systeme angelegt.</p>'; return; }
+  list.innerHTML = systeme.map(sys => `
+    <details class="system-item" data-sys="${sys.id}">
+      <summary>${sys.hersteller} — ${sys.modell} <span class="meta">${sys.bauteile.length} Bauteil(e)</span></summary>
+      <div style="margin-top:10px;">
+        ${sys.quelle ? `<p class="empty" style="margin-bottom:10px;">Quelle: ${sys.quelle}</p>` : ''}
+        <button class="danger no-print" data-action="del-system" data-sys="${sys.id}">System löschen</button>
+        <h3>Bauteil hinzufügen</h3>
+        <div class="quickadd">
+          ${BAUTEIL_TYPES.map(t=>`<button class="ghost" data-action="add-bauteil" data-sys="${sys.id}" data-typ="${t.id}" data-typname="${t.name}">+ ${t.name}</button>`).join('')}
+        </div>
+        ${sys.bauteile.map(b => renderBauteilBlock(sys.id, b)).join('') || '<p class="empty">Noch keine Bauteile.</p>'}
+      </div>
+    </details>
+  `).join('');
+  attachSystemeHandlers();
+}
+
+function renderBauteilBlock(sysId, b){
+  return `
+    <div class="bauteil-block" data-bauteil="${b.id}">
+      <div class="bauteil-head">
+        <span class="bauteil-name-wrap"><input type="text" class="name-input" value="${escAttr(b.name)}" data-field="name" placeholder="Bauteilname"> <span class="typ">${typLabelFor(b.typ)}</span></span>
+        <button class="danger no-print" data-action="del-bauteil" data-sys="${sysId}" data-bauteil="${b.id}">Entfernen</button>
+      </div>
+      <table>
+        <thead><tr><th>Klemme</th><th>Bezeichnung</th><th>Funktion</th><th>Info</th><th class="no-print"></th></tr></thead>
+        <tbody>
+          ${b.klemmen.map(k => `
+            <tr data-klemme="${k.id}">
+              <td><input type="text" value="${escAttr(k.nr)}" data-field="nr" style="width:70px"></td>
+              <td><input type="text" value="${escAttr(k.bezeichnung)}" data-field="bezeichnung"></td>
+              <td><select data-field="funktion">
+                ${Object.keys(TYP_LABEL).map(t=>`<option value="${t}" ${k.funktion===t?'selected':''}>${TYP_LABEL[t]}</option>`).join('')}
+              </select></td>
+              <td><input type="text" value="${escAttr(k.info||'')}" data-field="info"></td>
+              <td class="no-print"><button class="danger" data-action="del-klemme" data-sys="${sysId}" data-bauteil="${b.id}" data-klemme="${k.id}">×</button></td>
+            </tr>`).join('')}
+        </tbody>
+      </table>
+      <button class="ghost no-print" data-action="add-klemme" data-sys="${sysId}" data-bauteil="${b.id}" style="margin-top:6px;">+ Klemme hinzufügen</button>
+    </div>
+  `;
+}
+
+function escAttr(s){ return (s||'').replace(/&/g,'&amp;').replace(/"/g,'&quot;'); }
+function typLabelFor(typId){ return BAUTEIL_TYPES.find(t=>t.id===typId)?.name || typId; }
+
+function findSys(id){ return systeme.find(s=>s.id===id); }
+function findBauteil(sysId, bId){ return findSys(sysId)?.bauteile.find(b=>b.id===bId); }
+
+function attachSystemeHandlers(){
+  const list = document.getElementById('systeme-list');
+  list.querySelectorAll('[data-action="del-system"]').forEach(btn=>{
+    btn.addEventListener('click', async ()=>{
+      if(!confirm('System wirklich löschen?')) return;
+      systeme = systeme.filter(s=>s.id!==btn.dataset.sys);
+      await saveSysteme(); renderSysteme(); fillSystemSelect();
+    });
+  });
+  list.querySelectorAll('[data-action="add-bauteil"]').forEach(btn=>{
+    btn.addEventListener('click', async ()=>{
+      const sys = findSys(btn.dataset.sys);
+      sys.bauteile.push({ id: uid(), typ: btn.dataset.typ, name: btn.dataset.typname, klemmen: [] });
+      await saveSysteme(); renderSysteme();
+    });
+  });
+  list.querySelectorAll('[data-action="del-bauteil"]').forEach(btn=>{
+    btn.addEventListener('click', async ()=>{
+      const sys = findSys(btn.dataset.sys);
+      sys.bauteile = sys.bauteile.filter(b=>b.id!==btn.dataset.bauteil);
+      await saveSysteme(); renderSysteme();
+    });
+  });
+  list.querySelectorAll('[data-action="add-klemme"]').forEach(btn=>{
+    btn.addEventListener('click', async ()=>{
+      const b = findBauteil(btn.dataset.sys, btn.dataset.bauteil);
+      b.klemmen.push({ id: uid(), nr:'', bezeichnung:'', funktion:'signal', info:'' });
+      await saveSysteme(); renderSysteme();
+    });
+  });
+  list.querySelectorAll('[data-action="del-klemme"]').forEach(btn=>{
+    btn.addEventListener('click', async ()=>{
+      const b = findBauteil(btn.dataset.sys, btn.dataset.bauteil);
+      b.klemmen = b.klemmen.filter(k=>k.id!==btn.dataset.klemme);
+      await saveSysteme(); renderSysteme();
+    });
+  });
+  list.querySelectorAll('.bauteil-block').forEach(block=>{
+    const sysId = block.closest('[data-sys]').dataset.sys;
+    const bId = block.dataset.bauteil;
+    const nameInp = block.querySelector('.name-input');
+    if(nameInp){
+      nameInp.addEventListener('change', async ()=>{
+        const b = findBauteil(sysId, bId);
+        b.name = nameInp.value.trim() || typLabelFor(b.typ);
+        nameInp.value = b.name;
+        await saveSysteme();
+        // Abhängige Ansichten (Checkboxen/Selects im Kabelplan-Tab, ggf. offener Plan) aktualisieren,
+        // ohne die SYSTEME-Liste selbst neu zu rendern (sonst verliert das Feld den Fokus).
+        renderKabelplanBauteile();
+        renderConnections();
+      });
+    }
+    block.querySelectorAll('tr[data-klemme] input, tr[data-klemme] select').forEach(inp=>{
+      inp.addEventListener('change', async ()=>{
+        const b = findBauteil(sysId, bId);
+        const row = inp.closest('tr');
+        const k = b.klemmen.find(k=>k.id===row.dataset.klemme);
+        k[inp.dataset.field] = inp.value;
+        await saveSysteme();
+      });
+    });
+  });
+}
+
+// ---------- KABELPLAN TAB ----------
+document.getElementById('kp-bauteil-search').addEventListener('input', renderKabelplanBauteile);
+
+function renderKabelplanBauteile(){
+  const card = document.getElementById('kp-bauteile-card');
+  const checksEl = document.getElementById('kp-bauteile-checks');
+  const query = (document.getElementById('kp-bauteil-search').value || '').trim().toLowerCase();
+
+  const totalBauteile = systeme.reduce((n,s)=>n+s.bauteile.length, 0);
+  if(totalBauteile === 0){
+    checksEl.innerHTML = '<p class="empty">Noch keine Bauteile in der Bibliothek. Erst unter "SYSTEME & KLEMMEN" oder im ZuKo Bauteil-Editor anlegen.</p>';
+    updateKpVisibility();
+    return;
+  }
+
+  const matches = s => {
+    const sysText = (s.hersteller+' '+s.modell).toLowerCase();
+    return b => !query || sysText.includes(query) || b.name.toLowerCase().includes(query);
+  };
+
+  const groupsHtml = systeme.map(s=>{
+    const bauteile = s.bauteile.filter(matches(s));
+    if(bauteile.length===0) return '';
+    return `
+      <div class="bauteil-search-group">
+        <h3>${s.hersteller} — ${s.modell}</h3>
+        ${bauteile.map(b=>`
+          <label style="display:inline-flex;align-items:center;gap:6px;text-transform:none;font-family:'IBM Plex Sans',sans-serif;font-size:13px;margin-right:16px;margin-bottom:8px;">
+            <input type="checkbox" data-bauteil="${b.id}" ${currentPlan.bauteilIds.includes(b.id)?'checked':''} style="width:auto;margin:0;">
+            ${b.name}
+          </label>
+        `).join('')}
+      </div>`;
+  }).join('');
+
+  checksEl.innerHTML = groupsHtml || '<p class="empty">Keine Treffer für diese Suche.</p>';
+
+  checksEl.querySelectorAll('input[type=checkbox]').forEach(cb=>{
+    cb.addEventListener('change', ()=>{
+      if(cb.checked) currentPlan.bauteilIds.push(cb.dataset.bauteil);
+      else {
+        currentPlan.bauteilIds = currentPlan.bauteilIds.filter(id=>id!==cb.dataset.bauteil);
+        currentPlan.connections = currentPlan.connections.filter(c=>c.von!==cb.dataset.bauteil && c.nach!==cb.dataset.bauteil);
+      }
+      fillConnectionSelects();
+      renderConnections();
+      updateKpVisibility();
+    });
+  });
+  fillConnectionSelects();
+  updateKpVisibility();
+}
+
+function selectedBauteile(){
+  const all = [];
+  systeme.forEach(s => s.bauteile.forEach(b => { if(currentPlan.bauteilIds.includes(b.id)) all.push(b); }));
+  return all;
+}
+
+function fillConnectionSelects(){
+  const bauteile = selectedBauteile();
+  const card = document.getElementById('kp-connect-card');
+  if(bauteile.length < 2){ card.style.display='none'; return; }
+  card.style.display='block';
+  const vonSel = document.getElementById('kp-von-bauteil');
+  const nachSel = document.getElementById('kp-nach-bauteil');
+  const opts = bauteile.map(b=>`<option value="${b.id}">${b.name}</option>`).join('');
+  vonSel.innerHTML = opts; nachSel.innerHTML = opts;
+  if(bauteile[1]) nachSel.value = bauteile[1].id;
+  fillKlemmeSelect('kp-von-bauteil','kp-von-klemme');
+  fillKlemmeSelect('kp-nach-bauteil','kp-nach-klemme');
+}
+
+function fillKlemmeSelect(bauteilSelId, klemmeSelId){
+  const bId = document.getElementById(bauteilSelId).value;
+  const b = selectedBauteile().find(x=>x.id===bId);
+  const sel = document.getElementById(klemmeSelId);
+  if(!b || b.klemmen.length===0){ sel.innerHTML = '<option value="">(keine Klemmen gepflegt)</option>'; return; }
+  sel.innerHTML = b.klemmen.map(k=>`<option value="${k.id}" data-funktion="${k.funktion}" data-bezeichnung="${(k.bezeichnung||'').replace(/"/g,'&quot;')}">${k.nr || '?'} — ${k.bezeichnung||'unbenannt'}</option>`).join('');
+}
+document.getElementById('kp-von-bauteil').addEventListener('change', ()=>fillKlemmeSelect('kp-von-bauteil','kp-von-klemme'));
+document.getElementById('kp-nach-bauteil').addEventListener('change', ()=>fillKlemmeSelect('kp-nach-bauteil','kp-nach-klemme'));
+
+// Liefert 'plus' / 'gnd' / '' als unverbindliche Vorbelegung — der Techniker
+// kann das im Polaritäts-Feld jederzeit übersteuern.
+function guessPolaritaet(text){
+  if(!text) return '';
+  const t = text.toUpperCase();
+  if(/\bGND\b|0\s*V\b|MINUS|\(-\)|[^+]-(?!\d)/.test(t) && !/\+/.test(t)) return 'gnd';
+  if(/\+/.test(t) || /\bPLUS\b/.test(t)) return 'plus';
+  return '';
+}
+
+function updatePolaritaetWrap(){
+  const isPower = document.getElementById('kp-typ').value === 'power';
+  document.getElementById('kp-polaritaet-wrap').style.display = isPower ? 'block' : 'none';
+}
+document.getElementById('kp-typ').addEventListener('change', updatePolaritaetWrap);
+updatePolaritaetWrap();
+
+document.getElementById('kp-von-klemme').addEventListener('change', (e)=>{
+  const opt = e.target.selectedOptions[0];
+  const f = opt?.dataset.funktion;
+  if(f) document.getElementById('kp-typ').value = f;
+  updatePolaritaetWrap();
+  if(f === 'power'){
+    const guess = guessPolaritaet(opt?.dataset.bezeichnung);
+    if(guess) document.getElementById('kp-polaritaet').value = guess;
+  }
+});
+
+document.getElementById('btn-add-connection').addEventListener('click', ()=>{
+  const vonB = document.getElementById('kp-von-bauteil').value;
+  const vonK = document.getElementById('kp-von-klemme').value;
+  const nachB = document.getElementById('kp-nach-bauteil').value;
+  const nachK = document.getElementById('kp-nach-klemme').value;
+  if(!vonB || !nachB || !vonK || !nachK){ alert('Bitte Bauteil und Klemme auf beiden Seiten wählen.'); return; }
+  if(vonB === nachB && vonK === nachK){ alert('Von- und Nach-Klemme dürfen nicht identisch sein.'); return; }
+  const typ = document.getElementById('kp-typ').value;
+  currentPlan.connections.push({
+    id: uid(), von:vonB, vonKlemme:vonK, nach:nachB, nachKlemme:nachK,
+    typ, polaritaet: typ==='power' ? document.getElementById('kp-polaritaet').value : '',
+    notiz: document.getElementById('kp-notiz').value.trim()
+  });
+  document.getElementById('kp-notiz').value = '';
+  document.getElementById('kp-polaritaet').value = '';
+  renderConnections();
+  updateKpVisibility();
+});
+
+function autoSuggestConnections(){
+  const bauteile = selectedBauteile();
+  if(bauteile.length < 2){ alert('Mindestens 2 Bauteile auswählen.'); return; }
+  const hub = bauteile.find(b=>b.typ==='steuerung') || bauteile.find(b=>b.typ==='netzteil') || bauteile[0];
+  const others = bauteile.filter(b=>b.id!==hub.id);
+
+  const typCount = {};
+  others.forEach(b=>{ typCount[b.typ] = (typCount[b.typ]||0)+1; });
+  const typSeen = {};
+  others.forEach(b=>{ typSeen[b.typ] = (typSeen[b.typ]||0)+1; b._autoIdx = typSeen[b.typ]; });
+
+  const alreadyConnected = new Set();
+  currentPlan.connections.forEach(c=>{ alreadyConnected.add(c.vonKlemme); alreadyConnected.add(c.nachKlemme); });
+
+  const usedHub = new Set();
+  const newConns = [];
+  const numberedRe = /\b(leser|reader|relais)\s*\d+\b/i;
+
+  others.forEach(peer=>{
+    const idx = peer._autoIdx;
+    const multi = typCount[peer.typ] > 1;
+    ['power','data','signal'].forEach(funk=>{
+      let hubPool = hub.klemmen.filter(k=>k.funktion===funk && !usedHub.has(k.id) && !alreadyConnected.has(k.id));
+      if(multi){
+        const re = new RegExp('(leser|relais|reader)\\s*'+idx+'\\b','i');
+        hubPool = hubPool.filter(k => re.test(k.bezeichnung) || re.test(k.info||''));
+      } else {
+        hubPool = hubPool.filter(k => !numberedRe.test(k.bezeichnung) && !numberedRe.test(k.info||''));
+      }
+      const peerPool = peer.klemmen.filter(k=>k.funktion===funk && !alreadyConnected.has(k.id));
+      const n = Math.min(hubPool.length, peerPool.length);
+      for(let i=0;i<n;i++){
+        usedHub.add(hubPool[i].id);
+        const polaritaet = funk==='power'
+          ? (guessPolaritaet(hubPool[i].bezeichnung) || guessPolaritaet(peerPool[i].bezeichnung))
+          : '';
+        newConns.push({
+          id: uid(), von:hub.id, vonKlemme:hubPool[i].id, nach:peer.id, nachKlemme:peerPool[i].id,
+          typ: funk, polaritaet, notiz:'Auto-Vorschlag — bitte prüfen'
+        });
+      }
+    });
+  });
+
+  if(newConns.length === 0){
+    alert('Keine eindeutigen Vorschläge gefunden. Bei mehreren gleichartigen Bauteilen müssen die Hub-Klemmen die Nummer im Namen tragen (z.B. "Leser 2"), sonst bitte manuell verbinden.');
+    return;
+  }
+  currentPlan.connections = currentPlan.connections.concat(newConns);
+  renderConnections();
+  updateKpVisibility();
+}
+document.getElementById('btn-auto-suggest').addEventListener('click', autoSuggestConnections);
+
+function klemmeLabel(bauteilId, klemmeId){
+  const b = selectedBauteile().find(x=>x.id===bauteilId);
+  const k = b?.klemmen.find(k=>k.id===klemmeId);
+  return k ? (k.nr || '?') : '?';
+}
+function bauteilName(id){ return selectedBauteile().find(b=>b.id===id)?.name || '?'; }
+
+function renderConnections(){
+  const tbody = document.querySelector('#kp-conn-table tbody');
+  const card = document.getElementById('kp-list-card');
+  if(currentPlan.connections.length===0){ card.style.display='none'; tbody.innerHTML=''; renderDiagram(); renderKlemmenRef(); return; }
+  card.style.display='block';
+  tbody.innerHTML = currentPlan.connections.map(c => `
+    <tr>
+      <td>${bauteilName(c.von)}</td><td>${klemmeLabel(c.von,c.vonKlemme)}</td>
+      <td>${bauteilName(c.nach)}</td><td>${klemmeLabel(c.nach,c.nachKlemme)}</td>
+      <td>${TYP_LABEL[c.typ]}${c.typ==='power' && c.polaritaet ? (c.polaritaet==='plus' ? ' (+)' : ' (GND)') : ''}</td><td>${c.notiz||''}</td>
+      <td class="no-print"><button class="danger" data-conn="${c.id}">×</button></td>
+    </tr>
+  `).join('');
+  tbody.querySelectorAll('button[data-conn]').forEach(btn=>{
+    btn.addEventListener('click', ()=>{
+      currentPlan.connections = currentPlan.connections.filter(c=>c.id!==btn.dataset.conn);
+      renderConnections();
+      updateKpVisibility();
+    });
+  });
+  renderDiagram();
+  renderKlemmenRef();
+}
+
+function renderDiagram(){
+  const bauteile = selectedBauteile();
+  const card = document.getElementById('kp-diagram-card');
+  const svg = document.getElementById('kp-svg');
+  if(bauteile.length===0 || currentPlan.connections.length===0){ card.style.display='none'; svg.innerHTML=''; return; }
+  card.style.display='block';
+
+  const cx=500, cy=300, rx=380, ry=210, n=bauteile.length;
+  const pos = {};
+  bauteile.forEach((b,i)=>{
+    const angle = (2*Math.PI/n)*i - Math.PI/2;
+    pos[b.id] = { x: cx + rx*Math.cos(angle), y: cy + ry*Math.sin(angle) };
+  });
+
+  // Verbindungen nach Bauteil-Paar gruppieren, damit mehrere Leitungen
+  // zwischen denselben zwei Bauteilen nebeneinander statt übereinander liegen.
+  const groups = {};
+  currentPlan.connections.forEach(c=>{
+    const key = [c.von, c.nach].sort().join('|');
+    (groups[key] = groups[key] || []).push(c);
+  });
+
+  const SPACING = 22; // Pixelabstand zwischen parallelen Leitungen
+  const NODE_W = 170, NODE_H = 56;
+  const hw = NODE_W/2 + 12, hh = NODE_H/2 + 12; // Abstand der Labels zur Bauteil-Box
+  const ENDMARGIN = 8; // zusätzlicher Versatz vom Box-Rand ins Freie
+
+  let wireContent = '', labelContent = '';
+  Object.values(groups).forEach(group=>{
+    const count = group.length;
+    const first = group[0];
+    const p1 = pos[first.von], p2 = pos[first.nach];
+    if(!p1 || !p2) return;
+
+    // Brücke innerhalb desselben Bauteils (z.B. Stromversorgung auf Relaiskontakt gebrückt):
+    // als kleine Schlaufe oberhalb der Box zeichnen, da von- und nach-Punkt identisch sind.
+    if(first.von === first.nach){
+      group.forEach((c, idx)=>{
+        const spread = (idx - (count-1)/2) * 30;
+        const lift = 50 + idx*18;
+        const x1 = p1.x - 16 + spread, y1 = p1.y - NODE_H/2;
+        const x2 = p1.x + 16 + spread, y2 = p1.y - NODE_H/2;
+        const topY = y1 - lift;
+        const d = `M${x1},${y1} Q ${(x1+x2)/2},${topY} ${x2},${y2}`;
+        let wireClass = `wire ${c.typ}`;
+        if(c.typ==='power' && c.polaritaet) wireClass += ` ${c.polaritaet}`;
+        if(c.typ==='power' && c.polaritaet==='gnd'){
+          wireContent += `<path class="wire-halo" d="${d}"></path>`;
+        }
+        wireContent += `<path class="${wireClass}" d="${d}"></path>`;
+        labelContent += wireEndLabel(x1, y1-12, klemmeLabel(c.von,c.vonKlemme));
+        labelContent += wireEndLabel(x2, y2-12, klemmeLabel(c.nach,c.nachKlemme));
+      });
+      return;
+    }
+
+    const dxFull = p2.x-p1.x, dyFull = p2.y-p1.y;
+    const lenFull = Math.sqrt(dxFull*dxFull+dyFull*dyFull) || 1;
+    const ux = dxFull/lenFull, uy = dyFull/lenFull;
+    // Parameter s: wo die Linie (vom jeweiligen Zentrum aus) den Box-Rand verlässt
+    const s = Math.min(hw/Math.max(Math.abs(dxFull),0.0001), hh/Math.max(Math.abs(dyFull),0.0001));
+
+    group.forEach((c, idx)=>{
+      const px = -dyFull/lenFull, py = dxFull/lenFull; // Normalenvektor (senkrecht zur Leitung)
+      const offset = (idx - (count-1)/2) * SPACING;
+      const ox = px*offset, oy = py*offset;
+      const x1 = p1.x+ox, y1 = p1.y+oy, x2 = p2.x+ox, y2 = p2.y+oy;
+      let wireClass = `wire ${c.typ}`;
+      if(c.typ==='power' && c.polaritaet) wireClass += ` ${c.polaritaet}`;
+      if(c.typ==='power' && c.polaritaet==='gnd'){
+        // Helle Kontur hinter der schwarzen Leitung, damit sie auf dem dunklen Hintergrund sichtbar bleibt
+        wireContent += `<path class="wire-halo" d="M${x1},${y1} L${x2},${y2}"></path>`;
+      }
+      wireContent += `<path class="${wireClass}" d="M${x1},${y1} L${x2},${y2}"></path>`;
+
+      // Label am von-Ende: knapp außerhalb der Bauteil-Box, Richtung zum Gegenüber
+      const lx1 = p1.x + s*dxFull + ux*ENDMARGIN + ox;
+      const ly1 = p1.y + s*dyFull + uy*ENDMARGIN + oy;
+      labelContent += wireEndLabel(lx1, ly1, klemmeLabel(c.von,c.vonKlemme));
+
+      // Label am nach-Ende
+      const lx2 = p2.x - s*dxFull - ux*ENDMARGIN + ox;
+      const ly2 = p2.y - s*dyFull - uy*ENDMARGIN + oy;
+      labelContent += wireEndLabel(lx2, ly2, klemmeLabel(c.nach,c.nachKlemme));
+    });
+  });
+
+  let nodeContent = '';
+  bauteile.forEach(b=>{
+    const p = pos[b.id];
+    nodeContent += `<g class="node"><rect x="${p.x-NODE_W/2}" y="${p.y-NODE_H/2}" width="${NODE_W}" height="${NODE_H}"></rect>
+      <text x="${p.x}" y="${p.y+5}" text-anchor="middle">${b.name}</text></g>`;
+  });
+
+  svg.innerHTML = wireContent + labelContent + nodeContent;
+}
+
+// Zeichnet ein Klemmen-Label mit Hintergrund-Pille an einer festen Position,
+// damit es auch über farbigen/gestrichelten Leitungen gut lesbar bleibt.
+function wireEndLabel(x, y, text){
+  const w = Math.max(text.length*5.4 + 8, 16);
+  const h = 13;
+  return `<g class="wlabel-grp">`
+    + `<rect class="wlabel-bg" x="${(x-w/2).toFixed(1)}" y="${(y-h/2).toFixed(1)}" width="${w.toFixed(1)}" height="${h}" rx="3"></rect>`
+    + `<text class="wlabel-end" x="${x.toFixed(1)}" y="${(y+3.2).toFixed(1)}" text-anchor="middle">${text}</text>`
+    + `</g>`;
+}
+
+function renderKlemmenRef(){
+  const bauteile = selectedBauteile();
+  const card = document.getElementById('kp-klemmen-ref-card');
+  if(bauteile.length===0){ card.style.display='none'; return; }
+  card.style.display='block';
+  document.getElementById('kp-klemmen-ref').innerHTML = bauteile.map(b=>`
+    <h3>${b.name}</h3>
+    ${b.klemmen.length===0 ? '<p class="empty">Keine Klemmen gepflegt.</p>' : `
+    <table>
+      <thead><tr><th>Klemme</th><th>Bezeichnung</th><th>Funktion</th><th>Info</th></tr></thead>
+      <tbody>${b.klemmen.map(k=>`<tr><td>${k.nr||'–'}</td><td>${k.bezeichnung||'–'}</td><td>${TYP_LABEL[k.funktion]}</td><td>${k.info||''}</td></tr>`).join('')}</tbody>
+    </table>`}
+  `).join('');
+}
+
+function updateKpVisibility(){
+  const hasBauteile = currentPlan.bauteilIds.length>0;
+  document.getElementById('kp-actions-card').style.display = hasBauteile ? 'block' : 'none';
+}
+
+document.getElementById('kp-projekt').addEventListener('input', e=>currentPlan.projekt=e.target.value);
+document.getElementById('kp-tuer').addEventListener('input', e=>currentPlan.tuer=e.target.value);
+
+document.getElementById('btn-save-plan').addEventListener('click', async ()=>{
+  if(!currentPlan.projekt){ alert('Bitte Projekt/Kunde angeben, damit Du den Plan wiederfindest.'); return; }
+  if(!currentPlan.id) currentPlan.id = uid();
+  currentPlan.datum = new Date().toISOString().slice(0,10);
+  const idx = plaene.findIndex(p=>p.id===currentPlan.id);
+  if(idx>=0) plaene[idx] = JSON.parse(JSON.stringify(currentPlan));
+  else plaene.push(JSON.parse(JSON.stringify(currentPlan)));
+  await savePlaene();
+  renderPlaene();
+  alert('Plan gespeichert.');
+});
+
+document.getElementById('btn-print-plan').addEventListener('click', ()=>{ generatePlanPdf(); });
+
+// ============================================================
+// Eigener, minimaler PDF-Generator — keine externe Bibliothek,
+// funktioniert vollständig offline. Erzeugt eine gültige PDF-Datei
+// von Hand (Objekte, Content-Streams, Bild als JPEG-XObject, xref).
+// ============================================================
+
+const PDF_UNICODE_MAP = {
+  0x2014: 0x97, // —
+  0x2013: 0x96, // –
+  0x2018: 0x91, // '
+  0x2019: 0x92, // '
+  0x201C: 0x93, // "
+  0x201D: 0x94, // "
+  0x2022: 0x95, // •
+  0x2026: '..', // … -> zwei Punkte statt Sonderzeichen, sicherer bei Kürzung
+};
+function pdfSafe(str){
+  return String(str==null?'':str).split('').map(ch=>{
+    const c = ch.charCodeAt(0);
+    if(c < 256) return ch;
+    if(PDF_UNICODE_MAP[c] !== undefined){
+      const m = PDF_UNICODE_MAP[c];
+      return typeof m === 'number' ? String.fromCharCode(m) : m;
+    }
+    return '?';
+  }).join('');
+}
+function escapePdfText(str){
+  return pdfSafe(str).replace(/\\/g,'\\\\').replace(/\(/g,'\\(').replace(/\)/g,'\\)');
+}
+function pdfStrToBytes(str){
+  const arr = new Uint8Array(str.length);
+  for(let i=0;i<str.length;i++) arr[i] = str.charCodeAt(i) & 0xFF;
+  return arr;
+}
+function pdfConcatBytes(arrays){
+  let total = 0; arrays.forEach(a=>total+=a.length);
+  const out = new Uint8Array(total);
+  let off=0; arrays.forEach(a=>{ out.set(a, off); off+=a.length; });
+  return out;
+}
+function pdfPad10(n){ return String(n).padStart(10,'0'); }
+function pdfB64ToBytes(b64){
+  const bin = atob(b64);
+  const arr = new Uint8Array(bin.length);
+  for(let i=0;i<bin.length;i++) arr[i]=bin.charCodeAt(i);
+  return arr;
+}
+function pdfApproxWidth(str, size){ return String(str||'').length * size * 0.52; }
+function pdfTruncate(str, colWidth, size){
+  str = pdfSafe(str||'');
+  const maxChars = Math.max(3, Math.floor(colWidth/(size*0.52)));
+  return str.length>maxChars ? str.slice(0,maxChars-2)+'..' : str;
+}
+
+function pdfAssembleFile(objectBodies){
+  const parts = [];
+  const offsets = [];
+  let pos = 0;
+  const header = pdfStrToBytes('%PDF-1.4\n');
+  parts.push(header); pos += header.length;
+  objectBodies.forEach((body, idx)=>{
+    offsets.push(pos);
+    const wrapped = pdfConcatBytes([ pdfStrToBytes(`${idx+1} 0 obj\n`), body, pdfStrToBytes(`\nendobj\n`) ]);
+    parts.push(wrapped); pos += wrapped.length;
+  });
+  const xrefStart = pos;
+  let xref = `xref\n0 ${objectBodies.length+1}\n0000000000 65535 f \n`;
+  offsets.forEach(o=>{ xref += pdfPad10(o) + ' 00000 n \n'; });
+  const xrefBytes = pdfStrToBytes(xref);
+  parts.push(xrefBytes); pos += xrefBytes.length;
+  const trailer = `trailer\n<< /Size ${objectBodies.length+1} /Root 1 0 R >>\nstartxref\n${xrefStart}\n%%EOF`;
+  parts.push(pdfStrToBytes(trailer));
+  return pdfConcatBytes(parts);
+}
+
+function pdfBuildContentStream(cmds){
+  let s = '';
+  cmds.forEach(cmd=>{
+    if(cmd.type==='text'){
+      s += `BT /${cmd.font} ${cmd.size} Tf ${cmd.x.toFixed(2)} ${cmd.y.toFixed(2)} Td (${escapePdfText(cmd.str)}) Tj ET\n`;
+    } else if(cmd.type==='line'){
+      s += `${(cmd.width||1).toFixed(2)} w ${cmd.x1.toFixed(2)} ${cmd.y1.toFixed(2)} m ${cmd.x2.toFixed(2)} ${cmd.y2.toFixed(2)} l S\n`;
+    } else if(cmd.type==='rectfill'){
+      s += `${(cmd.gray!==undefined?cmd.gray:0.9).toFixed(2)} g ${cmd.x.toFixed(2)} ${cmd.y.toFixed(2)} ${cmd.w.toFixed(2)} ${cmd.h.toFixed(2)} re f\n0 g\n`;
+    } else if(cmd.type==='image'){
+      s += `q ${cmd.w.toFixed(2)} 0 0 ${cmd.h.toFixed(2)} ${cmd.x.toFixed(2)} ${cmd.y.toFixed(2)} cm /Im1 Do Q\n`;
+    }
+  });
+  return s;
+}
+
+async function svgToJpegDataUrl(svgEl, scale){
+  const xml = new XMLSerializer().serializeToString(svgEl);
+  const vb = svgEl.viewBox.baseVal;
+  const w = vb.width || 1000, h = vb.height || 620;
+  const svgBlob = new Blob([xml], {type:'image/svg+xml;charset=utf-8'});
+  const url = URL.createObjectURL(svgBlob);
+  try{
+    const img = new Image();
+    await new Promise((res,rej)=>{ img.onload=res; img.onerror=rej; img.src=url; });
+    const canvas = document.createElement('canvas');
+    canvas.width = Math.round(w*scale); canvas.height = Math.round(h*scale);
+    const ctx = canvas.getContext('2d');
+    ctx.fillStyle = '#ffffff'; ctx.fillRect(0,0,canvas.width,canvas.height);
+    ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+    return { dataUrl: canvas.toDataURL('image/jpeg', 0.92), pixelWidth: canvas.width, pixelHeight: canvas.height, natW: w, natH: h };
+  } finally {
+    URL.revokeObjectURL(url);
+  }
+}
+
+function systemForBauteil(bId){
+  for(const s of systeme){ if(s.bauteile.some(b=>b.id===bId)) return s; }
+  return null;
+}
+
+async function generatePlanPdf(){
+  const bauteile = selectedBauteile();
+  const statusEl = document.getElementById('pdf-status');
+  if(bauteile.length===0){ alert('Keine Bauteile ausgewählt.'); return; }
+  statusEl.textContent = 'PDF wird erzeugt…';
+
+  const PAGE_W = 595.28, PAGE_H = 841.89, MARGIN = 42;
+  const objects = [];
+  function setObj(id, body){ objects[id-1] = body; }
+
+  const idCatalog = 1, idPages = 2, idF1 = 3, idF2 = 4;
+  let nextId = 5;
+  setObj(idF1, pdfStrToBytes('<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica /Encoding /WinAnsiEncoding >>'));
+  setObj(idF2, pdfStrToBytes('<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica-Bold /Encoding /WinAnsiEncoding >>'));
+
+  let idImage = null, imgInfo = null;
+  const svg = document.getElementById('kp-svg');
+  const hasDiagram = currentPlan.connections.length>0 && svg && svg.innerHTML.trim()!=='';
+  if(hasDiagram){
+    try{ imgInfo = await svgToJpegDataUrl(svg, 2.5); } catch(e){ imgInfo = null; }
+    if(imgInfo){
+      idImage = nextId++;
+      const jpegBytes = pdfB64ToBytes(imgInfo.dataUrl.split(',')[1]);
+      const header = `<< /Type /XObject /Subtype /Image /Width ${imgInfo.pixelWidth} /Height ${imgInfo.pixelHeight} /ColorSpace /DeviceRGB /BitsPerComponent 8 /Filter /DCTDecode /Length ${jpegBytes.length} >>\nstream\n`;
+      setObj(idImage, pdfConcatBytes([pdfStrToBytes(header), jpegBytes, pdfStrToBytes(`\nendstream`)]));
+    }
+  }
+  const resDict = `<< /Font << /F1 ${idF1} 0 R /F2 ${idF2} 0 R >>` + (idImage?` /XObject << /Im1 ${idImage} 0 R >>`:'') + ` >>`;
+
+  // ---- Layout-Engine: sammelt Zeichenbefehle, bricht automatisch neue Seiten ----
+  const pages = [];
+  let cur = null;
+  function newPage(){ const pid=nextId++, cid=nextId++; const p={pid,cid,cmds:[],y:PAGE_H-MARGIN}; pages.push(p); cur=p; return p; }
+  function checkBreak(h){ if(!cur) newPage(); else if(cur.y - h < MARGIN) newPage(); }
+  function heading(str){ checkBreak(30); cur.cmds.push({type:'text',font:'F2',size:16,x:MARGIN,y:cur.y,str}); cur.y-=24; }
+  function subheading(str){ checkBreak(24); cur.y-=6; cur.cmds.push({type:'text',font:'F2',size:12,x:MARGIN,y:cur.y,str}); cur.y-=16; }
+  function label(str){ checkBreak(16); cur.cmds.push({type:'text',font:'F1',size:10,x:MARGIN,y:cur.y,str}); cur.y-=14; }
+  function hr(){ checkBreak(8); cur.cmds.push({type:'line',x1:MARGIN,y1:cur.y,x2:PAGE_W-MARGIN,y2:cur.y,width:0.5}); cur.y-=10; }
+  function spacer(h){ if(cur) cur.y -= h; }
+  function tableHeader(cols, widths){
+    checkBreak(18);
+    cur.cmds.push({type:'rectfill', x:MARGIN, y:cur.y-11, w:PAGE_W-2*MARGIN, h:14, gray:0.88});
+    let x = MARGIN;
+    cols.forEach((c,i)=>{ cur.cmds.push({type:'text',font:'F2',size:8.5,x:x+2,y:cur.y-8,str:pdfTruncate(c,widths[i]-4,8.5)}); x+=widths[i]; });
+    cur.y -= 16;
+    return { cols, widths };
+  }
+  function tableRow(header, values){
+    checkBreak(14);
+    let x = MARGIN;
+    values.forEach((v,i)=>{ cur.cmds.push({type:'text',font:'F1',size:8.5,x:x+2,y:cur.y-8,str:pdfTruncate(v,header.widths[i]-4,8.5)}); x+=header.widths[i]; });
+    cur.y -= 13;
+  }
+  async function fullPageImage(dataUrl, natW, natH){
+    newPage();
+    const maxW = PAGE_W - 2*MARGIN, maxH = cur.y - MARGIN;
+    let w = maxW, h = w*(natH/natW);
+    if(h > maxH){ h = maxH; w = h*(natW/natH); }
+    const x = MARGIN + (maxW-w)/2, y = cur.y - h;
+    cur.cmds.push({type:'image', x, y, w, h});
+    cur.y = y - 10;
+  }
+
+  // ---- Seite 1: Titelblock + Bauteilliste + Verbindungen ----
+  newPage();
+  heading('ZuKo Kabelplan');
+  label(`Projekt / Kunde:  ${currentPlan.projekt || '–'}`);
+  label(`Türbezeichnung:   ${currentPlan.tuer || '–'}`);
+  label(`Datum:            ${currentPlan.datum || new Date().toISOString().slice(0,10)}`);
+  hr();
+
+  subheading('Verbaute Bauteile');
+  bauteile.forEach(b=>{
+    const sys = systemForBauteil(b.id);
+    label(`•  ${b.name}` + (sys ? `  (${sys.hersteller} — ${sys.modell})` : ''));
+  });
+
+  if(currentPlan.connections.length>0){
+    subheading('Verbindungen');
+    const connWidths = [95,40,95,40,75,PAGE_W-2*MARGIN-(95+40+95+40+75)];
+    const connHead = tableHeader(['Von','Kl.','Nach','Kl.','Typ','Notiz'], connWidths);
+    currentPlan.connections.forEach(c=>{
+      const typLabel = TYP_LABEL[c.typ] + (c.typ==='power' && c.polaritaet ? (c.polaritaet==='plus'?' (+)':' (GND)') : '');
+      tableRow(connHead, [bauteilName(c.von), klemmeLabel(c.von,c.vonKlemme), bauteilName(c.nach), klemmeLabel(c.nach,c.nachKlemme), typLabel, c.notiz||'']);
+    });
+  }
+
+  // ---- Diagrammseite ----
+  if(hasDiagram && imgInfo){
+    await fullPageImage(imgInfo.dataUrl, imgInfo.natW, imgInfo.natH);
+    cur.cmds.unshift({type:'text',font:'F2',size:12,x:MARGIN,y:PAGE_H-MARGIN,str:'Schaltbild'});
+  }
+
+  // ---- Klemmenbelegung ----
+  newPage();
+  heading('Klemmenbelegung');
+  const kWidths = [45,110,55,PAGE_W-2*MARGIN-(45+110+55+150),150];
+  bauteile.forEach(b=>{
+    subheading(b.name);
+    if(b.klemmen.length===0){ label('Keine Klemmen gepflegt.'); return; }
+    const kHead = tableHeader(['Klemme','Bezeichnung','Funktion','Info','Verbunden mit'], kWidths);
+    b.klemmen.forEach(k=>{
+      const matches = currentPlan.connections.filter(c => (c.von===b.id&&c.vonKlemme===k.id) || (c.nach===b.id&&c.nachKlemme===k.id));
+      const conn = matches.length===0 ? '–' : matches.map(c=>{
+        const otherB = c.von===b.id ? c.nach : c.von;
+        const otherK = c.von===b.id ? c.nachKlemme : c.vonKlemme;
+        return bauteilName(otherB)+' Kl.'+klemmeLabel(otherB,otherK);
+      }).join(', ');
+      tableRow(kHead, [k.nr||'–', k.bezeichnung||'–', TYP_LABEL[k.funktion]||'', k.info||'', conn]);
+    });
+  });
+
+  // ---- Objekte fertigstellen ----
+  pages.forEach(p=>{
+    const streamStr = pdfBuildContentStream(p.cmds);
+    const streamBytes = pdfStrToBytes(streamStr);
+    setObj(p.cid, pdfConcatBytes([pdfStrToBytes(`<< /Length ${streamBytes.length} >>\nstream\n`), streamBytes, pdfStrToBytes(`\nendstream`)]));
+    setObj(p.pid, pdfStrToBytes(`<< /Type /Page /Parent ${idPages} 0 R /MediaBox [0 0 ${PAGE_W} ${PAGE_H}] /Resources ${resDict} /Contents ${p.cid} 0 R >>`));
+  });
+  setObj(idPages, pdfStrToBytes(`<< /Type /Pages /Kids [${pages.map(p=>p.pid+' 0 R').join(' ')}] /Count ${pages.length} >>`));
+  setObj(idCatalog, pdfStrToBytes(`<< /Type /Catalog /Pages ${idPages} 0 R >>`));
+
+  const pdfBytes = pdfAssembleFile(objects);
+  const blob = new Blob([pdfBytes], {type:'application/pdf'});
+  const url = URL.createObjectURL(blob);
+  const safeName = (s)=> (s||'Plan').replace(/[^a-zA-Z0-9äöüÄÖÜß_-]+/g,'_');
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `Kabelplan_${safeName(currentPlan.projekt)}${currentPlan.tuer?'_'+safeName(currentPlan.tuer):''}.pdf`;
+  document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(()=>URL.revokeObjectURL(url), 2000);
+  statusEl.textContent = 'PDF erzeugt und heruntergeladen.';
+  setTimeout(()=>{ statusEl.textContent=''; }, 3000);
+}
+document.getElementById('btn-reset-plan').addEventListener('click', ()=>{
+  if(!confirm('Aktuellen Plan verwerfen und neu beginnen?')) return;
+  currentPlan = { id:null, projekt:'', tuer:'', bauteilIds:[], connections:[] };
+  document.getElementById('kp-projekt').value='';
+  document.getElementById('kp-tuer').value='';
+  document.getElementById('kp-bauteil-search').value='';
+  renderKabelplanBauteile();
+  document.getElementById('kp-connect-card').style.display='none';
+  document.getElementById('kp-list-card').style.display='none';
+  document.getElementById('kp-diagram-card').style.display='none';
+  document.getElementById('kp-klemmen-ref-card').style.display='none';
+  document.getElementById('kp-actions-card').style.display='none';
+});
+
+// ---------- PLÄNE TAB ----------
+function planSystemSummary(p){
+  const ids = p.bauteilIds || [];
+  const hersteller = new Set();
+  systeme.forEach(s => s.bauteile.forEach(b => { if(ids.includes(b.id)) hersteller.add(s.hersteller); }));
+  if(hersteller.size===0) return `${ids.length} Bauteil(e)`;
+  return `${ids.length} Bauteil(e) · ${[...hersteller].join(', ')}`;
+}
+
+function renderPlaene(){
+  const list = document.getElementById('plaene-list');
+  if(plaene.length===0){ list.innerHTML = '<p class="empty">Noch keine Pläne gespeichert.</p>'; return; }
+  list.innerHTML = plaene.map(p=>{
+    return `<div class="plan-item">
+      <span><span class="pname">${p.projekt}${p.tuer ? ' — '+p.tuer : ''}</span><br>
+      <span class="pmeta">${planSystemSummary(p)} · ${p.datum||''}</span></span>
+      <span><button class="ghost" data-action="load-plan" data-id="${p.id}">Öffnen</button>
+      <button class="danger" data-action="del-plan" data-id="${p.id}">Löschen</button></span>
+    </div>`;
+  }).join('');
+  list.querySelectorAll('[data-action="load-plan"]').forEach(btn=>{
+    btn.addEventListener('click', ()=>{
+      const p = plaene.find(x=>x.id===btn.dataset.id);
+      currentPlan = JSON.parse(JSON.stringify(p));
+      document.getElementById('kp-projekt').value = currentPlan.projekt;
+      document.getElementById('kp-tuer').value = currentPlan.tuer;
+      document.getElementById('kp-bauteil-search').value = '';
+      renderKabelplanBauteile();
+      renderConnections();
+      updateKpVisibility();
+      document.querySelector('.tab-btn[data-tab="kabelplan"]').click();
+    });
+  });
+  list.querySelectorAll('[data-action="del-plan"]').forEach(btn=>{
+    btn.addEventListener('click', async ()=>{
+      if(!confirm('Plan wirklich löschen?')) return;
+      plaene = plaene.filter(x=>x.id!==btn.dataset.id);
+      await savePlaene();
+      renderPlaene();
+    });
+  });
+}
+
+// ---------- SCHEMA TAB ----------
+const SCH_KOMPONENTEN = {
+  oeffner:   { name:'E-Öffner',                steuerTyp:'signal', steuerLabel:'Türöffner-Ansteuerung (Relais/Kontakt)' },
+  antrieb:   { name:'Antrieb (Automatiktür)',   steuerTyp:'data',   steuerLabel:'Bus-/Steuerleitung (z.B. RS485)' },
+  fluchtweg: { name:'Fluchtwegsystem',          steuerTyp:'safety', steuerLabel:'Sicherheits-/Fluchtwegleitung' }
+};
+const SCH_QUELLEN = {
+  netzteil: { name:'Netzteil' },
+  antrieb:  { name:'Antrieb (interne Versorgung)' }
+};
+// Aktuell sind alle Kombinationen Komponente↔Stromquelle technisch zulässig.
+// Struktur bleibt offen für künftige Einschränkungen (z.B. bestimmte Antriebe ohne eigene Stromabgabe).
+function schemaComboValid(komponenteIds, quelleId){
+  if(komponenteIds.length===0 || !quelleId) return false;
+  return true;
+}
+
+function selectedSchKomponenten(){
+  return Array.from(document.querySelectorAll('#sch-komponenten-checks input:checked')).map(cb=>cb.value);
+}
+
+function renderSchema(){
+  const kIds = selectedSchKomponenten();
+  const qId = document.getElementById('sch-quelle').value;
+  const spannung = document.getElementById('sch-spannung').value;
+  const spannungWrap = document.getElementById('sch-spannung-wrap');
+  spannungWrap.style.display = (qId === 'netzteil') ? 'block' : 'none';
+
+  const svg = document.getElementById('sch-svg');
+  const status = document.getElementById('sch-status');
+
+  let quelleLabel = '–';
+  if(qId === 'netzteil') quelleLabel = `Netzteil ${spannung} V DC`;
+  else if(qId) quelleLabel = SCH_QUELLEN[qId].name;
+
+  const valid = schemaComboValid(kIds, qId);
+  if(kIds.length===0 && !qId){ status.textContent = 'Bitte Komponente(n) und Stromquelle auswählen.'; status.className='schema-status'; }
+  else if(kIds.length===0 || !qId){ status.textContent = 'Bitte mindestens eine Komponente und eine Stromquelle auswählen.'; status.className='schema-status'; }
+  else if(valid){ status.textContent = `✓ Kombination zulässig — Leitungen aktiv (${kIds.length} Komponente${kIds.length>1?'n':''}).`; status.className='schema-status ok'; }
+  else { status.textContent = '⚠ Diese Kombination ist nicht zulässig.'; status.className='schema-status'; }
+
+  const vCls = valid ? ' valid' : '';
+  const NODE_W = 230, NODE_H = 64;
+
+  // Stromquelle links, Steuerung als zentraler Knoten in der vertikalen Mitte,
+  // Komponenten als eigene Zweige rechts davon gestapelt (Stern-Topologie).
+  const quelle    = { x:60,  y:310, w:NODE_W, h:NODE_H, label: quelleLabel };
+  const steuerung = { x:390, y:310, w:NODE_W, h:NODE_H, label:'ZuKo / Steuerung' };
+
+  const n = Math.max(kIds.length, 1);
+  const spacing = 130;
+  const totalH = (n-1)*spacing;
+  const startY = 310 - totalH/2;
+  const komponenten = kIds.map((kId,i)=>({
+    id:kId,
+    x:750, y: n===1 ? 310 : startY + i*spacing, w:NODE_W, h:NODE_H,
+    label: SCH_KOMPONENTEN[kId].name,
+    steuerTyp: SCH_KOMPONENTEN[kId].steuerTyp,
+    steuerLabel: SCH_KOMPONENTEN[kId].steuerLabel
+  }));
+  const svgHeight = Math.max(620, totalH + 260);
+  svg.setAttribute('viewBox', `0 0 1000 ${svgHeight}`);
+
+  let html = '';
+  // Strom: Quelle -> ZuKo/Steuerung
+  const x1 = quelle.x + quelle.w, y1 = quelle.y;
+  const x2 = steuerung.x, y2 = steuerung.y;
+  html += `<path class="wire power${vCls}" d="M${x1},${y1} L${x2},${y2}"></path>`;
+  html += `<text class="wlabel${vCls}" x="${(x1+x2)/2}" y="${y1-8}" text-anchor="middle">Strom</text>`;
+
+  // ZuKo/Steuerung -> jede Komponente als eigener Zweig
+  komponenten.forEach(k=>{
+    const x3 = steuerung.x + steuerung.w, y3 = steuerung.y;
+    const x4 = k.x, y4 = k.y;
+    html += `<path class="wire ${k.steuerTyp}${vCls}" d="M${x3},${y3} L${x4},${y4}"></path>`;
+    const midY = (y3+y4)/2 + (y4<y3 ? -8 : (y4>y3 ? 14 : -8));
+    html += `<text class="wlabel${vCls}" x="${(x3+x4)/2}" y="${midY}" text-anchor="middle">${k.steuerLabel}</text>`;
+  });
+
+  html += `<g class="node quelle"><rect x="${quelle.x}" y="${quelle.y-quelle.h/2}" width="${quelle.w}" height="${quelle.h}"></rect>
+    <text x="${quelle.x+quelle.w/2}" y="${quelle.y+5}" text-anchor="middle">${quelle.label}</text></g>`;
+  html += `<text class="wlabel" x="${quelle.x}" y="${quelle.y-quelle.h/2-8}" text-anchor="start" style="fill:var(--bp-power);font-style:italic;">← Dropdown</text>`;
+
+  html += `<g class="node steuerung"><rect x="${steuerung.x}" y="${steuerung.y-steuerung.h/2}" width="${steuerung.w}" height="${steuerung.h}"></rect>
+    <text x="${steuerung.x+steuerung.w/2}" y="${steuerung.y+5}" text-anchor="middle">${steuerung.label}</text></g>`;
+  html += `<text class="wlabel" x="${steuerung.x}" y="${steuerung.y-steuerung.h/2-8}" text-anchor="start" style="fill:var(--bp-power);font-style:italic;">← Klemmbelegung</text>`;
+
+  if(komponenten.length===0){
+    html += `<g class="node komponente"><rect x="750" y="${310-NODE_H/2}" width="${NODE_W}" height="${NODE_H}"></rect>
+      <text x="${750+NODE_W/2}" y="315" text-anchor="middle">Komponente</text></g>`;
+  } else {
+    komponenten.forEach(k=>{
+      html += `<g class="node komponente"><rect x="${k.x}" y="${k.y-k.h/2}" width="${k.w}" height="${k.h}"></rect>
+        <text x="${k.x+k.w/2}" y="${k.y+5}" text-anchor="middle">${k.label}</text></g>`;
+      html += `<text class="wlabel" x="${k.x+k.w+10}" y="${k.y-k.h/2+10}" text-anchor="start" style="fill:var(--bp-power);font-style:italic;">← Angesteuert · Checkbox</text>`;
+    });
+  }
+
+  svg.innerHTML = html;
+}
+
+document.querySelectorAll('#sch-komponenten-checks input').forEach(cb=>{
+  cb.addEventListener('change', renderSchema);
+});
+document.getElementById('sch-quelle').addEventListener('change', renderSchema);
+document.getElementById('sch-spannung').addEventListener('change', renderSchema);
+renderSchema();
+
+loadAll();
+</script>
+</body>
+</html>

@@ -1,0 +1,1536 @@
+[
+  {
+    "id": "d1a656c7-b83b-4140-8ef5-602e1e6914b4",
+    "hersteller": "dormakaba",
+    "modell": "Kompaktleser 91 04 (E300 V4) — steckbare Anschlussklemme",
+    "bauteile": [
+      {
+        "id": "5c7e9666-2820-456e-a85b-3b970484e34f",
+        "typ": "leser",
+        "name": "Kompaktleser 91 04",
+        "klemmen": [
+          {
+            "id": "d67a47c5-a8ee-43f8-a62b-4016a608d7c3",
+            "nr": "1",
+            "bezeichnung": "DC- / AC",
+            "funktion": "power",
+            "info": "Stromversorgung 12-27V AC oder 10-34V DC"
+          },
+          {
+            "id": "d70a6ccf-ceed-48c6-8eef-b959b425cf1d",
+            "nr": "2",
+            "bezeichnung": "DC+ / AC",
+            "funktion": "power",
+            "info": "Stromversorgung, siehe Klemme 1"
+          },
+          {
+            "id": "92919a0a-50c1-4fc3-97d6-95c321952879",
+            "nr": "3",
+            "bezeichnung": "NC (normally closed)",
+            "funktion": "signal",
+            "info": "Relaisausgang Türöffner, max. 2A"
+          },
+          {
+            "id": "b010057c-a7f3-48d0-b846-07a736a7402b",
+            "nr": "4",
+            "bezeichnung": "COM",
+            "funktion": "signal",
+            "info": "Relaisausgang Türöffner, gemeinsamer Kontakt"
+          },
+          {
+            "id": "772fb0ce-c036-463c-b49d-138819a7a319",
+            "nr": "5",
+            "bezeichnung": "NO (normally open)",
+            "funktion": "signal",
+            "info": "Relaisausgang Türöffner, max. 2A"
+          },
+          {
+            "id": "c4cbd841-34f7-4506-b01d-630542cb8ee1",
+            "nr": "6",
+            "bezeichnung": "GND (gemeinsame Masse)",
+            "funktion": "signal",
+            "info": "Bezugsmasse für digitale Eingänge"
+          },
+          {
+            "id": "a6ced2c5-1a2c-4fe0-878d-7bc45ba33889",
+            "nr": "7",
+            "bezeichnung": "IN1",
+            "funktion": "signal",
+            "info": "Drückerkontakt oder Türöffnertaster (REX)"
+          },
+          {
+            "id": "4868ed8f-3ce0-434d-b5b2-5a0ee84c31aa",
+            "nr": "8",
+            "bezeichnung": "-",
+            "funktion": "signal",
+            "info": "nicht belegt (Funktion abhängig von Parametrierung)"
+          },
+          {
+            "id": "352fd72d-3d09-42fd-96e0-2d8f13187cc1",
+            "nr": "9",
+            "bezeichnung": "-",
+            "funktion": "signal",
+            "info": ""
+          },
+          {
+            "id": "c2eb2335-e8bd-40b4-bc42-9e426c799dd0",
+            "nr": "10",
+            "bezeichnung": "-",
+            "funktion": "signal",
+            "info": ""
+          },
+          {
+            "id": "b9eb6d68-c0dd-4ba1-ad52-c1dbb10110ae",
+            "nr": "11",
+            "bezeichnung": "-",
+            "funktion": "signal",
+            "info": ""
+          },
+          {
+            "id": "83daf8f3-c551-45ef-bb6f-a6152568b263",
+            "nr": "12",
+            "bezeichnung": "-",
+            "funktion": "signal",
+            "info": ""
+          }
+        ]
+      }
+    ],
+    "quelle": "dormakaba Technisches Handbuch Kompaktleser 91 04, Dok. 04046476, Stand 10/2018 — bitte gegen verbaute Geräterevision prüfen."
+  },
+  {
+    "id": "4c38f732-63f4-4a8b-954f-8fe1ede3cdd7",
+    "hersteller": "SimonsVoss",
+    "modell": "WaveNet System 3060 — LockNode WN.LN.C (verkabelt)",
+    "bauteile": [
+      {
+        "id": "c5ee8148-0ec9-4feb-be82-b3f13afb6368",
+        "typ": "sonstiges",
+        "name": "LockNode WN.LN.C",
+        "klemmen": [
+          {
+            "id": "8ab4e6c4-d6aa-4953-854f-af6ac5ce98b6",
+            "nr": "DC",
+            "bezeichnung": "Energieversorgung",
+            "funktion": "power",
+            "info": "6-24V DC, polaritätsabhängig. Stromaufnahme LockNode ca. 15 mA"
+          },
+          {
+            "id": "6722c2f7-7c29-4e1e-a25e-29759d5860d1",
+            "nr": "A",
+            "bezeichnung": "Datenleitung D+",
+            "funktion": "data",
+            "info": "RS485, polaritätsabhängig"
+          },
+          {
+            "id": "69c420a5-9381-41bd-9c4a-aa2090f25a17",
+            "nr": "B",
+            "bezeichnung": "Datenleitung D-",
+            "funktion": "data",
+            "info": "RS485, polaritätsabhängig"
+          },
+          {
+            "id": "f896e0e7-f513-4ee2-af31-f205cb813807",
+            "nr": "Schirm",
+            "bezeichnung": "Abschirmung",
+            "funktion": "signal",
+            "info": "An jedem LockNode/RouterNode durchverbinden, isolieren, einseitig auf PE auflegen"
+          }
+        ]
+      },
+      {
+        "id": "8cf8b8c2-a95c-4db4-9c2d-b380e2f4e316",
+        "typ": "sonstiges",
+        "name": "RouterNode — RS485-Bus (8-pol. Phoenix-Stecker)",
+        "klemmen": [
+          {
+            "id": "5c6b42d2-e7b1-41ca-9835-2b8bd47b85f6",
+            "nr": "A",
+            "bezeichnung": "Data + (A)",
+            "funktion": "data",
+            "info": "Busleitung zum RS485-Modul, Ader grün"
+          },
+          {
+            "id": "cbf16a0d-daa1-4628-aef0-1c840414798f",
+            "nr": "B",
+            "bezeichnung": "Data - (B)",
+            "funktion": "data",
+            "info": "Busleitung zum RS485-Modul, Ader orange"
+          },
+          {
+            "id": "14f9f3de-ffeb-4cd5-bf1b-fd37842d8186",
+            "nr": "GND",
+            "bezeichnung": "Ground",
+            "funktion": "signal",
+            "info": "Bezugsmasse Busleitung"
+          }
+        ]
+      }
+    ],
+    "quelle": "SimonsVoss WaveNet-Handbuch (System 3065/3060) — bitte gegen verbaute Geräterevision prüfen."
+  },
+  {
+    "id": "5de24ebd-ba47-4e97-b7f3-65bd05933a10",
+    "hersteller": "SimonsVoss",
+    "modell": "Smart Relais Serie (1. Generation) — SREL / SREL.ZK / SREL.ADV",
+    "bauteile": [
+      {
+        "id": "3e9dd368-eb97-411a-a352-cef0ba36f8d8",
+        "typ": "sonstiges",
+        "name": "SmartRelais SREL / SREL.ZK / SREL.ADV",
+        "klemmen": [
+          {
+            "id": "622b5748-34b5-4829-8c48-1a14a8def47c",
+            "nr": "+/~",
+            "bezeichnung": "Netzteil +",
+            "funktion": "power",
+            "info": "Pluspol bei 5-24V DC oder ein Wechselspannungsanschluss 12V AC"
+          },
+          {
+            "id": "a778460a-14c4-4f0a-b720-a6c1b1ec69b7",
+            "nr": "-/~",
+            "bezeichnung": "Netzteil -",
+            "funktion": "power",
+            "info": "Minuspol bei DC oder zweiter Wechselspannungsanschluss 12V AC. Kein Verpolungsschutz!"
+          },
+          {
+            "id": "8cd48b94-c1cf-401d-9086-05bc93b627f2",
+            "nr": "Batt",
+            "bezeichnung": "Batterie SREL.BAT",
+            "funktion": "power",
+            "info": "Steckeranschluss für Batteriebetrieb ohne Netzteil"
+          },
+          {
+            "id": "bc3c1ab3-c06e-40dd-af7a-055dc3139484",
+            "nr": "NC",
+            "bezeichnung": "Relais NC",
+            "funktion": "signal",
+            "info": "Wechslerkontakt, im Ruhezustand geschlossen gegen COM"
+          },
+          {
+            "id": "c5d69e8d-bc1b-4bcf-8ab7-4dc4fcc06988",
+            "nr": "COM",
+            "bezeichnung": "Relais COM",
+            "funktion": "signal",
+            "info": "Gemeinsamer Kontakt des Wechslerrelais"
+          },
+          {
+            "id": "08d62697-8a1b-4e8c-acee-e3f2aba79e41",
+            "nr": "NO",
+            "bezeichnung": "Relais NO",
+            "funktion": "signal",
+            "info": "Wechslerkontakt, im geschalteten Zustand geschlossen gegen COM"
+          },
+          {
+            "id": "bab1dde8-4bcf-4846-ae1b-e48b96384cd5",
+            "nr": "C",
+            "bezeichnung": "RS-485 COM",
+            "funktion": "data",
+            "info": "Nur SREL.ADV — Busanschluss für externe Module"
+          },
+          {
+            "id": "2e0514dd-8ee2-4f88-aa75-e482262680b1",
+            "nr": "A",
+            "bezeichnung": "RS-485 A",
+            "funktion": "data",
+            "info": "Nur SREL.ADV — Busanschluss für externe Module"
+          },
+          {
+            "id": "9cabd35a-aabd-4b07-8008-a947b1129650",
+            "nr": "B",
+            "bezeichnung": "RS-485 B",
+            "funktion": "data",
+            "info": "Nur SREL.ADV — Busanschluss für externe Module"
+          },
+          {
+            "id": "50454f88-b2fb-46cb-a740-e56368e97388",
+            "nr": "+V",
+            "bezeichnung": "+ Vaux",
+            "funktion": "power",
+            "info": "Nur SREL.ADV — typ. 3,0-5,0V für externe LED/Buzzer, max. 10mA"
+          },
+          {
+            "id": "23a98380-8f98-4d47-88db-338694c98994",
+            "nr": "F3",
+            "bezeichnung": "LED/Buzzer/Input1/CLS",
+            "funktion": "signal",
+            "info": "Nur SREL.ADV — Multifunktionsanschluss"
+          },
+          {
+            "id": "df3e8ae0-fda9-4680-b4fe-ceddd6e04fa2",
+            "nr": "F2",
+            "bezeichnung": "Seriell 1 / Input 2",
+            "funktion": "signal",
+            "info": "Nur SREL.ADV — Multifunktionsanschluss"
+          },
+          {
+            "id": "a88356e1-7f4a-4011-bc75-9a9cd7195841",
+            "nr": "F1",
+            "bezeichnung": "Seriell 2",
+            "funktion": "signal",
+            "info": "Nur SREL.ADV — Multifunktionsanschluss"
+          },
+          {
+            "id": "613a0ae6-9c3a-4576-8e75-2060126236d0",
+            "nr": "BN/WH/GN/GY/YL",
+            "bezeichnung": "Externe Antenne SREL.AV",
+            "funktion": "signal",
+            "info": "Braun/Weiß/Grün/Grau/Gelb — Anschluss für ausgelagerte Antenne"
+          }
+        ]
+      }
+    ],
+    "quelle": "SimonsVoss Handbuch SmartRelais 3063 (SREL/SREL.ZK/SREL.ADV), Stand 06.2006 — älteres, aber offizielles Dokument. Bitte gegen verbaute Geräterevision prüfen."
+  },
+  {
+    "id": "399dd82f-7ec8-4cd0-9b09-3d3fcd8295b2",
+    "hersteller": "SimonsVoss",
+    "modell": "SmartRelais 3 Advanced — Controller + Leser + SmartOutput-Modul",
+    "bauteile": [
+      {
+        "id": "d4ace6aa-59e6-4cfc-912d-812a70106d36",
+        "typ": "steuerung",
+        "name": "SREL3-Controller",
+        "klemmen": [
+          {
+            "id": "4cb52cc1-d53d-41af-b024-57b75e98bf3c",
+            "nr": "1",
+            "bezeichnung": "GND",
+            "funktion": "power",
+            "info": "Optionaler Anschluss externe Stromversorgung, Masse"
+          },
+          {
+            "id": "bdee0869-6a10-41ca-a3a3-342fbf557689",
+            "nr": "2",
+            "bezeichnung": "+VIN",
+            "funktion": "power",
+            "info": "Optionaler Anschluss externe Stromversorgung, Pluspol"
+          },
+          {
+            "id": "3748e666-219f-4253-9f8f-1485a60c124e",
+            "nr": "3",
+            "bezeichnung": "Relais 1 NO",
+            "funktion": "signal",
+            "info": "Schaltet gegen C (Common)"
+          },
+          {
+            "id": "704bad24-4a2c-4476-9a82-9111ef737316",
+            "nr": "4",
+            "bezeichnung": "Relais 1 C",
+            "funktion": "signal",
+            "info": "Gemeinsamer Kontakt Wechselkontakt"
+          },
+          {
+            "id": "113bc9f0-24ec-4f40-9df7-9e4165b342d6",
+            "nr": "5",
+            "bezeichnung": "Relais 1 NC",
+            "funktion": "signal",
+            "info": "Trennt von C beim Schalten"
+          },
+          {
+            "id": "a07c13d8-88a1-408b-b533-6632348b102a",
+            "nr": "6",
+            "bezeichnung": "Relais 2 NO",
+            "funktion": "signal",
+            "info": "Verfügbarkeit firmwareabhängig"
+          },
+          {
+            "id": "b5b2f226-d111-4c58-a8b8-d86144e0922e",
+            "nr": "7",
+            "bezeichnung": "Relais 2 C",
+            "funktion": "signal",
+            "info": "Verfügbarkeit firmwareabhängig"
+          },
+          {
+            "id": "824c2f37-d9f9-4647-b99e-eeae439f70b3",
+            "nr": "8",
+            "bezeichnung": "Relais 2 NC",
+            "funktion": "signal",
+            "info": "Verfügbarkeit firmwareabhängig"
+          },
+          {
+            "id": "afe26f83-fff2-4460-88a1-79222c67f42d",
+            "nr": "9",
+            "bezeichnung": "Leser 1 +",
+            "funktion": "power",
+            "info": "Stromversorgung Leser 1, entspricht VIN-1V bzw. 12V-1V (PoE)"
+          },
+          {
+            "id": "fe07fe1d-bc6c-4c1c-944e-87f5adc1e2b6",
+            "nr": "10",
+            "bezeichnung": "Leser 1 GND",
+            "funktion": "power",
+            "info": ""
+          },
+          {
+            "id": "aeb0d4f6-57df-46d2-9cc7-4c3caa4408db",
+            "nr": "11",
+            "bezeichnung": "Leser 1 B",
+            "funktion": "data",
+            "info": "RS-485 Datenleitung B"
+          },
+          {
+            "id": "a92d1c06-7b55-4025-8639-64820ee415cc",
+            "nr": "12",
+            "bezeichnung": "Leser 1 A",
+            "funktion": "data",
+            "info": "RS-485 Datenleitung A"
+          },
+          {
+            "id": "31c715fc-0501-4edd-b72a-79fc0616b65d",
+            "nr": "13",
+            "bezeichnung": "Leser 2 +",
+            "funktion": "power",
+            "info": "Stromversorgung Leser 2"
+          },
+          {
+            "id": "3e3133a2-258a-459c-9850-fa1c2cda9cdd",
+            "nr": "14",
+            "bezeichnung": "Leser 2 GND",
+            "funktion": "power",
+            "info": ""
+          },
+          {
+            "id": "97faac6c-b004-4d20-99c4-70e123438d86",
+            "nr": "15",
+            "bezeichnung": "Leser 2 B",
+            "funktion": "data",
+            "info": "RS-485 Datenleitung B"
+          },
+          {
+            "id": "b91edbb1-8184-4730-8036-78d0025931f3",
+            "nr": "16",
+            "bezeichnung": "Leser 2 A",
+            "funktion": "data",
+            "info": "RS-485 Datenleitung A"
+          },
+          {
+            "id": "7d5a3ebd-db2e-4aa7-a72f-fafc0ba70484",
+            "nr": "17",
+            "bezeichnung": "Leser 3 +",
+            "funktion": "power",
+            "info": "Stromversorgung Leser 3"
+          },
+          {
+            "id": "d8cf2dbe-39ba-4621-8f09-09b602e61221",
+            "nr": "18",
+            "bezeichnung": "Leser 3 GND",
+            "funktion": "power",
+            "info": ""
+          },
+          {
+            "id": "d7672813-fa4e-4015-86c5-10e489b9a207",
+            "nr": "19",
+            "bezeichnung": "Leser 3 / SmartOutput B",
+            "funktion": "data",
+            "info": "RS-485 Datenleitung B"
+          },
+          {
+            "id": "16b36ca5-8944-4060-b2d1-9b3982184fec",
+            "nr": "20",
+            "bezeichnung": "Leser 3 / SmartOutput A",
+            "funktion": "data",
+            "info": "RS-485 Datenleitung A"
+          },
+          {
+            "id": "f10e007a-e81c-4bf7-a1e5-204fc11cf6fc",
+            "nr": "21",
+            "bezeichnung": "Serielle Schnittstelle D4",
+            "funktion": "signal",
+            "info": "Open-Drain"
+          },
+          {
+            "id": "ab9f6b03-f110-413a-9e69-38420cb15bd7",
+            "nr": "22",
+            "bezeichnung": "Serielle Schnittstelle D3",
+            "funktion": "signal",
+            "info": "Open-Drain"
+          },
+          {
+            "id": "c6b626cf-bcb7-4bd7-8b0a-e8bb79fb12a1",
+            "nr": "23",
+            "bezeichnung": "Serielle Schnittstelle D2",
+            "funktion": "signal",
+            "info": "Open-Drain"
+          },
+          {
+            "id": "28e7bfb0-a10e-4182-b8a4-fbf924be8311",
+            "nr": "24",
+            "bezeichnung": "Serielle Schnittstelle D1",
+            "funktion": "signal",
+            "info": "Open-Drain"
+          },
+          {
+            "id": "c2ea58c9-a15d-44f6-8bb1-2debae02ceec",
+            "nr": "25",
+            "bezeichnung": "Serielle Schnittstelle +",
+            "funktion": "power",
+            "info": "Entspricht VIN-1V bzw. 12V-1V (PoE)"
+          },
+          {
+            "id": "5d403fab-7436-4fbc-bb55-e45fab68d6fe",
+            "nr": "26",
+            "bezeichnung": "Eingang 3 (Push-to-open)",
+            "funktion": "signal",
+            "info": "Relais schaltet sobald verbunden mit I+ (Klemme 30)"
+          },
+          {
+            "id": "2ae700ad-9f6f-4c85-abd1-4ba7aa283d96",
+            "nr": "27",
+            "bezeichnung": "Eingang 2",
+            "funktion": "signal",
+            "info": "Anschluss externer Komponenten"
+          },
+          {
+            "id": "e9e3a980-1dae-4fda-b6d8-ae9eee935f94",
+            "nr": "28",
+            "bezeichnung": "Eingang 1",
+            "funktion": "signal",
+            "info": "Anschluss externer Komponenten"
+          },
+          {
+            "id": "4ad88838-bd40-4ab1-976f-cafeb4c1cd90",
+            "nr": "29",
+            "bezeichnung": "Ausgang GND",
+            "funktion": "power",
+            "info": ""
+          },
+          {
+            "id": "337aa2d9-aa82-4abc-9bac-96d8605ed98a",
+            "nr": "30",
+            "bezeichnung": "Ausgang I+",
+            "funktion": "power",
+            "info": "Entspricht VIN-1V bzw. 12V-1V (PoE)"
+          }
+        ]
+      },
+      {
+        "id": "71a6c545-5bc7-4034-9c3f-0752244e063c",
+        "typ": "leser",
+        "name": "SREL3-Leser (SR30HYS_F)",
+        "klemmen": [
+          {
+            "id": "96969de8-0b7b-4ad7-949b-ac4d195bf774",
+            "nr": "A",
+            "bezeichnung": "Datenleitung A",
+            "funktion": "data",
+            "info": "RS-485, an Controller A1/A2/A3"
+          },
+          {
+            "id": "b4120be3-5761-4aa4-8d03-6673eb4f83f2",
+            "nr": "B",
+            "bezeichnung": "Datenleitung B",
+            "funktion": "data",
+            "info": "RS-485, an Controller B1/B2/B3"
+          },
+          {
+            "id": "5909585d-64e3-425c-9996-d8548f03abac",
+            "nr": "-",
+            "bezeichnung": "GND",
+            "funktion": "power",
+            "info": "Gemeinsames Massebezugspotential für Datenleitungen"
+          },
+          {
+            "id": "753b661f-7bc6-4949-8649-f34415fa83df",
+            "nr": "+",
+            "bezeichnung": "VIN",
+            "funktion": "power",
+            "info": "Stromversorgung extern oder durch Controller"
+          },
+          {
+            "id": "4a4b21e1-f28c-4bcb-b0d0-af8abc6e011a",
+            "nr": "- (opt)",
+            "bezeichnung": "GND extern",
+            "funktion": "power",
+            "info": "Nur bei externer Stromversorgung, elektrisch mit Leseranschluss 3 verbunden"
+          }
+        ]
+      },
+      {
+        "id": "88cd5e7d-cf6d-4c0f-a2e4-69aca5f5f7c6",
+        "typ": "sonstiges",
+        "name": "SmartOutput-Modul (MOD.SOM8)",
+        "klemmen": [
+          {
+            "id": "9945a788-ab4a-467a-a4ce-2ffe9390cc1b",
+            "nr": "1",
+            "bezeichnung": "Brownout-Erkennung Out",
+            "funktion": "signal",
+            "info": "Open-Collector, schaltet bei Unterspannung < 10,0V"
+          },
+          {
+            "id": "2e7a9451-3f8c-4be3-bbb2-ad409575a2e3",
+            "nr": "4",
+            "bezeichnung": "Controller B",
+            "funktion": "data",
+            "info": "Datenleitung B, an Leser-3-Kontakt des Controllers"
+          },
+          {
+            "id": "eb7a0f86-3b75-4b71-933e-5a1a7f1d8f30",
+            "nr": "5",
+            "bezeichnung": "Controller A",
+            "funktion": "data",
+            "info": "Datenleitung A, an Leser-3-Kontakt des Controllers"
+          },
+          {
+            "id": "9315bfdb-9a47-425c-a3ed-cf1a1872d0d8",
+            "nr": "6",
+            "bezeichnung": "Controller C",
+            "funktion": "power",
+            "info": "Masse, an Leser-3-Kontakt des Controllers"
+          },
+          {
+            "id": "5f9dc52c-92cb-4dda-8963-8259526827a1",
+            "nr": "7/8",
+            "bezeichnung": "Relais 4 a/b",
+            "funktion": "signal",
+            "info": "Potentialfreier Kontakt, abhängig von Berechtigung"
+          },
+          {
+            "id": "d25fe626-1163-4704-8647-75cef9bedf73",
+            "nr": "9/10",
+            "bezeichnung": "Relais 3 a/b",
+            "funktion": "signal",
+            "info": "Potentialfreier Kontakt"
+          },
+          {
+            "id": "59d36c5c-bff5-4c5b-9652-40db29576361",
+            "nr": "11/12",
+            "bezeichnung": "Relais 2 a/b",
+            "funktion": "signal",
+            "info": "Potentialfreier Kontakt"
+          },
+          {
+            "id": "f48d426c-6a15-4158-9d51-5d4ff96f5f5b",
+            "nr": "13/14",
+            "bezeichnung": "Relais 1 a/b",
+            "funktion": "signal",
+            "info": "Potentialfreier Kontakt"
+          },
+          {
+            "id": "1b938d50-e6a2-4b75-b819-6007fc29a833",
+            "nr": "15/16",
+            "bezeichnung": "Relais 5 b/a",
+            "funktion": "signal",
+            "info": "Potentialfreier Kontakt"
+          },
+          {
+            "id": "6825d08b-8062-4370-9852-bbb6a2e86707",
+            "nr": "17/18",
+            "bezeichnung": "Relais 6 b/a",
+            "funktion": "signal",
+            "info": "Potentialfreier Kontakt"
+          },
+          {
+            "id": "51a55bab-7dc8-438f-8479-f1ba8b99727a",
+            "nr": "19/20",
+            "bezeichnung": "Relais 7 b/a",
+            "funktion": "signal",
+            "info": "Potentialfreier Kontakt"
+          },
+          {
+            "id": "f359315f-0baf-43b8-bc18-9619979ff3a2",
+            "nr": "21/22",
+            "bezeichnung": "Relais 8 b/a",
+            "funktion": "signal",
+            "info": "Potentialfreier Kontakt"
+          },
+          {
+            "id": "97df5753-e0c5-4822-bc3d-3748e51f37dc",
+            "nr": "23",
+            "bezeichnung": "AUX-Relais K2",
+            "funktion": "signal",
+            "info": "NO-Kontakt, ab Werk verbrückt mit Klemme 24"
+          },
+          {
+            "id": "e968e87a-0b8a-4acc-a80e-02a2ee0b0c92",
+            "nr": "24",
+            "bezeichnung": "+VIN",
+            "funktion": "power",
+            "info": "Stromversorgung, ab Werk verbrückt mit Klemme 23"
+          },
+          {
+            "id": "4da5214e-feb7-49e8-a778-388d1b54b042",
+            "nr": "25",
+            "bezeichnung": "AUX-Relais A+",
+            "funktion": "power",
+            "info": "Spulen-Pluspol, ab Werk verbrückt mit Klemme 26"
+          },
+          {
+            "id": "be686eac-9839-4c96-8de1-7347b0849914",
+            "nr": "26",
+            "bezeichnung": "AUX-Relais K1",
+            "funktion": "signal",
+            "info": "Schließer-Kontakt, ab Werk verbrückt mit Klemme 25"
+          },
+          {
+            "id": "534c362b-490e-4ca7-b04d-814df5cb34fe",
+            "nr": "27",
+            "bezeichnung": "AUX-Relais A-",
+            "funktion": "power",
+            "info": "Spulen-Minuspol"
+          },
+          {
+            "id": "fb620c54-bcf8-4cf0-a7f5-fe95a6d6fe5f",
+            "nr": "28",
+            "bezeichnung": "GND",
+            "funktion": "power",
+            "info": "Stromversorgung Masse"
+          }
+        ]
+      }
+    ],
+    "quelle": "SimonsVoss Handbuch SmartRelais 3 System (SREL3 ADV), Stand 06.08.2025 — offizielles, aktuelles Handbuch. Bitte gegen verbaute Geräterevision prüfen."
+  },
+  {
+    "id": "474e97bd-9ea6-4231-8491-4c855dc157bb",
+    "hersteller": "dormakaba",
+    "modell": "Remoteleser 91 15 — Access Manager / MATRIX TP4-Client",
+    "bauteile": [
+      {
+        "id": "ff537a10-3535-4dc1-a592-cb39a49f1a8d",
+        "typ": "leser",
+        "name": "Remoteleser 91 15",
+        "klemmen": [
+          {
+            "id": "c59a08c5-c761-47a6-90c0-001d69ce7553",
+            "nr": "AC-",
+            "bezeichnung": "Stromversorgung -",
+            "funktion": "power",
+            "info": "12-27V AC oder 10-34V DC"
+          },
+          {
+            "id": "e3e298f0-a0a4-4e9b-9108-098d3d176ae9",
+            "nr": "AC+",
+            "bezeichnung": "Stromversorgung +",
+            "funktion": "power",
+            "info": "12-27V AC oder 10-34V DC"
+          },
+          {
+            "id": "8f60b8e3-a93b-4820-bdad-00542bda4413",
+            "nr": "C",
+            "bezeichnung": "RS-485 C",
+            "funktion": "data",
+            "info": "Verbindung zum übergeordneten Zutrittsmanager"
+          },
+          {
+            "id": "3434cc9d-06a8-4b64-89f1-84066e83bcc8",
+            "nr": "A",
+            "bezeichnung": "RS-485 A",
+            "funktion": "data",
+            "info": "Verbindung zum übergeordneten Zutrittsmanager"
+          },
+          {
+            "id": "c70e6fc5-30e0-41f4-b269-44f8228311e7",
+            "nr": "B",
+            "bezeichnung": "RS-485 B",
+            "funktion": "data",
+            "info": "Verbindung zum übergeordneten Zutrittsmanager"
+          },
+          {
+            "id": "dff88d30-0f36-4c1f-ace2-85eb2d78c971",
+            "nr": "Ant.",
+            "bezeichnung": "HF RFID Antenne",
+            "funktion": "signal",
+            "info": "Koaxialkabel zur Erfassungseinheit, 50 Ohm"
+          },
+          {
+            "id": "0527893c-1888-49c3-8b0d-4fa1f199de5d",
+            "nr": "NC",
+            "bezeichnung": "Relaisausgang NC",
+            "funktion": "signal",
+            "info": "Türöffner, Kontaktbelastbarkeit 30V AC/DC max. 2A"
+          },
+          {
+            "id": "df467743-1a04-4dbd-a727-254c9bcc3ce3",
+            "nr": "COM",
+            "bezeichnung": "Relaisausgang COM",
+            "funktion": "signal",
+            "info": "Türöffner, gemeinsamer Kontakt"
+          },
+          {
+            "id": "d7e2d3c7-dc3c-48bb-af67-d370ff367de6",
+            "nr": "NO",
+            "bezeichnung": "Relaisausgang NO",
+            "funktion": "signal",
+            "info": "Türöffner, Kontaktbelastbarkeit 30V AC/DC max. 2A"
+          },
+          {
+            "id": "4d6e46ca-b678-40cb-9109-398e03bbdcb2",
+            "nr": "IN1",
+            "bezeichnung": "Digitaler Eingang 1",
+            "funktion": "signal",
+            "info": "z.B. Türrahmenkontakt, leitungsüberwachbar"
+          },
+          {
+            "id": "6a00eb15-55c8-4e74-ad05-a71842bcd524",
+            "nr": "IN2",
+            "bezeichnung": "Digitaler Eingang 2",
+            "funktion": "signal",
+            "info": "leitungsüberwachbar"
+          },
+          {
+            "id": "4afb4e02-7ddf-4a28-90c1-61f4e9b7bf55",
+            "nr": "GND",
+            "bezeichnung": "Bezugsmasse Eingänge",
+            "funktion": "signal",
+            "info": "Gemeinsame Masse für IN1/IN2"
+          }
+        ]
+      }
+    ],
+    "quelle": "dormakaba Technisches Handbuch Remoteleser 91 15, Dok. 04047115, Stand 11/2018 — verbindet sich per RS-485 mit dem übergeordneten Zutrittsmanager 92 00. Für den Zutrittsmanager 92 00 selbst (Controller-Box) war keine öffentlich zugängliche, detaillierte Klemmenliste auffindbar — diese liegt im geschützten dormakaba-Partnerbereich (Extranet). Allgemeine Eckdaten: 4 überwachte digitale Eingänge, 3 Relaisausgänge, RS-485, Ethernet, 10-34V DC."
+  },
+  {
+    "id": "bf252a1f-56dc-4999-a9c1-55766f339888",
+    "hersteller": "SimonsVoss",
+    "modell": "RouterNode 2 / GatewayNode 2 / SmartBridge — IO-Connector",
+    "bauteile": [
+      {
+        "id": "7707a79f-3d4d-4169-870a-be7a292a2918",
+        "typ": "sonstiges",
+        "name": "RouterNode 2 — IO-Connector (nur RouterNode 2 nutzbar)",
+        "klemmen": [
+          {
+            "id": "91d2d7ce-fcd5-4e55-8c40-150225b03f45",
+            "nr": "IO-Vout",
+            "bezeichnung": "IO Spannungsausgang",
+            "funktion": "power",
+            "info": "+3,3V Versorgung für externe Beschaltung"
+          },
+          {
+            "id": "9855c833-ce1e-44e0-b520-3754ce4b754c",
+            "nr": "AI",
+            "bezeichnung": "Analog Input",
+            "funktion": "signal",
+            "info": "Analoge Signalauswertung 0-3,3V DC"
+          },
+          {
+            "id": "49bf1237-a152-4494-96d9-d7bebc3b1154",
+            "nr": "DI1",
+            "bezeichnung": "Digitaler Eingang 1",
+            "funktion": "signal",
+            "info": "0V=Low, ab +2,0V=High"
+          },
+          {
+            "id": "085253a0-412b-4106-a5b1-a385b89f72be",
+            "nr": "DI2",
+            "bezeichnung": "Digitaler Eingang 2",
+            "funktion": "signal",
+            "info": ""
+          },
+          {
+            "id": "e84b927c-643c-443c-bc6c-8f2fea3aeae7",
+            "nr": "DI3",
+            "bezeichnung": "Digitaler Eingang 3",
+            "funktion": "signal",
+            "info": ""
+          },
+          {
+            "id": "27587c61-e7da-4ae7-88ee-06466fd64fc3",
+            "nr": "O1.NC",
+            "bezeichnung": "Relais 1 NC",
+            "funktion": "signal",
+            "info": "Max. Schaltspannung 12V DC"
+          },
+          {
+            "id": "bed56e53-2112-4a58-898e-b49ed0230df5",
+            "nr": "O1.NO",
+            "bezeichnung": "Relais 1 NO",
+            "funktion": "signal",
+            "info": "Max. Schaltspannung 12V DC"
+          },
+          {
+            "id": "fe23904f-fd79-47db-934e-fade4ccce831",
+            "nr": "O1.COM",
+            "bezeichnung": "Relais 1 COM",
+            "funktion": "signal",
+            "info": "Gemeinsamer Kontakt"
+          }
+        ]
+      },
+      {
+        "id": "8a86e59c-f3e5-4ed6-aebc-c69da3151d8a",
+        "typ": "netzteil",
+        "name": "RouterNode 2 / GatewayNode 2 / SmartBridge — Stromversorgung",
+        "klemmen": [
+          {
+            "id": "1a0335b4-84af-4821-bbd2-7d92c1dc4a78",
+            "nr": "DC In",
+            "bezeichnung": "Rundstecker 5,5mm",
+            "funktion": "power",
+            "info": "Pin 2,0mm — externes Netzteil, Vorrang wenn >12V DC vor PoE"
+          },
+          {
+            "id": "367b0761-aa46-4fab-a5d0-b18606b3d46a",
+            "nr": "PoE",
+            "bezeichnung": "RJ45 Power-over-Ethernet",
+            "funktion": "power",
+            "info": "Netzwerk + Stromversorgung kombiniert"
+          },
+          {
+            "id": "57994c6c-c853-441c-8380-b5f6abe943ee",
+            "nr": "+/-",
+            "bezeichnung": "2-pol. Schraubklemme",
+            "funktion": "power",
+            "info": "Stromversorgung für externe Applikationen, 0,14-1,5mm²"
+          }
+        ]
+      }
+    ],
+    "quelle": "SimonsVoss Kurzanleitung/Handbuch RouterNode 2, GatewayNode 2, SmartBridge (NW10.900210, Stand 05.03.2024). IO-Connector nur am RouterNode 2 nutzbar, nicht an GatewayNode 2/SmartBridge."
+  },
+  {
+    "id": "e65422d9-da52-4f92-bb64-f12bc9265a40",
+    "hersteller": "GEZE",
+    "modell": "Powerturn (DCU800/DCU802) — Drehtürantrieb",
+    "bauteile": [
+      {
+        "id": "97456b69-f841-4703-a972-938251ab04e5",
+        "typ": "steuerung",
+        "name": "Steuerung DCU800/DCU802",
+        "klemmen": [
+          {
+            "id": "75464070-e4eb-499e-ab8d-dc31fe7cfe76",
+            "nr": "1",
+            "bezeichnung": "GND",
+            "funktion": "power",
+            "info": "Bezugsmasse, Steuerspannung 24V DC ±10%"
+          },
+          {
+            "id": "c6b49082-30bd-42a3-b4fe-c7877a3a2217",
+            "nr": "2",
+            "bezeichnung": "24V",
+            "funktion": "power",
+            "info": "Steuerspannung für externe Komponenten, max. 1200mA dauernd / 1800mA kurzzeitig (5s)"
+          },
+          {
+            "id": "18ec805c-66b0-4cb1-a0f3-49e97303d8d4",
+            "nr": "20",
+            "bezeichnung": "KB",
+            "funktion": "signal",
+            "info": "Kontaktgeber Berechtigt"
+          },
+          {
+            "id": "c17b7fdc-faee-4f9c-8967-12c7e1116833",
+            "nr": "3",
+            "bezeichnung": "KB 24V",
+            "funktion": "power",
+            "info": "Versorgung Kontaktgeber Berechtigt"
+          },
+          {
+            "id": "5a786f9c-c61d-4425-99a3-187fee356fc3",
+            "nr": "21",
+            "bezeichnung": "KI",
+            "funktion": "signal",
+            "info": "Kontaktgeber Innen"
+          },
+          {
+            "id": "ec826aa6-8919-455b-90d8-cd069e41d913",
+            "nr": "4",
+            "bezeichnung": "KI 24VSens",
+            "funktion": "power",
+            "info": "Versorgung Kontaktgeber Innen"
+          },
+          {
+            "id": "30416220-3e78-48ce-850f-e8a0889d3c98",
+            "nr": "23",
+            "bezeichnung": "KA",
+            "funktion": "signal",
+            "info": "Kontaktgeber Außen"
+          },
+          {
+            "id": "8ca39e38-7522-4413-9854-3b116db8985f",
+            "nr": "4",
+            "bezeichnung": "KA 24VSens",
+            "funktion": "power",
+            "info": "Versorgung Kontaktgeber Außen (gleiche Klemme wie KI)"
+          },
+          {
+            "id": "3ec9f398-2377-4d76-a779-f11842dfa4c6",
+            "nr": "11",
+            "bezeichnung": "SIS",
+            "funktion": "signal",
+            "info": "Sicherheitssensor Schließen"
+          },
+          {
+            "id": "fe683b5d-3e6a-40ac-aad8-a722b6ac89a4",
+            "nr": "10",
+            "bezeichnung": "SIS TST",
+            "funktion": "signal",
+            "info": "Testsignal Sicherheitssensor Schließen"
+          },
+          {
+            "id": "79aad089-3c62-4182-a9a1-cff5242b6b5f",
+            "nr": "13",
+            "bezeichnung": "SIO",
+            "funktion": "signal",
+            "info": "Sicherheitssensor Öffnen"
+          },
+          {
+            "id": "1969dbc7-cb14-45b4-a3ea-534637324ac7",
+            "nr": "10",
+            "bezeichnung": "SIO TST",
+            "funktion": "signal",
+            "info": "Testsignal Sicherheitssensor Öffnen (gleiche Klemme wie SIS TST)"
+          },
+          {
+            "id": "ea113fd2-8f09-4d9f-8399-d8575de75df4",
+            "nr": "31",
+            "bezeichnung": "TOEA",
+            "funktion": "power",
+            "info": "Türöffner Anschluss A"
+          },
+          {
+            "id": "ae5713aa-522f-4363-88e9-b6361c81cda4",
+            "nr": "32",
+            "bezeichnung": "TOEB",
+            "funktion": "power",
+            "info": "Türöffner Anschluss B"
+          },
+          {
+            "id": "7024070a-f94a-4433-b82f-325c0b9d1a5e",
+            "nr": "33",
+            "bezeichnung": "RM",
+            "funktion": "signal",
+            "info": "Riegelmeldung (Rückmeldung Motorschloss/Verriegelung)"
+          },
+          {
+            "id": "aa4e72c2-7343-4966-8e45-8c6303062b36",
+            "nr": "51",
+            "bezeichnung": "PE1",
+            "funktion": "signal",
+            "info": "Parametrierbarer Eingang 1 (z.B. Sabotage, Schließlage, Stop, Brandalarm)"
+          },
+          {
+            "id": "3c34219b-c4aa-4152-a7d9-72d0ced34cfc",
+            "nr": "52",
+            "bezeichnung": "PE2",
+            "funktion": "signal",
+            "info": "Parametrierbarer Eingang 2 (z.B. MPS, Notverriegelung, Stop)"
+          },
+          {
+            "id": "95a7c605-9c46-4fcc-be3f-829728fdc621",
+            "nr": "53",
+            "bezeichnung": "PE3",
+            "funktion": "signal",
+            "info": "Parametrierbarer Eingang 3 (analog zu PE2)"
+          },
+          {
+            "id": "41aa6aa5-b7ce-4ac7-b533-97de398072ba",
+            "nr": "55",
+            "bezeichnung": "PA1A",
+            "funktion": "signal",
+            "info": "Parametrierbarer Ausgang 1 — potentialfreier Relaiskontakt, max. 24V AC/DC 0,5A"
+          },
+          {
+            "id": "4e46eadc-915d-4132-8962-8645b35713fd",
+            "nr": "56",
+            "bezeichnung": "PA1B",
+            "funktion": "signal",
+            "info": "Parametrierbarer Ausgang 1 — Gegenkontakt"
+          },
+          {
+            "id": "00a051b4-369b-4a0c-9454-cfafdaa6e264",
+            "nr": "57",
+            "bezeichnung": "PA2",
+            "funktion": "signal",
+            "info": "Parametrierbarer Ausgang 2 — Transistorausgang, max. 24V DC 0,5A"
+          },
+          {
+            "id": "4b37bded-bf5a-4be2-b25c-4129d53773bc",
+            "nr": "9",
+            "bezeichnung": "DO",
+            "funktion": "signal",
+            "info": "Programmschalter Daueroffen"
+          },
+          {
+            "id": "6b8f05be-c08d-486b-b38d-94f863154953",
+            "nr": "8",
+            "bezeichnung": "AU",
+            "funktion": "signal",
+            "info": "Programmschalter Automatik"
+          },
+          {
+            "id": "6669302f-f07b-4815-a45b-390440e031f6",
+            "nr": "7",
+            "bezeichnung": "LS",
+            "funktion": "signal",
+            "info": "Programmschalter Ladenschluss"
+          },
+          {
+            "id": "cc3e2004-80b8-4ec8-967a-9deaad050463",
+            "nr": "6",
+            "bezeichnung": "NA",
+            "funktion": "signal",
+            "info": "Programmschalter Nacht"
+          },
+          {
+            "id": "dbaec9e6-48cf-41c2-bc17-ebabf00327c0",
+            "nr": "0",
+            "bezeichnung": "OFF",
+            "funktion": "signal",
+            "info": "Programmschalter Aus"
+          },
+          {
+            "id": "da3b2823-172e-4a78-9cc5-ccfa351f8cfe",
+            "nr": "41",
+            "bezeichnung": "RS485-B",
+            "funktion": "data",
+            "info": "Datenleitung B zu DPS / zweitem Antrieb (2-flügelig)"
+          },
+          {
+            "id": "401351da-05a7-4840-b436-dfe2e91c0980",
+            "nr": "42",
+            "bezeichnung": "RS485-A",
+            "funktion": "data",
+            "info": "Datenleitung A zu DPS / zweitem Antrieb (2-flügelig)"
+          },
+          {
+            "id": "17698aaa-14c4-4ac6-9a47-d95a0a80e848",
+            "nr": "43",
+            "bezeichnung": "SCR",
+            "funktion": "data",
+            "info": "Schirm RS485-Leitung"
+          },
+          {
+            "id": "dc79aba2-5619-407e-adb3-d76ed1afb3bf",
+            "nr": "95",
+            "bezeichnung": "24V (Frei)",
+            "funktion": "power",
+            "info": "Freie Leitungsverbindung über Flachbandkabel DCU802↔DCU800"
+          },
+          {
+            "id": "ccbf0e71-d9a8-4542-9f90-774a01cac527",
+            "nr": "98",
+            "bezeichnung": "GND (Frei)",
+            "funktion": "power",
+            "info": "Freie Leitungsverbindung über Flachbandkabel DCU802↔DCU800"
+          }
+        ]
+      },
+      {
+        "id": "170ad056-408a-42f4-96d5-c3c6401c601d",
+        "typ": "verriegelung",
+        "name": "Türöffner (TOE, an DCU800/802)",
+        "klemmen": [
+          {
+            "id": "f5677c05-f7bd-4ec2-93a2-4ca42de59a69",
+            "nr": "31",
+            "bezeichnung": "TOEA",
+            "funktion": "power",
+            "info": "Antriebsseitig versorgt: 24V DC (Arbeits-/Ruhestrom) — bauseitig versorgt: 12V AC max. 1A"
+          },
+          {
+            "id": "82acf3cb-c6af-4db5-9ce2-0a2f8f1f86ae",
+            "nr": "32",
+            "bezeichnung": "TOEB",
+            "funktion": "power",
+            "info": "Gegenkontakt TOE"
+          },
+          {
+            "id": "12885cf9-5d29-422c-bd25-487c1df9b37d",
+            "nr": "33",
+            "bezeichnung": "RM",
+            "funktion": "signal",
+            "info": "Riegelmeldung — schaltet DPS bei aktivem Signal in Betriebsart Nacht"
+          },
+          {
+            "id": "d8aacc39-7a48-4493-98d5-836ef959a4ff",
+            "nr": "2",
+            "bezeichnung": "24V",
+            "funktion": "power",
+            "info": "Bei antriebsseitiger Versorgung"
+          },
+          {
+            "id": "68c6c031-e240-4d30-87fe-617a2dd7ec7c",
+            "nr": "1",
+            "bezeichnung": "GND",
+            "funktion": "power",
+            "info": "Bei antriebsseitiger Versorgung"
+          }
+        ]
+      },
+      {
+        "id": "eba7a9fd-0825-4d41-ade9-6c8b164c0d11",
+        "typ": "tuerkontakt",
+        "name": "Rauchschalterzentrale RSZ (DCU801, Brandschutz-Kit, optional)",
+        "klemmen": [
+          {
+            "id": "01e90486-eefd-4f1b-afee-9fa0e519659a",
+            "nr": "62",
+            "bezeichnung": "RSZ 24V",
+            "funktion": "power",
+            "info": "Versorgung Rauchschalterzentrale"
+          },
+          {
+            "id": "338bedca-fd0a-4a64-9f3f-e4df124204e1",
+            "nr": "61",
+            "bezeichnung": "RSZ GND",
+            "funktion": "power",
+            "info": "Bezugsmasse Rauchschalterzentrale"
+          },
+          {
+            "id": "3b5783cf-ddca-46c2-a394-bffcd1fba943",
+            "nr": "63",
+            "bezeichnung": "zweiter Antrieb",
+            "funktion": "power",
+            "info": "Brücke zum zweiten Antrieb bei 2-flügeliger Anlage"
+          },
+          {
+            "id": "83398750-78b4-410e-9221-ebe63e8fa8d4",
+            "nr": "2",
+            "bezeichnung": "24V",
+            "funktion": "power",
+            "info": "Allgemeine Versorgung DCU801"
+          },
+          {
+            "id": "5b8c2278-9b62-4884-b3fd-8084f8f7fd51",
+            "nr": "1",
+            "bezeichnung": "GND",
+            "funktion": "power",
+            "info": "Allgemeine Masse DCU801"
+          }
+        ]
+      }
+    ],
+    "quelle": "GEZE Powerturn Anschlussplan, Mat.-Nr. 154919-03, gültig ab Software DCU8 V1.8 / Hardware Revision DCU800 Rev F. Vom Nutzer per PDF bereitgestellt und Klemmenwerte direkt daraus übernommen."
+  },
+  {
+    "id": "f487f1a6-b09a-4eec-ba78-8e814f07a36d",
+    "hersteller": "DOM Sicherheitstechnik (Tapkey)",
+    "modell": "DOM Tapkey AccessManager V1 — Steuerung (Compact/HiSec)",
+    "bauteile": [
+      {
+        "id": "4f3098a8-3ece-4a79-b04b-629ef654e89d",
+        "typ": "steuerung",
+        "name": "DOM Tapkey AccessManager (Steuerung)",
+        "klemmen": [
+          {
+            "id": "3d5a4088-b943-46b2-bccb-b0a4e7d64494",
+            "nr": "7",
+            "bezeichnung": "DC In + (12-24V)",
+            "funktion": "power",
+            "info": "Spannungsversorgung der Einheit, Pluspol — externe Spannungsquelle 12-24V DC"
+          },
+          {
+            "id": "de12a394-3267-4639-bdc5-25fb7d75cd7a",
+            "nr": "8",
+            "bezeichnung": "DC In – (12-24V)",
+            "funktion": "power",
+            "info": "Spannungsversorgung der Einheit, Minuspol"
+          },
+          {
+            "id": "211e29c3-e086-4222-b609-a7829641daba",
+            "nr": "9",
+            "bezeichnung": "DC Out +",
+            "funktion": "power",
+            "info": "Bereitstellung Spannung extern — versorgt optional einen angeschlossenen DOM PassivLeser (HiSec) mit"
+          },
+          {
+            "id": "81101e05-0ddb-41d7-9448-19e5cba77997",
+            "nr": "10",
+            "bezeichnung": "DC Out –",
+            "funktion": "power",
+            "info": "Bereitstellung Spannung extern, Bezugspotential zu Klemme 9"
+          },
+          {
+            "id": "9681e422-fee1-4256-99dc-af352f80f86b",
+            "nr": "11",
+            "bezeichnung": "IN1",
+            "funktion": "signal",
+            "info": "Eingang 1 — werkseitig Türkontakt (Öffner)"
+          },
+          {
+            "id": "9305ec3d-c906-40ae-9d82-0c8648cda530",
+            "nr": "12",
+            "bezeichnung": "GND (Eingang 1)",
+            "funktion": "signal",
+            "info": "Bezugsmasse zu IN1"
+          },
+          {
+            "id": "6c99bb4c-d27a-4e69-a206-d5ca1e5ca249",
+            "nr": "13",
+            "bezeichnung": "IN2",
+            "funktion": "signal",
+            "info": "Eingang 2 — werkseitig Freigabetaster (Schließer)"
+          },
+          {
+            "id": "445dad9f-d65e-4d57-9244-e48fcd304533",
+            "nr": "14",
+            "bezeichnung": "GND (Eingang 2)",
+            "funktion": "signal",
+            "info": "Bezugsmasse zu IN2"
+          },
+          {
+            "id": "cc7fd202-b368-4289-896a-4270d8d52924",
+            "nr": "15",
+            "bezeichnung": "Ö (NC)",
+            "funktion": "signal",
+            "info": "Relais-Wechslerkontakt — Öffnerkontakt (Normally Closed), Ansteuerung Stellglied/Türöffner"
+          },
+          {
+            "id": "113bc25f-7a40-4b5b-8b5e-cd86cb1ec88b",
+            "nr": "16",
+            "bezeichnung": "C",
+            "funktion": "signal",
+            "info": "Relais-Wechslerkontakt — gemeinsamer Kontakt (COM)"
+          },
+          {
+            "id": "d7ba5f2c-3e25-4652-a72a-58e7a7240fe2",
+            "nr": "17",
+            "bezeichnung": "S (NO)",
+            "funktion": "signal",
+            "info": "Relais-Wechslerkontakt — Schließerkontakt (Normally Open)"
+          },
+          {
+            "id": "080b55cf-b64a-4d94-8587-6a7ca4533ef5",
+            "nr": "18",
+            "bezeichnung": "RxD",
+            "funktion": "data",
+            "info": "RS232/RS485 zum DOM PassivLeser (nur HiSec-Variante)"
+          },
+          {
+            "id": "82940cf0-a066-436e-83a3-a2a1a557f89b",
+            "nr": "19",
+            "bezeichnung": "TxD",
+            "funktion": "data",
+            "info": "RS232/RS485 zum DOM PassivLeser (nur HiSec-Variante)"
+          },
+          {
+            "id": "4048d543-a235-4906-ac1d-69391e1c02b4",
+            "nr": "20",
+            "bezeichnung": "GND (RS232/RS485)",
+            "funktion": "signal",
+            "info": "Bezugsmasse für die Datenleitung zum PassivLeser"
+          }
+        ]
+      },
+      {
+        "id": "24545d44-7438-45f7-8877-c9e9bbfe2efb",
+        "typ": "verriegelung",
+        "name": "E-Öffner (Türöffner, generisch 2-Draht)",
+        "klemmen": [
+          {
+            "id": "dc41e61f-e8d5-49ac-a440-688fc559f447",
+            "nr": "1",
+            "bezeichnung": "Anschluss 1",
+            "funktion": "signal",
+            "info": "Generischer Türöffner-Anschluss — exakte Klemmenbezeichnung (oft 1/2, +/-, oder AC1/AC2) je nach verbautem Modell/Hersteller prüfen. Anschluss an den Relais-Wechsler der Steuerung: Klemme Ö (15, Ruhestrom/NC) bei Fluchtweg-/Brandschutztüren zwingend erforderlich, Klemme S (17, Arbeitsstrom/NO) nur bei normalen Zutrittstüren ohne Fluchtwegfunktion."
+          },
+          {
+            "id": "fabd3939-c20d-4d77-8323-b822043aad43",
+            "nr": "2",
+            "bezeichnung": "Anschluss 2",
+            "funktion": "signal",
+            "info": "Zweiter Türöffner-Anschluss, siehe Klemme 1. Bei Gleichspannungs-Türöffnern Polarität beachten und Freilaufdiode antiparallel zur Spule einsetzen (induktive Last) — siehe Montageanleitung der Steuerung."
+          }
+        ]
+      }
+    ],
+    "quelle": "DOM/ENiQ/ELS Montage- und Bedienungsanleitung (Wandleser AccessManager etc.), Systemfamilien ENiQ, ELS und DOM Tapkey, Ausgabe 01/2022, Kap. \"Klemmenbelegung der Geräte\" — Klemmen 1-6 (Ethernet/PoE) entfallen beim DOM Tapkey Gerät, da dieses laut Anleitung über keine Ethernet-Funktion verfügt (nur BLE). Bitte gegen verbaute Geräterevision (V1) prüfen. Der E-Öffner ist bewusst generisch gehalten (kein spezifisches Herstellermodell) — exakte Klemmenbezeichnung und Ruhestrom/Arbeitsstrom-Anforderung immer gegen das tatsächlich verbaute Türöffner-Modell und die Brandschutz-/Fluchtwegvorgaben der Tür prüfen."
+  },
+  {
+    "id": "d832fc5f-aa46-4fa9-9dee-a2ef47982d75",
+    "hersteller": "E-Öffner",
+    "modell": "24V DC",
+    "bauteile": [
+      {
+        "id": "1cf84c3e-197b-414d-bcb0-dd23c58c7b41",
+        "typ": "verriegelung",
+        "name": "Türöffner/Verriegelung",
+        "klemmen": [
+          {
+            "id": "b2bc2dab-30d0-469b-9e85-675b511e2d06",
+            "nr": "1",
+            "bezeichnung": "24VDC +",
+            "funktion": "power",
+            "info": "24VDC +"
+          },
+          {
+            "id": "9178c416-09b9-4fd7-8d8d-399a0a3e0e98",
+            "nr": "2",
+            "bezeichnung": "GND",
+            "funktion": "power",
+            "info": "GND"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "c96697f6-5da6-4632-8110-fced921db2f5",
+    "hersteller": "E-Öffner",
+    "modell": "12V DC",
+    "bauteile": [
+      {
+        "id": "bd1b6650-9b64-47ac-9c76-0247a96982e6",
+        "typ": "verriegelung",
+        "name": "Türöffner/Verriegelung",
+        "klemmen": [
+          {
+            "id": "2bde276f-c62d-40b2-b71e-5cd521c2259c",
+            "nr": "1",
+            "bezeichnung": "12VDC +",
+            "funktion": "power",
+            "info": "12VDC +"
+          },
+          {
+            "id": "40bd505a-0f84-46a6-ba8b-6b0e86af0152",
+            "nr": "2",
+            "bezeichnung": "GND",
+            "funktion": "power",
+            "info": "GND"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "c9f0e331-4df5-47e3-be76-018f15cfdfb0",
+    "hersteller": "dormakaba",
+    "modell": "ED100/250",
+    "bauteile": [
+      {
+        "id": "0feadb5a-8f53-4bbf-9585-f52aed2f3aeb",
+        "typ": "steuerung",
+        "name": "ED100/250",
+        "klemmen": [
+          {
+            "id": "8f0a2a31-fd95-4f8f-be2d-c20c1bda9600",
+            "nr": "42",
+            "bezeichnung": "Impuls Innen",
+            "funktion": "power",
+            "info": "Potentialfrei"
+          },
+          {
+            "id": "bca9ba78-bb53-4b6d-9815-7475b23f374f",
+            "nr": "41",
+            "bezeichnung": "Impuls Außen",
+            "funktion": "power",
+            "info": "Poterntialfrei"
+          },
+          {
+            "id": "0d9d3bfd-40a3-4dd1-87b0-b63e69af8c90",
+            "nr": "3",
+            "bezeichnung": "GND",
+            "funktion": "power",
+            "info": "GND"
+          },
+          {
+            "id": "253b70ac-dc39-4c64-bdfb-47124c31697a",
+            "nr": "1",
+            "bezeichnung": "24V DC",
+            "funktion": "power",
+            "info": "24V DC"
+          },
+          {
+            "id": "e0da957e-4124-428b-a4d6-af41528b4a8f",
+            "nr": "A",
+            "bezeichnung": "Busleitung A",
+            "funktion": "data",
+            "info": "Busleitung A"
+          },
+          {
+            "id": "9c2abee6-bbef-4e3e-ad2d-2b87664a5497",
+            "nr": "B",
+            "bezeichnung": "Busleitung B",
+            "funktion": "data",
+            "info": "Busleitung B"
+          },
+          {
+            "id": "b8564700-e6a9-4dc4-92d1-ceca208bba95",
+            "nr": "1G",
+            "bezeichnung": "24V DC Dauerspannung",
+            "funktion": "power",
+            "info": "24V DC Dauerspannung"
+          },
+          {
+            "id": "e991f2f5-3898-4fab-97f0-cc82e4bcc1a7",
+            "nr": "62",
+            "bezeichnung": "Relais C",
+            "funktion": "power",
+            "info": "Relais C"
+          },
+          {
+            "id": "397bbf75-24e8-43e0-b4a7-1dc776b6154b",
+            "nr": "63",
+            "bezeichnung": "Relais NO",
+            "funktion": "power",
+            "info": "Relais NO"
+          },
+          {
+            "id": "9052d3f9-2a0f-4bcb-8ef1-9069ebadeb70",
+            "nr": "64",
+            "bezeichnung": "Relais NC",
+            "funktion": "power",
+            "info": "Relais NC"
+          },
+          {
+            "id": "30989194-6141-41af-aa7a-a27d1ecf0611",
+            "nr": "43",
+            "bezeichnung": "Verriegelungsrückmeldung",
+            "funktion": "power",
+            "info": "Verriegelungsrückmeldung"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "6a9d59fd-4986-4cc0-8ca2-df2521215183",
+    "hersteller": "Netzteil",
+    "modell": "230VAC zu 24VDC",
+    "bauteile": [
+      {
+        "id": "fde5ad95-17d8-449c-9e24-a783a5c46c53",
+        "typ": "netzteil",
+        "name": "Netzteil 24VDC",
+        "klemmen": [
+          {
+            "id": "f689ff47-6863-4e13-8b45-89161d1afed4",
+            "nr": "1",
+            "bezeichnung": "24VDC +",
+            "funktion": "power",
+            "info": ""
+          },
+          {
+            "id": "f341ccdd-ed32-4f62-9058-297488213037",
+            "nr": "2",
+            "bezeichnung": "GND",
+            "funktion": "power",
+            "info": ""
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "4a15b49e-d4b4-4255-a941-1a1dd401d32a",
+    "hersteller": "Netzteil",
+    "modell": "230VAC zu 12 VDC",
+    "bauteile": [
+      {
+        "id": "be641e00-fda7-46d0-975e-8b9934c441e2",
+        "typ": "netzteil",
+        "name": "Netzteil 12VDC",
+        "klemmen": [
+          {
+            "id": "e247ee3d-bc3d-4367-b03a-b103418def1f",
+            "nr": "1",
+            "bezeichnung": "12VDC",
+            "funktion": "power",
+            "info": ""
+          },
+          {
+            "id": "90fc3fef-de85-4eee-a22a-6d1ff09fd51d",
+            "nr": "2",
+            "bezeichnung": "GND",
+            "funktion": "power",
+            "info": ""
+          }
+        ]
+      }
+    ]
+  }
+]
