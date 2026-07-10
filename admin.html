@@ -93,6 +93,14 @@
   .src-lokal{background:rgba(58,123,213,.15);color:var(--accent);}
   .src-zentral{background:rgba(94,234,212,.12);color:var(--glow);}
   .src-leer{background:rgba(224,90,78,.14);color:var(--danger);}
+  .src-standard{background:rgba(233,237,242,.08);color:var(--ink-45);}
+
+  .toggle{position:relative;display:inline-block;width:40px;height:22px;flex-shrink:0;cursor:pointer;}
+  .toggle input{position:absolute;opacity:0;width:100%;height:100%;margin:0;cursor:pointer;}
+  .toggle .track{position:absolute;inset:0;background:var(--bg);border:1.5px solid var(--line-30);border-radius:2px;transition:.15s;}
+  .toggle .track::before{content:'';position:absolute;top:2px;left:2px;width:14px;height:14px;background:var(--ink-45);border-radius:1px;transition:.15s;}
+  .toggle input:checked ~ .track{background:rgba(58,123,213,.15);border-color:var(--accent);}
+  .toggle input:checked ~ .track::before{transform:translateX(16px);background:var(--accent);}
 
   .empty{color:var(--ink-40);font-size:13px;padding:14px 4px;text-align:center;}
 
@@ -133,7 +141,7 @@
   <span class="ico" aria-hidden="true">&#9881;</span>
   <div>
     <h1>Admin-Bereich</h1>
-    <p>Mitarbeitercodes &amp; Artikelnummern &middot; lokal auf diesem Gerät</p>
+    <p>Mitarbeitercodes, Artikelnummern &amp; Sichtbarkeit &middot; lokal auf diesem Gerät</p>
   </div>
 </div>
 
@@ -142,6 +150,7 @@
   <div class="tabs">
     <button class="tab-btn active" data-tab="codes">Mitarbeitercodes</button>
     <button class="tab-btn" data-tab="artikel">Artikelnummern</button>
+    <button class="tab-btn" data-tab="sichtbarkeit">Sichtbarkeit</button>
   </div>
 
   <!-- ═══════════ TAB: MITARBEITERCODES ═══════════ -->
@@ -189,6 +198,23 @@
       <div class="export-row">
         <button class="btn ghost" onclick="exportArtikel()">Als artikel.json exportieren</button>
         <button class="btn ghost" onclick="if(confirm('Alle lokalen Artikelnummer-Überschreibungen auf diesem Gerät löschen?'))resetArtikelLocal()">Lokale Änderungen zurücksetzen</button>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- ═══════════ TAB: SICHTBARKEIT ═══════════ -->
+  <div class="panel" id="panel-sichtbarkeit">
+
+    <div class="card">
+      <h2>Hersteller im Drehtür-Konfigurator</h2>
+      <p class="hint">Steuert, welche Hersteller-Kacheln im Drehtür-Konfigurator angezeigt werden. Änderungen gelten
+        sofort auf diesem Gerät (höchste Priorität). Für alle Geräte dauerhaft: unten exportieren und den Inhalt in
+        <span class="mono">hersteller-sichtbar.json</span> im Repository übernehmen.</p>
+      <table id="tbl-sichtbarkeit"><thead><tr><th>Hersteller</th><th>Quelle</th><th>Sichtbar</th><th></th></tr></thead><tbody></tbody></table>
+      <div class="export-row">
+        <button class="btn ghost" onclick="exportSichtbarkeit()">Als hersteller-sichtbar.json exportieren</button>
+        <button class="btn ghost" onclick="if(confirm('Alle lokalen Sichtbarkeits-Überschreibungen auf diesem Gerät löschen?'))resetSichtbarkeitLocal()">Lokale Änderungen zurücksetzen</button>
       </div>
     </div>
 
@@ -396,6 +422,71 @@ fetch('artikel.json',{cache:'no-store'})
   .catch(function(){ renderArtikel(); });
 
 renderArtikel();
+
+// ═══════════════════ SICHTBARKEIT (Hersteller im Drehtür-Konfigurator) ═══════════════════
+var SICHT_LOCAL_KEY='stober_hersteller_sichtbar';
+var SICHT_CENTRAL={};
+var SICHT_DEFAULTS={dk:true, rc:true, gi:true, gz:true};
+var SICHT_ORDER=['dk','rc','gi','gz'];
+
+function loadLocalSicht(){
+  try{ return JSON.parse(localStorage.getItem(SICHT_LOCAL_KEY)||'{}'); }catch(e){ return {}; }
+}
+function saveLocalSicht(obj){ localStorage.setItem(SICHT_LOCAL_KEY, JSON.stringify(obj)); }
+
+function effectiveVisibility(prefix){
+  var local = loadLocalSicht();
+  if(local[prefix]!==undefined) return {val:!!local[prefix], src:'lokal'};
+  if(SICHT_CENTRAL[prefix]!==undefined) return {val:!!SICHT_CENTRAL[prefix], src:'zentral'};
+  return {val: SICHT_DEFAULTS[prefix]!==undefined ? SICHT_DEFAULTS[prefix] : true, src:'standard'};
+}
+
+function renderSichtbarkeit(){
+  var tbody = document.querySelector('#tbl-sichtbarkeit tbody');
+  var local = loadLocalSicht();
+  tbody.innerHTML = '';
+  SICHT_ORDER.forEach(function(prefix){
+    var eff = effectiveVisibility(prefix);
+    var srcClass = eff.src==='lokal' ? 'src-lokal' : (eff.src==='zentral' ? 'src-zentral' : 'src-standard');
+    var srcLabel = eff.src==='lokal' ? 'Lokal' : (eff.src==='zentral' ? 'Zentral' : 'Standard');
+    var hasLocal = local[prefix]!==undefined;
+    tbody.innerHTML += '<tr>'+
+      '<td><div class="key-label">'+esc(MARKEN_LABEL[prefix]||prefix)+'</div></td>'+
+      '<td><span class="src-tag '+srcClass+'">'+srcLabel+'</span></td>'+
+      '<td><label class="toggle"><input type="checkbox" data-prefix="'+prefix+'" '+(eff.val?'checked':'')+' onchange="toggleSichtbarkeit(this)"><span class="track"></span></label></td>'+
+      '<td>'+(hasLocal?'<button class="btn ghost small" onclick="resetSichtbarkeitRow(\''+prefix+'\')">&#8635;</button>':'')+'</td>'+
+      '</tr>';
+  });
+}
+function toggleSichtbarkeit(input){
+  var prefix = input.dataset.prefix;
+  var local = loadLocalSicht();
+  local[prefix] = input.checked;
+  saveLocalSicht(local);
+  toast((MARKEN_LABEL[prefix]||prefix)+(input.checked?' eingeblendet':' ausgeblendet')+' (lokal auf diesem Gerät)');
+  renderSichtbarkeit();
+}
+function resetSichtbarkeitRow(prefix){
+  var local = loadLocalSicht();
+  delete local[prefix];
+  saveLocalSicht(local);
+  toast('Lokale Überschreibung entfernt');
+  renderSichtbarkeit();
+}
+function resetSichtbarkeitLocal(){
+  localStorage.removeItem(SICHT_LOCAL_KEY);
+  renderSichtbarkeit();
+  toast('Alle lokalen Sichtbarkeits-Änderungen zurückgesetzt');
+}
+function exportSichtbarkeit(){
+  var merged = Object.assign({}, SICHT_DEFAULTS, SICHT_CENTRAL, loadLocalSicht());
+  downloadJSON(merged, 'hersteller-sichtbar.json');
+}
+
+fetch('hersteller-sichtbar.json',{cache:'no-store'})
+  .then(function(r){ if(!r.ok) throw new Error('fetch failed'); return r.json(); })
+  .then(function(json){ SICHT_CENTRAL=json||{}; renderSichtbarkeit(); })
+  .catch(function(){ renderSichtbarkeit(); });
 
 // ─── Utils ──────────────────────────────────────────────────────────────
 function esc(s){

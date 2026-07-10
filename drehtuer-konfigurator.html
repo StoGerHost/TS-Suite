@@ -527,6 +527,42 @@ function getArtNr(key){
   // 3) hardcodierte Defaults
   return ARTIKEL_DEFAULTS[key]||'';
 }
+
+// ─── Hersteller-Sichtbarkeit: zentrale hersteller-sichtbar.json + localStorage (Admin) + Defaults ───
+// Gleiches Drei-Stufen-Prinzip wie bei den Artikelnummern. Steuert, welche Hersteller-Tabs
+// im Drehtür-Konfigurator angezeigt werden (Pflege im Admin-Bereich, Tab "Sichtbarkeit").
+var HERSTELLER_STORAGE_KEY='stober_hersteller_sichtbar';
+window._herstellerCentral = window._herstellerCentral || {};
+var HERSTELLER_DEFAULTS = {dk:true, rc:true, gi:true, gz:true};
+var HERSTELLER_PRODUKT = {dk:'dormakaba', rc:'record', gi:'gilgen', gz:'geze'};
+
+function isHerstellerSichtbar(prefix){
+  try{
+    var ls=JSON.parse(localStorage.getItem(HERSTELLER_STORAGE_KEY)||'{}');
+    if(ls[prefix]!==undefined) return !!ls[prefix];
+  }catch(e){}
+  if(window._herstellerCentral[prefix]!==undefined) return !!window._herstellerCentral[prefix];
+  return HERSTELLER_DEFAULTS[prefix]!==undefined ? HERSTELLER_DEFAULTS[prefix] : true;
+}
+function sichtbareHersteller(){
+  return ['dk','rc','gi','gz'].filter(isHerstellerSichtbar);
+}
+function loadHerstellerSichtbarkeit(){
+  return fetch('hersteller-sichtbar.json',{cache:'no-store'})
+    .then(function(r){ if(!r.ok) throw new Error('fetch failed'); return r.json(); })
+    .then(function(json){ window._herstellerCentral = json || {}; })
+    .catch(function(){ window._herstellerCentral = {}; })   // Defaults greifen weiterhin
+    .then(function(){
+      // Falls der aktuell gewählte Hersteller inzwischen ausgeblendet wurde: auf ersten sichtbaren wechseln
+      var aktivPrefix = isD()?'dk':isR()?'rc':isGi()?'gi':'gz';
+      if(!isHerstellerSichtbar(aktivPrefix)){
+        var sicht = sichtbareHersteller();
+        if(sicht.length) S=Object.assign({},S,{produkt:HERSTELLER_PRODUKT[sicht[0]]});
+      }
+      render();
+    });
+}
+loadHerstellerSichtbarkeit();
 // ED 250 PA basiert technisch auf ED 250 → für Upgradecards/Zubehör-Kompatibilität gilt ED 250
 function modellBasis(m){ return m==="ed250pa" ? "ed250" : m; }
 function getMontageArtikel(label, prefix){
@@ -1563,18 +1599,22 @@ function render(){
   document.getElementById('proj-data').innerHTML=buildProjectData();
 
   document.getElementById('prod-sw').innerHTML=
+    (isHerstellerSichtbar('dk')?
     '<div class="ptab'+(isD()?' ak-dk':'')+'" data-action="prod" data-value="dormakaba">'+
     '<img class="ptab-img" src="'+IMG_DK+'" alt="dormakaba ED 100/250" onerror="this.style.display=\'none\'">'+
-    '<span class="ptab-name">dormakaba</span><span class="ptab-sub">ED 100 / ED 250</span></div>'+
+    '<span class="ptab-name">dormakaba</span><span class="ptab-sub">ED 100 / ED 250</span></div>':'')+
+    (isHerstellerSichtbar('rc')?
     '<div class="ptab'+(isR()?' ak-rc':'')+'" data-action="prod" data-value="record">'+
     '<span style="font-size:32px;height:80px;display:flex;align-items:center;justify-content:center">⚙️</span>'+
-    '<span class="ptab-name">Record</span><span class="ptab-sub">DFA 127 / 830</span></div>'+
+    '<span class="ptab-name">Record</span><span class="ptab-sub">DFA 127 / 830</span></div>':'')+
+    (isHerstellerSichtbar('gi')?
     '<div class="ptab'+(isGi()?' ak-gi':'')+'" data-action="prod" data-value="gilgen">'+
     '<span style="font-size:32px;height:80px;display:flex;align-items:center;justify-content:center">⚙️</span>'+
-    '<span class="ptab-name">Gilgen</span><span class="ptab-sub">FD 20</span></div>'+
+    '<span class="ptab-name">Gilgen</span><span class="ptab-sub">FD 20</span></div>':'')+
+    (isHerstellerSichtbar('gz')?
     '<div class="ptab'+(!isD()&&!isR()&&!isGi()?' ak-gz':'')+'" data-action="prod" data-value="geze">'+
     '<img class="ptab-img" src="'+IMG_GZ+'" alt="GEZE Powerturn" onerror="this.style.display=\'none\'">'+
-    '<span class="ptab-name">GEZE</span><span class="ptab-sub">Powerturn</span></div>';
+    '<span class="ptab-name">GEZE</span><span class="ptab-sub">Powerturn</span></div>':'');
 
   var html=isD()?buildDormakaba():isR()?buildRecord():isGi()?buildGilgen():buildGeze();
   html+='<button class="big-btn '+cls+'" id="summary-btn"'+(complete?'':' disabled')+'>'+
