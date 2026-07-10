@@ -145,82 +145,19 @@
   </div>
 </div>
 
-<div class="wrap">
-
-  <div class="tabs">
-    <button class="tab-btn active" data-tab="codes">Mitarbeitercodes</button>
-    <button class="tab-btn" data-tab="artikel">Artikelnummern</button>
-    <button class="tab-btn" data-tab="sichtbarkeit">Sichtbarkeit</button>
+<div class="wrap" id="admin-gate">
+  <div class="card" style="max-width:360px;margin:60px auto 0;text-align:center">
+    <h2>Zugang geschützt</h2>
+    <p class="hint">Bitte Passwort eingeben, um den Admin-Bereich zu öffnen.</p>
+    <div class="row" style="justify-content:center">
+      <input id="admin-gate-pw" type="password" placeholder="Passwort" autocomplete="off" style="text-align:center">
+    </div>
+    <button class="btn" id="admin-gate-btn" style="width:100%">Entsperren</button>
+    <p class="hint" id="admin-gate-error" style="display:none;color:var(--danger);margin-top:10px">Falsches Passwort.</p>
   </div>
-
-  <!-- ═══════════ TAB: MITARBEITERCODES ═══════════ -->
-  <div class="panel active" id="panel-codes">
-
-    <div class="card">
-      <h2>Neuen Code hinzufügen</h2>
-      <p class="hint">Gilt sofort &ndash; aber nur auf diesem Gerät/Browser. Für alle Geräte dauerhaft: unten
-        exportieren und den Inhalt in <span class="mono">ma-codes.json</span> im Repository übernehmen.</p>
-      <div class="row">
-        <input id="new-code" type="text" inputmode="numeric" maxlength="10" placeholder="Code, z.B. 78090">
-        <input id="new-name" type="text" placeholder="Name, z.B. Max Mustermann">
-        <button class="btn" onclick="addCode()">+ Hinzufügen</button>
-      </div>
-    </div>
-
-    <div class="card">
-      <h2>Lokal auf diesem Gerät</h2>
-      <p class="hint">Diese Codes ergänzen die zentrale Liste, nur hier im Browser.</p>
-      <table id="tbl-local"><thead><tr><th>Code</th><th>Name</th><th></th></tr></thead><tbody></tbody></table>
-      <p class="empty" id="local-empty" style="display:none">Noch keine lokalen Codes angelegt.</p>
-      <div class="export-row">
-        <button class="btn ghost" onclick="exportCodes()">Als ma-codes.json exportieren</button>
-      </div>
-    </div>
-
-    <div class="card">
-      <h2>Zentral (ma-codes.json)</h2>
-      <p class="hint">Fest im Repository hinterlegt &ndash; hier nur les- und durchsuchbar.</p>
-      <table id="tbl-central"><thead><tr><th>Code</th><th>Name</th></tr></thead><tbody></tbody></table>
-      <p class="empty" id="central-empty" style="display:none">ma-codes.json konnte nicht geladen werden.</p>
-    </div>
-
-  </div>
-
-  <!-- ═══════════ TAB: ARTIKELNUMMERN ═══════════ -->
-  <div class="panel" id="panel-artikel">
-
-    <div class="card">
-      <h2>Artikelnummern pflegen</h2>
-      <p class="hint">Änderungen gelten sofort auf diesem Gerät (höchste Priorität). Für alle Geräte dauerhaft:
-        unten exportieren und den Inhalt in <span class="mono">artikel.json</span> im Repository übernehmen.</p>
-      <div class="search"><input id="art-search" type="text" placeholder="Suchen, z.B. ed100, Verkleidung, dormakaba …" oninput="renderArtikel()"></div>
-      <div id="artikel-groups"></div>
-      <div class="export-row">
-        <button class="btn ghost" onclick="exportArtikel()">Als artikel.json exportieren</button>
-        <button class="btn ghost" onclick="if(confirm('Alle lokalen Artikelnummer-Überschreibungen auf diesem Gerät löschen?'))resetArtikelLocal()">Lokale Änderungen zurücksetzen</button>
-      </div>
-    </div>
-
-  </div>
-
-  <!-- ═══════════ TAB: SICHTBARKEIT ═══════════ -->
-  <div class="panel" id="panel-sichtbarkeit">
-
-    <div class="card">
-      <h2>Hersteller im Drehtür-Konfigurator</h2>
-      <p class="hint">Steuert, welche Hersteller-Kacheln im Drehtür-Konfigurator angezeigt werden. Änderungen gelten
-        sofort auf diesem Gerät (höchste Priorität). Für alle Geräte dauerhaft: unten exportieren und den Inhalt in
-        <span class="mono">hersteller-sichtbar.json</span> im Repository übernehmen.</p>
-      <table id="tbl-sichtbarkeit"><thead><tr><th>Hersteller</th><th>Quelle</th><th>Sichtbar</th><th></th></tr></thead><tbody></tbody></table>
-      <div class="export-row">
-        <button class="btn ghost" onclick="exportSichtbarkeit()">Als hersteller-sichtbar.json exportieren</button>
-        <button class="btn ghost" onclick="if(confirm('Alle lokalen Sichtbarkeits-Überschreibungen auf diesem Gerät löschen?'))resetSichtbarkeitLocal()">Lokale Änderungen zurücksetzen</button>
-      </div>
-    </div>
-
-  </div>
-
 </div>
+
+<div class="wrap" id="admin-wrap" style="display:none"></div>
 
 <div class="toast" id="toast"></div>
 
@@ -238,16 +175,6 @@
     slash.style.display = 'inline';
   }
 })();
-
-// ─── Tabs ───────────────────────────────────────────────────────────────
-document.querySelectorAll('.tab-btn').forEach(function(btn){
-  btn.addEventListener('click', function(){
-    document.querySelectorAll('.tab-btn').forEach(function(b){b.classList.remove('active');});
-    document.querySelectorAll('.panel').forEach(function(p){p.classList.remove('active');});
-    btn.classList.add('active');
-    document.getElementById('panel-'+btn.dataset.tab).classList.add('active');
-  });
-});
 
 function toast(msg){
   var t=document.getElementById('toast');
@@ -311,11 +238,6 @@ function exportCodes(){
   var merged=Object.assign({}, MA_CENTRAL, loadLocalCodes());
   downloadJSON(merged, 'ma-codes.json');
 }
-
-fetch('ma-codes.json',{cache:'no-store'})
-  .then(function(r){ if(!r.ok) throw new Error('fetch failed'); return r.json(); })
-  .then(function(json){ MA_CENTRAL=json; renderCodes(); })
-  .catch(function(){ renderCodes(); });
 
 // ═══════════════════ ARTIKELNUMMERN ═══════════════════
 var ART_LOCAL_KEY='stober_artikel';
@@ -416,13 +338,6 @@ function exportArtikel(){
   downloadJSON(merged, 'artikel.json');
 }
 
-fetch('artikel.json',{cache:'no-store'})
-  .then(function(r){ if(!r.ok) throw new Error('fetch failed'); return r.json(); })
-  .then(function(json){ ART_CENTRAL=json; renderArtikel(); })
-  .catch(function(){ renderArtikel(); });
-
-renderArtikel();
-
 // ═══════════════════ SICHTBARKEIT (Hersteller im Drehtür-Konfigurator) ═══════════════════
 var SICHT_LOCAL_KEY='stober_hersteller_sichtbar';
 var SICHT_CENTRAL={};
@@ -483,10 +398,33 @@ function exportSichtbarkeit(){
   downloadJSON(merged, 'hersteller-sichtbar.json');
 }
 
-fetch('hersteller-sichtbar.json',{cache:'no-store'})
-  .then(function(r){ if(!r.ok) throw new Error('fetch failed'); return r.json(); })
-  .then(function(json){ SICHT_CENTRAL=json||{}; renderSichtbarkeit(); })
-  .catch(function(){ renderSichtbarkeit(); });
+// ─── Init (nach Freischaltung) ────────────────────────────────────────────
+function initAdminApp(){
+  document.querySelectorAll('.tab-btn').forEach(function(btn){
+    btn.addEventListener('click', function(){
+      document.querySelectorAll('.tab-btn').forEach(function(b){b.classList.remove('active');});
+      document.querySelectorAll('.panel').forEach(function(p){p.classList.remove('active');});
+      btn.classList.add('active');
+      document.getElementById('panel-'+btn.dataset.tab).classList.add('active');
+    });
+  });
+
+  fetch('ma-codes.json',{cache:'no-store'})
+    .then(function(r){ if(!r.ok) throw new Error('fetch failed'); return r.json(); })
+    .then(function(json){ MA_CENTRAL=json; renderCodes(); })
+    .catch(function(){ renderCodes(); });
+
+  fetch('artikel.json',{cache:'no-store'})
+    .then(function(r){ if(!r.ok) throw new Error('fetch failed'); return r.json(); })
+    .then(function(json){ ART_CENTRAL=json; renderArtikel(); })
+    .catch(function(){ renderArtikel(); });
+  renderArtikel();
+
+  fetch('hersteller-sichtbar.json',{cache:'no-store'})
+    .then(function(r){ if(!r.ok) throw new Error('fetch failed'); return r.json(); })
+    .then(function(json){ SICHT_CENTRAL=json||{}; renderSichtbarkeit(); })
+    .catch(function(){ renderSichtbarkeit(); });
+}
 
 // ─── Utils ──────────────────────────────────────────────────────────────
 function esc(s){
@@ -505,6 +443,57 @@ function downloadJSON(obj, filename){
   URL.revokeObjectURL(url);
   toast(filename+' heruntergeladen');
 }
+
+// ═══════════════════ ZUGANGSSCHUTZ ═══════════════════
+var ADMIN_PW_HASH='268a6b509dcfef2ecf1d079bc216413da2e46ef8a53729bd5693296bfb1d4e62';
+var ADMIN_SESSION_KEY='stober_admin_unlocked';
+var ADMIN_CONTENT_B64='ICA8ZGl2IGNsYXNzPSJ0YWJzIj4KICAgIDxidXR0b24gY2xhc3M9InRhYi1idG4gYWN0aXZlIiBkYXRhLXRhYj0iY29kZXMiPk1pdGFyYmVpdGVyY29kZXM8L2J1dHRvbj4KICAgIDxidXR0b24gY2xhc3M9InRhYi1idG4iIGRhdGEtdGFiPSJhcnRpa2VsIj5BcnRpa2VsbnVtbWVybjwvYnV0dG9uPgogICAgPGJ1dHRvbiBjbGFzcz0idGFiLWJ0biIgZGF0YS10YWI9InNpY2h0YmFya2VpdCI+U2ljaHRiYXJrZWl0PC9idXR0b24+CiAgPC9kaXY+CgogIDwhLS0g4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQIFRBQjogTUlUQVJCRUlURVJDT0RFUyDilZDilZDilZDilZDilZDilZDilZDilZDilZDilZDilZAgLS0+CiAgPGRpdiBjbGFzcz0icGFuZWwgYWN0aXZlIiBpZD0icGFuZWwtY29kZXMiPgoKICAgIDxkaXYgY2xhc3M9ImNhcmQiPgogICAgICA8aDI+TmV1ZW4gQ29kZSBoaW56dWbDvGdlbjwvaDI+CiAgICAgIDxwIGNsYXNzPSJoaW50Ij5HaWx0IHNvZm9ydCAmbmRhc2g7IGFiZXIgbnVyIGF1ZiBkaWVzZW0gR2Vyw6R0L0Jyb3dzZXIuIEbDvHIgYWxsZSBHZXLDpHRlIGRhdWVyaGFmdDogdW50ZW4KICAgICAgICBleHBvcnRpZXJlbiB1bmQgZGVuIEluaGFsdCBpbiA8c3BhbiBjbGFzcz0ibW9ubyI+bWEtY29kZXMuanNvbjwvc3Bhbj4gaW0gUmVwb3NpdG9yeSDDvGJlcm5laG1lbi48L3A+CiAgICAgIDxkaXYgY2xhc3M9InJvdyI+CiAgICAgICAgPGlucHV0IGlkPSJuZXctY29kZSIgdHlwZT0idGV4dCIgaW5wdXRtb2RlPSJudW1lcmljIiBtYXhsZW5ndGg9IjEwIiBwbGFjZWhvbGRlcj0iQ29kZSwgei5CLiA3ODA5MCI+CiAgICAgICAgPGlucHV0IGlkPSJuZXctbmFtZSIgdHlwZT0idGV4dCIgcGxhY2Vob2xkZXI9Ik5hbWUsIHouQi4gTWF4IE11c3Rlcm1hbm4iPgogICAgICAgIDxidXR0b24gY2xhc3M9ImJ0biIgb25jbGljaz0iYWRkQ29kZSgpIj4rIEhpbnp1ZsO8Z2VuPC9idXR0b24+CiAgICAgIDwvZGl2PgogICAgPC9kaXY+CgogICAgPGRpdiBjbGFzcz0iY2FyZCI+CiAgICAgIDxoMj5Mb2thbCBhdWYgZGllc2VtIEdlcsOkdDwvaDI+CiAgICAgIDxwIGNsYXNzPSJoaW50Ij5EaWVzZSBDb2RlcyBlcmfDpG56ZW4gZGllIHplbnRyYWxlIExpc3RlLCBudXIgaGllciBpbSBCcm93c2VyLjwvcD4KICAgICAgPHRhYmxlIGlkPSJ0YmwtbG9jYWwiPjx0aGVhZD48dHI+PHRoPkNvZGU8L3RoPjx0aD5OYW1lPC90aD48dGg+PC90aD48L3RyPjwvdGhlYWQ+PHRib2R5PjwvdGJvZHk+PC90YWJsZT4KICAgICAgPHAgY2xhc3M9ImVtcHR5IiBpZD0ibG9jYWwtZW1wdHkiIHN0eWxlPSJkaXNwbGF5Om5vbmUiPk5vY2gga2VpbmUgbG9rYWxlbiBDb2RlcyBhbmdlbGVndC48L3A+CiAgICAgIDxkaXYgY2xhc3M9ImV4cG9ydC1yb3ciPgogICAgICAgIDxidXR0b24gY2xhc3M9ImJ0biBnaG9zdCIgb25jbGljaz0iZXhwb3J0Q29kZXMoKSI+QWxzIG1hLWNvZGVzLmpzb24gZXhwb3J0aWVyZW48L2J1dHRvbj4KICAgICAgPC9kaXY+CiAgICA8L2Rpdj4KCiAgICA8ZGl2IGNsYXNzPSJjYXJkIj4KICAgICAgPGgyPlplbnRyYWwgKG1hLWNvZGVzLmpzb24pPC9oMj4KICAgICAgPHAgY2xhc3M9ImhpbnQiPkZlc3QgaW0gUmVwb3NpdG9yeSBoaW50ZXJsZWd0ICZuZGFzaDsgaGllciBudXIgbGVzLSB1bmQgZHVyY2hzdWNoYmFyLjwvcD4KICAgICAgPHRhYmxlIGlkPSJ0YmwtY2VudHJhbCI+PHRoZWFkPjx0cj48dGg+Q29kZTwvdGg+PHRoPk5hbWU8L3RoPjwvdHI+PC90aGVhZD48dGJvZHk+PC90Ym9keT48L3RhYmxlPgogICAgICA8cCBjbGFzcz0iZW1wdHkiIGlkPSJjZW50cmFsLWVtcHR5IiBzdHlsZT0iZGlzcGxheTpub25lIj5tYS1jb2Rlcy5qc29uIGtvbm50ZSBuaWNodCBnZWxhZGVuIHdlcmRlbi48L3A+CiAgICA8L2Rpdj4KCiAgPC9kaXY+CgogIDwhLS0g4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQIFRBQjogQVJUSUtFTE5VTU1FUk4g4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQIC0tPgogIDxkaXYgY2xhc3M9InBhbmVsIiBpZD0icGFuZWwtYXJ0aWtlbCI+CgogICAgPGRpdiBjbGFzcz0iY2FyZCI+CiAgICAgIDxoMj5BcnRpa2VsbnVtbWVybiBwZmxlZ2VuPC9oMj4KICAgICAgPHAgY2xhc3M9ImhpbnQiPsOEbmRlcnVuZ2VuIGdlbHRlbiBzb2ZvcnQgYXVmIGRpZXNlbSBHZXLDpHQgKGjDtmNoc3RlIFByaW9yaXTDpHQpLiBGw7xyIGFsbGUgR2Vyw6R0ZSBkYXVlcmhhZnQ6CiAgICAgICAgdW50ZW4gZXhwb3J0aWVyZW4gdW5kIGRlbiBJbmhhbHQgaW4gPHNwYW4gY2xhc3M9Im1vbm8iPmFydGlrZWwuanNvbjwvc3Bhbj4gaW0gUmVwb3NpdG9yeSDDvGJlcm5laG1lbi48L3A+CiAgICAgIDxkaXYgY2xhc3M9InNlYXJjaCI+PGlucHV0IGlkPSJhcnQtc2VhcmNoIiB0eXBlPSJ0ZXh0IiBwbGFjZWhvbGRlcj0iU3VjaGVuLCB6LkIuIGVkMTAwLCBWZXJrbGVpZHVuZywgZG9ybWFrYWJhIOKApiIgb25pbnB1dD0icmVuZGVyQXJ0aWtlbCgpIj48L2Rpdj4KICAgICAgPGRpdiBpZD0iYXJ0aWtlbC1ncm91cHMiPjwvZGl2PgogICAgICA8ZGl2IGNsYXNzPSJleHBvcnQtcm93Ij4KICAgICAgICA8YnV0dG9uIGNsYXNzPSJidG4gZ2hvc3QiIG9uY2xpY2s9ImV4cG9ydEFydGlrZWwoKSI+QWxzIGFydGlrZWwuanNvbiBleHBvcnRpZXJlbjwvYnV0dG9uPgogICAgICAgIDxidXR0b24gY2xhc3M9ImJ0biBnaG9zdCIgb25jbGljaz0iaWYoY29uZmlybSgnQWxsZSBsb2thbGVuIEFydGlrZWxudW1tZXItw5xiZXJzY2hyZWlidW5nZW4gYXVmIGRpZXNlbSBHZXLDpHQgbMO2c2NoZW4/JykpcmVzZXRBcnRpa2VsTG9jYWwoKSI+TG9rYWxlIMOEbmRlcnVuZ2VuIHp1csO8Y2tzZXR6ZW48L2J1dHRvbj4KICAgICAgPC9kaXY+CiAgICA8L2Rpdj4KCiAgPC9kaXY+CgogIDwhLS0g4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQIFRBQjogU0lDSFRCQVJLRUlUIOKVkOKVkOKVkOKVkOKVkOKVkOKVkOKVkOKVkOKVkOKVkCAtLT4KICA8ZGl2IGNsYXNzPSJwYW5lbCIgaWQ9InBhbmVsLXNpY2h0YmFya2VpdCI+CgogICAgPGRpdiBjbGFzcz0iY2FyZCI+CiAgICAgIDxoMj5IZXJzdGVsbGVyIGltIERyZWh0w7xyLUtvbmZpZ3VyYXRvcjwvaDI+CiAgICAgIDxwIGNsYXNzPSJoaW50Ij5TdGV1ZXJ0LCB3ZWxjaGUgSGVyc3RlbGxlci1LYWNoZWxuIGltIERyZWh0w7xyLUtvbmZpZ3VyYXRvciBhbmdlemVpZ3Qgd2VyZGVuLiDDhG5kZXJ1bmdlbiBnZWx0ZW4KICAgICAgICBzb2ZvcnQgYXVmIGRpZXNlbSBHZXLDpHQgKGjDtmNoc3RlIFByaW9yaXTDpHQpLiBGw7xyIGFsbGUgR2Vyw6R0ZSBkYXVlcmhhZnQ6IHVudGVuIGV4cG9ydGllcmVuIHVuZCBkZW4gSW5oYWx0IGluCiAgICAgICAgPHNwYW4gY2xhc3M9Im1vbm8iPmhlcnN0ZWxsZXItc2ljaHRiYXIuanNvbjwvc3Bhbj4gaW0gUmVwb3NpdG9yeSDDvGJlcm5laG1lbi48L3A+CiAgICAgIDx0YWJsZSBpZD0idGJsLXNpY2h0YmFya2VpdCI+PHRoZWFkPjx0cj48dGg+SGVyc3RlbGxlcjwvdGg+PHRoPlF1ZWxsZTwvdGg+PHRoPlNpY2h0YmFyPC90aD48dGg+PC90aD48L3RyPjwvdGhlYWQ+PHRib2R5PjwvdGJvZHk+PC90YWJsZT4KICAgICAgPGRpdiBjbGFzcz0iZXhwb3J0LXJvdyI+CiAgICAgICAgPGJ1dHRvbiBjbGFzcz0iYnRuIGdob3N0IiBvbmNsaWNrPSJleHBvcnRTaWNodGJhcmtlaXQoKSI+QWxzIGhlcnN0ZWxsZXItc2ljaHRiYXIuanNvbiBleHBvcnRpZXJlbjwvYnV0dG9uPgogICAgICAgIDxidXR0b24gY2xhc3M9ImJ0biBnaG9zdCIgb25jbGljaz0iaWYoY29uZmlybSgnQWxsZSBsb2thbGVuIFNpY2h0YmFya2VpdHMtw5xiZXJzY2hyZWlidW5nZW4gYXVmIGRpZXNlbSBHZXLDpHQgbMO2c2NoZW4/JykpcmVzZXRTaWNodGJhcmtlaXRMb2NhbCgpIj5Mb2thbGUgw4RuZGVydW5nZW4genVyw7xja3NldHplbjwvYnV0dG9uPgogICAgICA8L2Rpdj4KICAgIDwvZGl2PgoKICA8L2Rpdj4K';
+
+function b64DecodeUnicode(str){
+  var binary = atob(str);
+  var bytes = new Uint8Array(binary.length);
+  for(var i=0;i<binary.length;i++){ bytes[i] = binary.charCodeAt(i); }
+  return new TextDecoder('utf-8').decode(bytes);
+}
+
+function sha256Hex(str){
+  return crypto.subtle.digest('SHA-256', new TextEncoder().encode(str)).then(function(buf){
+    return Array.prototype.map.call(new Uint8Array(buf), function(b){ return b.toString(16).padStart(2,'0'); }).join('');
+  });
+}
+
+function unlockAdmin(){
+  var wrapEl = document.getElementById('admin-wrap');
+  wrapEl.innerHTML = b64DecodeUnicode(ADMIN_CONTENT_B64);
+  document.getElementById('admin-gate').style.display = 'none';
+  wrapEl.style.display = 'block';
+  initAdminApp();
+}
+
+function submitAdminPassword(){
+  var input = document.getElementById('admin-gate-pw');
+  sha256Hex(input.value).then(function(hex){
+    if(hex === ADMIN_PW_HASH){
+      sessionStorage.setItem(ADMIN_SESSION_KEY, '1');
+      unlockAdmin();
+    } else {
+      document.getElementById('admin-gate-error').style.display = 'block';
+      input.value = '';
+      input.focus();
+    }
+  });
+}
+
+(function(){
+  var gateInput = document.getElementById('admin-gate-pw');
+  document.getElementById('admin-gate-btn').addEventListener('click', submitAdminPassword);
+  gateInput.addEventListener('keydown', function(e){ if(e.key==='Enter') submitAdminPassword(); });
+  if(sessionStorage.getItem(ADMIN_SESSION_KEY) === '1'){
+    unlockAdmin();
+  } else {
+    gateInput.focus();
+  }
+})();
 
 </script>
 </body>
