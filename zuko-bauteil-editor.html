@@ -7,26 +7,26 @@
 <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600;700&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
 <style>
   :root{
-    /* Planungstool-Palette (siehe index.html), 1:1 übernommen */
-    --ink:#16222c;
-    --ink-soft:#3a4a56;
-    --paper:#f5f2ea;
-    --card:#ffffff;
-    --line:#e0dac9;
-    --accent:#d6601f;
-    --accent-dark:#a84a16;
-    --ok:#2e7d63;
-    --warn:#c1432b;
-    --warn-bg:#fbeae6;
-    --muted:#6b7280;
-    --chip-bg:#eef0ee;
+    /* Blueprint-Palette (dunkel), an den Rest der Suite angeglichen */
+    --ink:#e9edf2;
+    --ink-soft:#9aa5b0;
+    --paper:#0a0a0c;
+    --card:#111318;
+    --line:rgba(58,123,213,.25);
+    --accent:#e8792e;
+    --accent-dark:#ffa057;
+    --ok:#3ecf8e;
+    --warn:#e05a4e;
+    --warn-bg:rgba(224,90,78,.15);
+    --muted:#8b95a0;
+    --chip-bg:rgba(233,237,242,.08);
 
     /* Bestehende Blueprint-Variablennamen auf die neue Palette gemappt,
        damit der gesamte restliche CSS-/SVG-Code unverändert bleibt. */
     --bp-bg:var(--paper); --bp-grid:var(--line); --bp-line:var(--ink); --bp-line-dim:var(--line);
     --bp-power:var(--accent); --bp-data:var(--ok); --bp-safety:var(--warn); --bp-signal:var(--ink-soft);
-    --bp-power-plus:#c0202c; --bp-power-gnd:var(--ink); --bp-wire-data:#b8901f;
-    --bp-panel:var(--card); --bp-panel2:#faf7f0;
+    --bp-power-plus:#e05a4e; --bp-power-gnd:var(--ink); --bp-wire-data:#d4a92f;
+    --bp-panel:var(--card); --bp-panel2:#161a22;
   }
   *{box-sizing:border-box;}
   html,body{margin:0;padding:0;}

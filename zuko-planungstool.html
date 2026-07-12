@@ -7,18 +7,18 @@
 <title>Zutrittskontrolle – Planungstool für den Außendienst</title>
 <style>
   :root{
-    --ink:#16222c;
-    --ink-soft:#3a4a56;
-    --paper:#f5f2ea;
-    --card:#ffffff;
-    --line:#e0dac9;
-    --accent:#d6601f;
-    --accent-dark:#a84a16;
-    --ok:#2e7d63;
-    --warn:#c1432b;
-    --warn-bg:#fbeae6;
-    --muted:#6b7280;
-    --chip-bg:#eef0ee;
+    --ink:#e9edf2;
+    --ink-soft:#9aa5b0;
+    --paper:#0a0a0c;
+    --card:#111318;
+    --line:rgba(58,123,213,.25);
+    --accent:#e8792e;
+    --accent-dark:#ffa057;
+    --ok:#3ecf8e;
+    --warn:#e05a4e;
+    --warn-bg:rgba(224,90,78,.15);
+    --muted:#8b95a0;
+    --chip-bg:rgba(233,237,242,.08);
     --font-display:'Arial Narrow', 'Helvetica Neue Condensed', Arial, sans-serif;
     --font-body:system-ui,-apple-system,'Segoe UI',Roboto,Arial,sans-serif;
     --font-mono:ui-monospace,'Cascadia Mono','Consolas','SFMono-Regular',Menlo,monospace;
@@ -30,7 +30,7 @@
   button{font-family:var(--font-body);cursor:pointer;}
   input,select,textarea{
     font-family:var(--font-body);font-size:16px;color:var(--ink);
-    background:#fff;border:1px solid var(--line);border-radius:7px;padding:11px 12px;width:100%;
+    background:#0d0f13;border:1px solid var(--line);border-radius:7px;padding:11px 12px;width:100%;
   }
   input:focus,select:focus,textarea:focus{outline:2px solid var(--accent);outline-offset:1px;border-color:var(--accent);}
   label{display:block;font-size:13px;font-family:var(--font-mono);color:var(--ink-soft);text-transform:uppercase;letter-spacing:.03em;margin-bottom:5px;}
@@ -43,11 +43,11 @@
 
   /* ---- header ---- */
   header.top{
-    position:sticky;top:0;z-index:20;background:var(--ink);color:#f5f2ea;
+    position:sticky;top:0;z-index:20;background:var(--card);color:var(--ink);
     padding:14px 18px;box-shadow:0 2px 10px rgba(0,0,0,.18);
   }
   header.top .wrap{max-width:1100px;margin:0 auto;display:flex;flex-wrap:wrap;align-items:center;gap:14px;justify-content:space-between;}
-  header.top h1{font-size:21px;color:#fff;}
+  header.top h1{font-size:21px;color:var(--ink);}
   header.top .sub{font-size:12.5px;color:#c7cdd1;font-family:var(--font-mono);letter-spacing:.02em;}
   .stats{display:flex;gap:8px;flex-wrap:wrap;}
   .stat{background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.18);border-radius:20px;padding:5px 12px;font-size:12.5px;font-family:var(--font-mono);color:#f0ede4;white-space:nowrap;}
@@ -70,16 +70,16 @@
   fieldset legend{font-family:var(--font-mono);font-size:12px;text-transform:uppercase;letter-spacing:.04em;color:var(--accent-dark);padding:0 6px;}
 
   /* ---- door cards ---- */
-  .door-card{border:1px solid var(--line);border-radius:9px;margin-bottom:14px;background:#fffdf9;}
+  .door-card{border:1px solid var(--line);border-radius:9px;margin-bottom:14px;background:var(--card);}
   .door-head{display:flex;align-items:center;gap:8px;padding:4px 6px 4px 4px;}
   .door-toggle{flex:1;display:flex;align-items:center;gap:10px;flex-wrap:wrap;background:none;border:none;padding:14px 10px;text-align:left;min-height:48px;}
-  .door-index{font-family:var(--font-mono);font-size:12px;background:var(--ink);color:#fff;border-radius:5px;padding:3px 8px;}
+  .door-index{font-family:var(--font-mono);font-size:12px;background:var(--accent);color:#0a0a0c;border-radius:5px;padding:3px 8px;font-weight:700;}
   .door-title{font-weight:700;font-size:15px;flex-shrink:0;}
   .door-chips{display:flex;gap:6px;flex-wrap:wrap;margin-left:auto;margin-right:8px;}
   .chip{font-family:var(--font-mono);font-size:11px;padding:2px 8px;border-radius:12px;background:var(--chip-bg);color:var(--ink-soft);white-space:nowrap;}
-  .chip.fire{background:#fde7da;color:var(--accent-dark);}
-  .chip.exit{background:#e6f0ec;color:var(--ok);}
-  .chip.net{background:#e7ecf5;color:#33507a;}
+  .chip.fire{background:rgba(232,121,46,.15);color:var(--accent-dark);}
+  .chip.exit{background:rgba(62,207,142,.15);color:var(--ok);}
+  .chip.net{background:rgba(58,123,213,.15);color:#8fb4e8;}
   .chip.warn{background:var(--warn-bg);color:var(--warn);font-weight:700;}
   .chev{font-size:14px;color:var(--muted);transition:transform .15s ease;margin-right:4px;}
   .door-toggle[aria-expanded="false"] .chev{transform:rotate(-90deg);}
@@ -91,22 +91,22 @@
   .door-body{padding:4px 16px 16px;border-top:1px solid var(--line);}
   .door-body[hidden]{display:none;}
   .checkbox-row{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:8px;}
-  .checkbox-row label.cb{display:flex;align-items:center;gap:8px;font-family:var(--font-body);text-transform:none;font-size:13.5px;color:var(--ink);letter-spacing:0;border:1px solid var(--line);border-radius:20px;padding:9px 14px;min-height:40px;background:#fff;}
-  .checkbox-row label.cb:has(input:checked){background:#fdece0;border-color:var(--accent);color:var(--accent-dark);font-weight:600;}
+  .checkbox-row label.cb{display:flex;align-items:center;gap:8px;font-family:var(--font-body);text-transform:none;font-size:13.5px;color:var(--ink);letter-spacing:0;border:1px solid var(--line);border-radius:20px;padding:9px 14px;min-height:40px;background:#0d0f13;}
+  .checkbox-row label.cb:has(input:checked){background:rgba(232,121,46,.15);border-color:var(--accent);color:var(--accent-dark);font-weight:600;}
   .checkbox-row input[type=checkbox]{width:18px;height:18px;flex-shrink:0;}
   .warnings-box{margin-top:6px;}
-  .warn-item{background:var(--warn-bg);border-left:3px solid var(--warn);color:#7d2a18;font-size:13px;padding:8px 10px;border-radius:4px;margin-bottom:6px;}
+  .warn-item{background:var(--warn-bg);border-left:3px solid var(--warn);color:#ffb3a8;font-size:13px;padding:8px 10px;border-radius:4px;margin-bottom:6px;}
   .ok-note{font-size:12.5px;color:var(--ok);font-family:var(--font-mono);}
 
   /* ---- buttons ---- */
-  .btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;border:1px solid var(--line);background:#fff;color:var(--ink);padding:13px 18px;min-height:46px;border-radius:8px;font-size:14.5px;font-weight:600;}
+  .btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;border:1px solid var(--line);background:#0d0f13;color:var(--ink);padding:13px 18px;min-height:46px;border-radius:8px;font-size:14.5px;font-weight:600;}
   .btn:hover{border-color:var(--accent);}
-  .btn.primary{background:var(--accent);border-color:var(--accent);color:#fff;}
+  .btn.primary{background:var(--accent);border-color:var(--accent);color:#0a0a0c;}
   .btn.primary:hover{background:var(--accent-dark);}
   .btn.ghost{background:transparent;}
   .add-door-wrap{padding:14px 18px;}
 
-  footer.toolbar{position:sticky;bottom:0;z-index:20;background:#fff;border-top:1px solid var(--line);padding:10px 18px;box-shadow:0 -3px 10px rgba(0,0,0,.07);}
+  footer.toolbar{position:sticky;bottom:0;z-index:20;background:var(--card);border-top:1px solid var(--line);padding:10px 18px;box-shadow:0 -3px 10px rgba(0,0,0,.3);}
   footer.toolbar .wrap{max-width:1100px;margin:0 auto;display:flex;gap:10px;flex-wrap:wrap;justify-content:space-between;align-items:center;}
   footer.toolbar .grp{display:flex;gap:8px;flex-wrap:wrap;}
   #fileInput{display:none;}
@@ -121,7 +121,7 @@
     fieldset{padding:12px 12px 4px;}
   }
 
-  .note-box{background:#fdf6e8;border:1px solid #ecd9a3;border-radius:7px;padding:10px 14px;font-size:13px;color:#6b5210;margin-top:10px;}
+  .note-box{background:rgba(232,121,46,.1);border:1px solid rgba(232,121,46,.3);border-radius:7px;padding:10px 14px;font-size:13px;color:#f0c896;margin-top:10px;}
 
   /* ---- print ---- */
   @media print{
