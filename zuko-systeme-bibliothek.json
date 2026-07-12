@@ -1,93 +1,93 @@
 [
   {
-    "id": "d1a656c7-b83b-4140-8ef5-602e1e6914b4",
+    "id": "e7eb23f9-3b02-4181-9a87-5f4495640d19",
     "hersteller": "dormakaba",
     "modell": "Kompaktleser 91 04 (E300 V4) — steckbare Anschlussklemme",
     "bauteile": [
       {
-        "id": "5c7e9666-2820-456e-a85b-3b970484e34f",
+        "id": "b9507022-71e4-465c-a58c-aaf89a0a53c1",
         "typ": "leser",
         "name": "Kompaktleser 91 04",
         "klemmen": [
           {
-            "id": "d67a47c5-a8ee-43f8-a62b-4016a608d7c3",
+            "id": "1e0461a3-5600-43c8-bbad-a47dd3156f4e",
             "nr": "1",
             "bezeichnung": "DC- / AC",
             "funktion": "power",
             "info": "Stromversorgung 12-27V AC oder 10-34V DC"
           },
           {
-            "id": "d70a6ccf-ceed-48c6-8eef-b959b425cf1d",
+            "id": "cf2537c3-1208-4138-b490-e11ae9e8dc35",
             "nr": "2",
             "bezeichnung": "DC+ / AC",
             "funktion": "power",
             "info": "Stromversorgung, siehe Klemme 1"
           },
           {
-            "id": "92919a0a-50c1-4fc3-97d6-95c321952879",
+            "id": "392b731f-81df-41f3-92e1-c9b667a64eb2",
             "nr": "3",
             "bezeichnung": "NC (normally closed)",
             "funktion": "signal",
             "info": "Relaisausgang Türöffner, max. 2A"
           },
           {
-            "id": "b010057c-a7f3-48d0-b846-07a736a7402b",
+            "id": "e0f199cd-eb1c-4210-a415-2886e0432c5a",
             "nr": "4",
             "bezeichnung": "COM",
             "funktion": "signal",
             "info": "Relaisausgang Türöffner, gemeinsamer Kontakt"
           },
           {
-            "id": "772fb0ce-c036-463c-b49d-138819a7a319",
+            "id": "3b5d02db-1f6e-454a-9609-1ea342faa9d6",
             "nr": "5",
             "bezeichnung": "NO (normally open)",
             "funktion": "signal",
             "info": "Relaisausgang Türöffner, max. 2A"
           },
           {
-            "id": "c4cbd841-34f7-4506-b01d-630542cb8ee1",
+            "id": "f0954eb9-f541-49e0-a972-d0e4add02bd3",
             "nr": "6",
             "bezeichnung": "GND (gemeinsame Masse)",
             "funktion": "signal",
             "info": "Bezugsmasse für digitale Eingänge"
           },
           {
-            "id": "a6ced2c5-1a2c-4fe0-878d-7bc45ba33889",
+            "id": "33d561c3-28f1-4933-b526-c84e5fb6e3a5",
             "nr": "7",
             "bezeichnung": "IN1",
             "funktion": "signal",
             "info": "Drückerkontakt oder Türöffnertaster (REX)"
           },
           {
-            "id": "4868ed8f-3ce0-434d-b5b2-5a0ee84c31aa",
+            "id": "5b04b9cc-6e48-4f42-ba04-594eb2166b2d",
             "nr": "8",
             "bezeichnung": "-",
             "funktion": "signal",
             "info": "nicht belegt (Funktion abhängig von Parametrierung)"
           },
           {
-            "id": "352fd72d-3d09-42fd-96e0-2d8f13187cc1",
+            "id": "67fba597-14d4-4a80-9f4d-fc00eac8f4af",
             "nr": "9",
             "bezeichnung": "-",
             "funktion": "signal",
             "info": ""
           },
           {
-            "id": "c2eb2335-e8bd-40b4-bc42-9e426c799dd0",
+            "id": "c4eec6bc-6bf6-446b-8685-201686920783",
             "nr": "10",
             "bezeichnung": "-",
             "funktion": "signal",
             "info": ""
           },
           {
-            "id": "b9eb6d68-c0dd-4ba1-ad52-c1dbb10110ae",
+            "id": "5cea4979-305d-49c7-98e7-5089281d018b",
             "nr": "11",
             "bezeichnung": "-",
             "funktion": "signal",
             "info": ""
           },
           {
-            "id": "83daf8f3-c551-45ef-bb6f-a6152568b263",
+            "id": "a3164379-8df3-4cde-89fe-23ddff041825",
             "nr": "12",
             "bezeichnung": "-",
             "funktion": "signal",
@@ -99,38 +99,38 @@
     "quelle": "dormakaba Technisches Handbuch Kompaktleser 91 04, Dok. 04046476, Stand 10/2018 — bitte gegen verbaute Geräterevision prüfen."
   },
   {
-    "id": "4c38f732-63f4-4a8b-954f-8fe1ede3cdd7",
+    "id": "f9672588-9774-4a8a-ab2a-ebccb97f71cb",
     "hersteller": "SimonsVoss",
     "modell": "WaveNet System 3060 — LockNode WN.LN.C (verkabelt)",
     "bauteile": [
       {
-        "id": "c5ee8148-0ec9-4feb-be82-b3f13afb6368",
+        "id": "8d0fe9e6-789a-422d-95e3-f39a85c1008c",
         "typ": "sonstiges",
         "name": "LockNode WN.LN.C",
         "klemmen": [
           {
-            "id": "8ab4e6c4-d6aa-4953-854f-af6ac5ce98b6",
+            "id": "2244499c-5349-4cf2-919c-0fb312470bd5",
             "nr": "DC",
             "bezeichnung": "Energieversorgung",
             "funktion": "power",
             "info": "6-24V DC, polaritätsabhängig. Stromaufnahme LockNode ca. 15 mA"
           },
           {
-            "id": "6722c2f7-7c29-4e1e-a25e-29759d5860d1",
+            "id": "c6cda6fa-2d6d-4298-9d9b-0336bf87611f",
             "nr": "A",
             "bezeichnung": "Datenleitung D+",
             "funktion": "data",
             "info": "RS485, polaritätsabhängig"
           },
           {
-            "id": "69c420a5-9381-41bd-9c4a-aa2090f25a17",
+            "id": "744ce329-0b2d-420d-8ab2-487b29776559",
             "nr": "B",
             "bezeichnung": "Datenleitung D-",
             "funktion": "data",
             "info": "RS485, polaritätsabhängig"
           },
           {
-            "id": "f896e0e7-f513-4ee2-af31-f205cb813807",
+            "id": "db9024d9-9719-4105-9de6-4488d1522a89",
             "nr": "Schirm",
             "bezeichnung": "Abschirmung",
             "funktion": "signal",
@@ -139,26 +139,26 @@
         ]
       },
       {
-        "id": "8cf8b8c2-a95c-4db4-9c2d-b380e2f4e316",
+        "id": "1584b82e-3b78-41e4-85bb-d2d054d6267a",
         "typ": "sonstiges",
         "name": "RouterNode — RS485-Bus (8-pol. Phoenix-Stecker)",
         "klemmen": [
           {
-            "id": "5c6b42d2-e7b1-41ca-9835-2b8bd47b85f6",
+            "id": "ff062a82-8a93-412d-af00-d713fc13a94d",
             "nr": "A",
             "bezeichnung": "Data + (A)",
             "funktion": "data",
             "info": "Busleitung zum RS485-Modul, Ader grün"
           },
           {
-            "id": "cbf16a0d-daa1-4628-aef0-1c840414798f",
+            "id": "9fd54a8e-52c8-4523-b0d6-5e35efa1b681",
             "nr": "B",
             "bezeichnung": "Data - (B)",
             "funktion": "data",
             "info": "Busleitung zum RS485-Modul, Ader orange"
           },
           {
-            "id": "14f9f3de-ffeb-4cd5-bf1b-fd37842d8186",
+            "id": "d99a15a2-9fab-4bc0-90b0-b3a008d7643e",
             "nr": "GND",
             "bezeichnung": "Ground",
             "funktion": "signal",
@@ -170,108 +170,108 @@
     "quelle": "SimonsVoss WaveNet-Handbuch (System 3065/3060) — bitte gegen verbaute Geräterevision prüfen."
   },
   {
-    "id": "5de24ebd-ba47-4e97-b7f3-65bd05933a10",
+    "id": "d3205beb-4a23-4291-82c5-6a3ba749c400",
     "hersteller": "SimonsVoss",
     "modell": "Smart Relais Serie (1. Generation) — SREL / SREL.ZK / SREL.ADV",
     "bauteile": [
       {
-        "id": "3e9dd368-eb97-411a-a352-cef0ba36f8d8",
+        "id": "f612877c-c86f-480e-bfd2-5990336b3d09",
         "typ": "sonstiges",
         "name": "SmartRelais SREL / SREL.ZK / SREL.ADV",
         "klemmen": [
           {
-            "id": "622b5748-34b5-4829-8c48-1a14a8def47c",
+            "id": "bf0ecadd-3de8-4252-a827-507bffd51ce7",
             "nr": "+/~",
             "bezeichnung": "Netzteil +",
             "funktion": "power",
             "info": "Pluspol bei 5-24V DC oder ein Wechselspannungsanschluss 12V AC"
           },
           {
-            "id": "a778460a-14c4-4f0a-b720-a6c1b1ec69b7",
+            "id": "dd7342b0-9757-4967-b93e-f55870022ceb",
             "nr": "-/~",
             "bezeichnung": "Netzteil -",
             "funktion": "power",
             "info": "Minuspol bei DC oder zweiter Wechselspannungsanschluss 12V AC. Kein Verpolungsschutz!"
           },
           {
-            "id": "8cd48b94-c1cf-401d-9086-05bc93b627f2",
+            "id": "febd0af6-2eb0-47f3-9f38-9b12c5bc79c3",
             "nr": "Batt",
             "bezeichnung": "Batterie SREL.BAT",
             "funktion": "power",
             "info": "Steckeranschluss für Batteriebetrieb ohne Netzteil"
           },
           {
-            "id": "bc3c1ab3-c06e-40dd-af7a-055dc3139484",
+            "id": "c0cfa027-94ad-43f1-b8cc-abdbda887dbf",
             "nr": "NC",
             "bezeichnung": "Relais NC",
             "funktion": "signal",
             "info": "Wechslerkontakt, im Ruhezustand geschlossen gegen COM"
           },
           {
-            "id": "c5d69e8d-bc1b-4bcf-8ab7-4dc4fcc06988",
+            "id": "58bf0247-b87c-415c-ab2c-843eaa83809d",
             "nr": "COM",
             "bezeichnung": "Relais COM",
             "funktion": "signal",
             "info": "Gemeinsamer Kontakt des Wechslerrelais"
           },
           {
-            "id": "08d62697-8a1b-4e8c-acee-e3f2aba79e41",
+            "id": "4cdec881-f570-43bb-9155-bfd54a951fe1",
             "nr": "NO",
             "bezeichnung": "Relais NO",
             "funktion": "signal",
             "info": "Wechslerkontakt, im geschalteten Zustand geschlossen gegen COM"
           },
           {
-            "id": "bab1dde8-4bcf-4846-ae1b-e48b96384cd5",
+            "id": "230ef566-a563-4a92-a07f-07a7d392e861",
             "nr": "C",
             "bezeichnung": "RS-485 COM",
             "funktion": "data",
             "info": "Nur SREL.ADV — Busanschluss für externe Module"
           },
           {
-            "id": "2e0514dd-8ee2-4f88-aa75-e482262680b1",
+            "id": "5fc5e824-fdae-4fc1-b6d0-56a543347623",
             "nr": "A",
             "bezeichnung": "RS-485 A",
             "funktion": "data",
             "info": "Nur SREL.ADV — Busanschluss für externe Module"
           },
           {
-            "id": "9cabd35a-aabd-4b07-8008-a947b1129650",
+            "id": "449e0358-4d4f-471b-afef-6323dcf209e3",
             "nr": "B",
             "bezeichnung": "RS-485 B",
             "funktion": "data",
             "info": "Nur SREL.ADV — Busanschluss für externe Module"
           },
           {
-            "id": "50454f88-b2fb-46cb-a740-e56368e97388",
+            "id": "927d0e27-c4b8-471a-ad65-9b9edde13293",
             "nr": "+V",
             "bezeichnung": "+ Vaux",
             "funktion": "power",
             "info": "Nur SREL.ADV — typ. 3,0-5,0V für externe LED/Buzzer, max. 10mA"
           },
           {
-            "id": "23a98380-8f98-4d47-88db-338694c98994",
+            "id": "2cdec946-f02e-41d1-8605-47c9b3b67244",
             "nr": "F3",
             "bezeichnung": "LED/Buzzer/Input1/CLS",
             "funktion": "signal",
             "info": "Nur SREL.ADV — Multifunktionsanschluss"
           },
           {
-            "id": "df3e8ae0-fda9-4680-b4fe-ceddd6e04fa2",
+            "id": "ad243c17-9c4e-4188-90aa-3d307c096160",
             "nr": "F2",
             "bezeichnung": "Seriell 1 / Input 2",
             "funktion": "signal",
             "info": "Nur SREL.ADV — Multifunktionsanschluss"
           },
           {
-            "id": "a88356e1-7f4a-4011-bc75-9a9cd7195841",
+            "id": "cc79ded4-4c68-43e8-a580-f9ed5e0cd746",
             "nr": "F1",
             "bezeichnung": "Seriell 2",
             "funktion": "signal",
             "info": "Nur SREL.ADV — Multifunktionsanschluss"
           },
           {
-            "id": "613a0ae6-9c3a-4576-8e75-2060126236d0",
+            "id": "d1b93107-9920-496d-8f66-3011be4645cd",
             "nr": "BN/WH/GN/GY/YL",
             "bezeichnung": "Externe Antenne SREL.AV",
             "funktion": "signal",
@@ -283,220 +283,220 @@
     "quelle": "SimonsVoss Handbuch SmartRelais 3063 (SREL/SREL.ZK/SREL.ADV), Stand 06.2006 — älteres, aber offizielles Dokument. Bitte gegen verbaute Geräterevision prüfen."
   },
   {
-    "id": "399dd82f-7ec8-4cd0-9b09-3d3fcd8295b2",
+    "id": "26a6f857-76c7-4703-9428-c990d0672d7e",
     "hersteller": "SimonsVoss",
     "modell": "SmartRelais 3 Advanced — Controller + Leser + SmartOutput-Modul",
     "bauteile": [
       {
-        "id": "d4ace6aa-59e6-4cfc-912d-812a70106d36",
+        "id": "64161904-9138-4082-a7cc-f58901f33fca",
         "typ": "steuerung",
         "name": "SREL3-Controller",
         "klemmen": [
           {
-            "id": "4cb52cc1-d53d-41af-b024-57b75e98bf3c",
+            "id": "863f7059-4e5f-413a-9e49-40c914275342",
             "nr": "1",
             "bezeichnung": "GND",
             "funktion": "power",
             "info": "Optionaler Anschluss externe Stromversorgung, Masse"
           },
           {
-            "id": "bdee0869-6a10-41ca-a3a3-342fbf557689",
+            "id": "0522274d-5c47-47ba-89c1-0de9d521d3f5",
             "nr": "2",
             "bezeichnung": "+VIN",
             "funktion": "power",
             "info": "Optionaler Anschluss externe Stromversorgung, Pluspol"
           },
           {
-            "id": "3748e666-219f-4253-9f8f-1485a60c124e",
+            "id": "ebe7a33e-cfd7-40c0-ad9c-8fe66a141109",
             "nr": "3",
             "bezeichnung": "Relais 1 NO",
             "funktion": "signal",
             "info": "Schaltet gegen C (Common)"
           },
           {
-            "id": "704bad24-4a2c-4476-9a82-9111ef737316",
+            "id": "dcb104ca-b3d7-455a-8c85-09ef0df066bc",
             "nr": "4",
             "bezeichnung": "Relais 1 C",
             "funktion": "signal",
             "info": "Gemeinsamer Kontakt Wechselkontakt"
           },
           {
-            "id": "113bc9f0-24ec-4f40-9df7-9e4165b342d6",
+            "id": "a11f3cae-01eb-4020-85fd-fbb2c0690e1f",
             "nr": "5",
             "bezeichnung": "Relais 1 NC",
             "funktion": "signal",
             "info": "Trennt von C beim Schalten"
           },
           {
-            "id": "a07c13d8-88a1-408b-b533-6632348b102a",
+            "id": "cf56daff-1f96-4811-b8b0-1ddbac5400c6",
             "nr": "6",
             "bezeichnung": "Relais 2 NO",
             "funktion": "signal",
             "info": "Verfügbarkeit firmwareabhängig"
           },
           {
-            "id": "b5b2f226-d111-4c58-a8b8-d86144e0922e",
+            "id": "a092adc5-f166-4942-91fd-57f736d86284",
             "nr": "7",
             "bezeichnung": "Relais 2 C",
             "funktion": "signal",
             "info": "Verfügbarkeit firmwareabhängig"
           },
           {
-            "id": "824c2f37-d9f9-4647-b99e-eeae439f70b3",
+            "id": "6c07c55e-c8bb-4d74-a0fe-1a1d87599cf2",
             "nr": "8",
             "bezeichnung": "Relais 2 NC",
             "funktion": "signal",
             "info": "Verfügbarkeit firmwareabhängig"
           },
           {
-            "id": "afe26f83-fff2-4460-88a1-79222c67f42d",
+            "id": "813f86d8-4c0b-49bc-8552-556f000d6fef",
             "nr": "9",
             "bezeichnung": "Leser 1 +",
             "funktion": "power",
             "info": "Stromversorgung Leser 1, entspricht VIN-1V bzw. 12V-1V (PoE)"
           },
           {
-            "id": "fe07fe1d-bc6c-4c1c-944e-87f5adc1e2b6",
+            "id": "2935bdc6-5d74-48b6-99ff-6b2871d479e2",
             "nr": "10",
             "bezeichnung": "Leser 1 GND",
             "funktion": "power",
             "info": ""
           },
           {
-            "id": "aeb0d4f6-57df-46d2-9cc7-4c3caa4408db",
+            "id": "5618e0f6-38b3-4215-8121-1af7a4002a10",
             "nr": "11",
             "bezeichnung": "Leser 1 B",
             "funktion": "data",
             "info": "RS-485 Datenleitung B"
           },
           {
-            "id": "a92d1c06-7b55-4025-8639-64820ee415cc",
+            "id": "72e88e8e-a2f9-47a2-97d6-17180a7eea9b",
             "nr": "12",
             "bezeichnung": "Leser 1 A",
             "funktion": "data",
             "info": "RS-485 Datenleitung A"
           },
           {
-            "id": "31c715fc-0501-4edd-b72a-79fc0616b65d",
+            "id": "fb7a0b65-b1d7-40e6-be79-8a90250b6fab",
             "nr": "13",
             "bezeichnung": "Leser 2 +",
             "funktion": "power",
             "info": "Stromversorgung Leser 2"
           },
           {
-            "id": "3e3133a2-258a-459c-9850-fa1c2cda9cdd",
+            "id": "fd079d3f-1c05-4e1e-982d-226e4010813d",
             "nr": "14",
             "bezeichnung": "Leser 2 GND",
             "funktion": "power",
             "info": ""
           },
           {
-            "id": "97faac6c-b004-4d20-99c4-70e123438d86",
+            "id": "85006d7b-5a0d-4494-b58c-1c4c2233aed0",
             "nr": "15",
             "bezeichnung": "Leser 2 B",
             "funktion": "data",
             "info": "RS-485 Datenleitung B"
           },
           {
-            "id": "b91edbb1-8184-4730-8036-78d0025931f3",
+            "id": "b85302ff-3d01-4222-9a8c-c67d2b9b7134",
             "nr": "16",
             "bezeichnung": "Leser 2 A",
             "funktion": "data",
             "info": "RS-485 Datenleitung A"
           },
           {
-            "id": "7d5a3ebd-db2e-4aa7-a72f-fafc0ba70484",
+            "id": "b6316a22-8254-4065-86e8-2ed8c61b9fdb",
             "nr": "17",
             "bezeichnung": "Leser 3 +",
             "funktion": "power",
             "info": "Stromversorgung Leser 3"
           },
           {
-            "id": "d8cf2dbe-39ba-4621-8f09-09b602e61221",
+            "id": "c15300e2-167a-4062-8d3a-19d02665e30d",
             "nr": "18",
             "bezeichnung": "Leser 3 GND",
             "funktion": "power",
             "info": ""
           },
           {
-            "id": "d7672813-fa4e-4015-86c5-10e489b9a207",
+            "id": "2893cc05-4185-4a55-bc7d-6ec844ac134d",
             "nr": "19",
             "bezeichnung": "Leser 3 / SmartOutput B",
             "funktion": "data",
             "info": "RS-485 Datenleitung B"
           },
           {
-            "id": "16b36ca5-8944-4060-b2d1-9b3982184fec",
+            "id": "2a4aeb87-7946-4df1-aa32-2b5e1e3fe3b5",
             "nr": "20",
             "bezeichnung": "Leser 3 / SmartOutput A",
             "funktion": "data",
             "info": "RS-485 Datenleitung A"
           },
           {
-            "id": "f10e007a-e81c-4bf7-a1e5-204fc11cf6fc",
+            "id": "e27e567b-40c8-486d-9ce7-1b0fbd9cf2cb",
             "nr": "21",
             "bezeichnung": "Serielle Schnittstelle D4",
             "funktion": "signal",
             "info": "Open-Drain"
           },
           {
-            "id": "ab9f6b03-f110-413a-9e69-38420cb15bd7",
+            "id": "93d2db2d-ff0f-46bb-962c-ae637f48cb08",
             "nr": "22",
             "bezeichnung": "Serielle Schnittstelle D3",
             "funktion": "signal",
             "info": "Open-Drain"
           },
           {
-            "id": "c6b626cf-bcb7-4bd7-8b0a-e8bb79fb12a1",
+            "id": "cdc13a59-a1ba-4280-a595-23885101650c",
             "nr": "23",
             "bezeichnung": "Serielle Schnittstelle D2",
             "funktion": "signal",
             "info": "Open-Drain"
           },
           {
-            "id": "28e7bfb0-a10e-4182-b8a4-fbf924be8311",
+            "id": "d8cb5717-53e4-4b26-81c8-1c23db220961",
             "nr": "24",
             "bezeichnung": "Serielle Schnittstelle D1",
             "funktion": "signal",
             "info": "Open-Drain"
           },
           {
-            "id": "c2ea58c9-a15d-44f6-8bb1-2debae02ceec",
+            "id": "6e2202ab-06dd-4c46-85b0-83fdafaca1c9",
             "nr": "25",
             "bezeichnung": "Serielle Schnittstelle +",
             "funktion": "power",
             "info": "Entspricht VIN-1V bzw. 12V-1V (PoE)"
           },
           {
-            "id": "5d403fab-7436-4fbc-bb55-e45fab68d6fe",
+            "id": "9bd73f4b-0fc9-4d71-99e2-918324fb9093",
             "nr": "26",
             "bezeichnung": "Eingang 3 (Push-to-open)",
             "funktion": "signal",
             "info": "Relais schaltet sobald verbunden mit I+ (Klemme 30)"
           },
           {
-            "id": "2ae700ad-9f6f-4c85-abd1-4ba7aa283d96",
+            "id": "58d01a69-ea9b-46eb-9468-4855ae72633a",
             "nr": "27",
             "bezeichnung": "Eingang 2",
             "funktion": "signal",
             "info": "Anschluss externer Komponenten"
           },
           {
-            "id": "e9e3a980-1dae-4fda-b6d8-ae9eee935f94",
+            "id": "f73e8dc3-8bee-4155-a7d9-39dff909ca60",
             "nr": "28",
             "bezeichnung": "Eingang 1",
             "funktion": "signal",
             "info": "Anschluss externer Komponenten"
           },
           {
-            "id": "4ad88838-bd40-4ab1-976f-cafeb4c1cd90",
+            "id": "3c69d2e6-fdab-4941-83cf-a303df39b62c",
             "nr": "29",
             "bezeichnung": "Ausgang GND",
             "funktion": "power",
             "info": ""
           },
           {
-            "id": "337aa2d9-aa82-4abc-9bac-96d8605ed98a",
+            "id": "965fb711-64cb-4ea0-8bb4-7e962569ed16",
             "nr": "30",
             "bezeichnung": "Ausgang I+",
             "funktion": "power",
@@ -505,40 +505,40 @@
         ]
       },
       {
-        "id": "71a6c545-5bc7-4034-9c3f-0752244e063c",
+        "id": "7d6640c3-f429-44fe-a0a8-2a6eb024b2df",
         "typ": "leser",
         "name": "SREL3-Leser (SR30HYS_F)",
         "klemmen": [
           {
-            "id": "96969de8-0b7b-4ad7-949b-ac4d195bf774",
+            "id": "6c037c50-24aa-444b-98ce-97a976a47b28",
             "nr": "A",
             "bezeichnung": "Datenleitung A",
             "funktion": "data",
             "info": "RS-485, an Controller A1/A2/A3"
           },
           {
-            "id": "b4120be3-5761-4aa4-8d03-6673eb4f83f2",
+            "id": "d98203ab-c7f2-4d38-aa4b-c2ba0b537875",
             "nr": "B",
             "bezeichnung": "Datenleitung B",
             "funktion": "data",
             "info": "RS-485, an Controller B1/B2/B3"
           },
           {
-            "id": "5909585d-64e3-425c-9996-d8548f03abac",
+            "id": "fd14a38c-f44a-46dd-9c2b-4228eb8b2e25",
             "nr": "-",
             "bezeichnung": "GND",
             "funktion": "power",
             "info": "Gemeinsames Massebezugspotential für Datenleitungen"
           },
           {
-            "id": "753b661f-7bc6-4949-8649-f34415fa83df",
+            "id": "2a08a145-d5f6-406f-9830-7e729d753856",
             "nr": "+",
             "bezeichnung": "VIN",
             "funktion": "power",
             "info": "Stromversorgung extern oder durch Controller"
           },
           {
-            "id": "4a4b21e1-f28c-4bcb-b0d0-af8abc6e011a",
+            "id": "822dc5a3-f7d4-46ab-84fd-6b464bbc1893",
             "nr": "- (opt)",
             "bezeichnung": "GND extern",
             "funktion": "power",
@@ -547,131 +547,131 @@
         ]
       },
       {
-        "id": "88cd5e7d-cf6d-4c0f-a2e4-69aca5f5f7c6",
+        "id": "1303873d-a970-484c-8cbf-6a253fbead4b",
         "typ": "sonstiges",
         "name": "SmartOutput-Modul (MOD.SOM8)",
         "klemmen": [
           {
-            "id": "9945a788-ab4a-467a-a4ce-2ffe9390cc1b",
+            "id": "79cc0225-440e-4d0a-b6a2-3a2164454cb3",
             "nr": "1",
             "bezeichnung": "Brownout-Erkennung Out",
             "funktion": "signal",
             "info": "Open-Collector, schaltet bei Unterspannung < 10,0V"
           },
           {
-            "id": "2e7a9451-3f8c-4be3-bbb2-ad409575a2e3",
+            "id": "46fb7994-d634-4d8c-a35d-3d1ad010a239",
             "nr": "4",
             "bezeichnung": "Controller B",
             "funktion": "data",
             "info": "Datenleitung B, an Leser-3-Kontakt des Controllers"
           },
           {
-            "id": "eb7a0f86-3b75-4b71-933e-5a1a7f1d8f30",
+            "id": "00c100e4-bcdd-48dd-aabb-cede0e1024b2",
             "nr": "5",
             "bezeichnung": "Controller A",
             "funktion": "data",
             "info": "Datenleitung A, an Leser-3-Kontakt des Controllers"
           },
           {
-            "id": "9315bfdb-9a47-425c-a3ed-cf1a1872d0d8",
+            "id": "62a33970-8d4a-46c0-92e7-13d60733c648",
             "nr": "6",
             "bezeichnung": "Controller C",
             "funktion": "power",
             "info": "Masse, an Leser-3-Kontakt des Controllers"
           },
           {
-            "id": "5f9dc52c-92cb-4dda-8963-8259526827a1",
+            "id": "def76294-1e1c-4fb1-ace5-c136873a36f7",
             "nr": "7/8",
             "bezeichnung": "Relais 4 a/b",
             "funktion": "signal",
             "info": "Potentialfreier Kontakt, abhängig von Berechtigung"
           },
           {
-            "id": "d25fe626-1163-4704-8647-75cef9bedf73",
+            "id": "828b9b5b-f720-446d-a25e-d823182b3a21",
             "nr": "9/10",
             "bezeichnung": "Relais 3 a/b",
             "funktion": "signal",
             "info": "Potentialfreier Kontakt"
           },
           {
-            "id": "59d36c5c-bff5-4c5b-9652-40db29576361",
+            "id": "aa8f285e-653e-44e0-9f61-0bd074d46c3b",
             "nr": "11/12",
             "bezeichnung": "Relais 2 a/b",
             "funktion": "signal",
             "info": "Potentialfreier Kontakt"
           },
           {
-            "id": "f48d426c-6a15-4158-9d51-5d4ff96f5f5b",
+            "id": "92e769d1-be3e-45c6-a8ab-3c38aecbbd5b",
             "nr": "13/14",
             "bezeichnung": "Relais 1 a/b",
             "funktion": "signal",
             "info": "Potentialfreier Kontakt"
           },
           {
-            "id": "1b938d50-e6a2-4b75-b819-6007fc29a833",
+            "id": "42c4a4e8-4859-41a4-b352-d24517958439",
             "nr": "15/16",
             "bezeichnung": "Relais 5 b/a",
             "funktion": "signal",
             "info": "Potentialfreier Kontakt"
           },
           {
-            "id": "6825d08b-8062-4370-9852-bbb6a2e86707",
+            "id": "9c36a7b3-f5df-4116-a4fa-7cf534f017ff",
             "nr": "17/18",
             "bezeichnung": "Relais 6 b/a",
             "funktion": "signal",
             "info": "Potentialfreier Kontakt"
           },
           {
-            "id": "51a55bab-7dc8-438f-8479-f1ba8b99727a",
+            "id": "ae88702e-e954-4215-b52d-1fcf93e252d1",
             "nr": "19/20",
             "bezeichnung": "Relais 7 b/a",
             "funktion": "signal",
             "info": "Potentialfreier Kontakt"
           },
           {
-            "id": "f359315f-0baf-43b8-bc18-9619979ff3a2",
+            "id": "3848e5b0-3fa7-436c-9cba-dea78497d83d",
             "nr": "21/22",
             "bezeichnung": "Relais 8 b/a",
             "funktion": "signal",
             "info": "Potentialfreier Kontakt"
           },
           {
-            "id": "97df5753-e0c5-4822-bc3d-3748e51f37dc",
+            "id": "b1992ec8-68ea-46b6-9dd5-2d707a5a19c2",
             "nr": "23",
             "bezeichnung": "AUX-Relais K2",
             "funktion": "signal",
             "info": "NO-Kontakt, ab Werk verbrückt mit Klemme 24"
           },
           {
-            "id": "e968e87a-0b8a-4acc-a80e-02a2ee0b0c92",
+            "id": "6690bc1f-2a4f-42ea-9257-7be25c015576",
             "nr": "24",
             "bezeichnung": "+VIN",
             "funktion": "power",
             "info": "Stromversorgung, ab Werk verbrückt mit Klemme 23"
           },
           {
-            "id": "4da5214e-feb7-49e8-a778-388d1b54b042",
+            "id": "1bf1ab88-6530-4895-895d-c3b3dd676cd8",
             "nr": "25",
             "bezeichnung": "AUX-Relais A+",
             "funktion": "power",
             "info": "Spulen-Pluspol, ab Werk verbrückt mit Klemme 26"
           },
           {
-            "id": "be686eac-9839-4c96-8de1-7347b0849914",
+            "id": "2c063d5d-c2d1-4320-8562-861819f593f8",
             "nr": "26",
             "bezeichnung": "AUX-Relais K1",
             "funktion": "signal",
             "info": "Schließer-Kontakt, ab Werk verbrückt mit Klemme 25"
           },
           {
-            "id": "534c362b-490e-4ca7-b04d-814df5cb34fe",
+            "id": "d8cf9bf7-80dc-4a92-a86f-eb39c5557559",
             "nr": "27",
             "bezeichnung": "AUX-Relais A-",
             "funktion": "power",
             "info": "Spulen-Minuspol"
           },
           {
-            "id": "fb620c54-bcf8-4cf0-a7f5-fe95a6d6fe5f",
+            "id": "8f9a0344-78fe-41dd-9720-13385f854b71",
             "nr": "28",
             "bezeichnung": "GND",
             "funktion": "power",
@@ -683,94 +683,94 @@
     "quelle": "SimonsVoss Handbuch SmartRelais 3 System (SREL3 ADV), Stand 06.08.2025 — offizielles, aktuelles Handbuch. Bitte gegen verbaute Geräterevision prüfen."
   },
   {
-    "id": "474e97bd-9ea6-4231-8491-4c855dc157bb",
+    "id": "30b40cc0-3a56-4b7a-bb9e-92e0298ce31d",
     "hersteller": "dormakaba",
     "modell": "Remoteleser 91 15 — Access Manager / MATRIX TP4-Client",
     "bauteile": [
       {
-        "id": "ff537a10-3535-4dc1-a592-cb39a49f1a8d",
+        "id": "5e77f372-0618-415a-aa74-015c073d02c0",
         "typ": "leser",
         "name": "Remoteleser 91 15",
         "klemmen": [
           {
-            "id": "c59a08c5-c761-47a6-90c0-001d69ce7553",
+            "id": "ce7b48c8-5937-46dd-93d2-624c104f4c26",
             "nr": "AC-",
             "bezeichnung": "Stromversorgung -",
             "funktion": "power",
             "info": "12-27V AC oder 10-34V DC"
           },
           {
-            "id": "e3e298f0-a0a4-4e9b-9108-098d3d176ae9",
+            "id": "347bfc79-3bcf-4154-9c54-f04cb74c4808",
             "nr": "AC+",
             "bezeichnung": "Stromversorgung +",
             "funktion": "power",
             "info": "12-27V AC oder 10-34V DC"
           },
           {
-            "id": "8f60b8e3-a93b-4820-bdad-00542bda4413",
+            "id": "9da32765-c402-4958-85e0-289d594cbc9d",
             "nr": "C",
             "bezeichnung": "RS-485 C",
             "funktion": "data",
             "info": "Verbindung zum übergeordneten Zutrittsmanager"
           },
           {
-            "id": "3434cc9d-06a8-4b64-89f1-84066e83bcc8",
+            "id": "189c2837-25d5-4f52-8546-ecfc228b38f9",
             "nr": "A",
             "bezeichnung": "RS-485 A",
             "funktion": "data",
             "info": "Verbindung zum übergeordneten Zutrittsmanager"
           },
           {
-            "id": "c70e6fc5-30e0-41f4-b269-44f8228311e7",
+            "id": "a461e15a-8508-41d4-aa76-470a15c25a37",
             "nr": "B",
             "bezeichnung": "RS-485 B",
             "funktion": "data",
             "info": "Verbindung zum übergeordneten Zutrittsmanager"
           },
           {
-            "id": "dff88d30-0f36-4c1f-ace2-85eb2d78c971",
+            "id": "1e961a55-06b1-47b0-82d0-9ee8bb277f32",
             "nr": "Ant.",
             "bezeichnung": "HF RFID Antenne",
             "funktion": "signal",
             "info": "Koaxialkabel zur Erfassungseinheit, 50 Ohm"
           },
           {
-            "id": "0527893c-1888-49c3-8b0d-4fa1f199de5d",
+            "id": "fd78b033-416d-4b18-b96d-70d6bc9083b5",
             "nr": "NC",
             "bezeichnung": "Relaisausgang NC",
             "funktion": "signal",
             "info": "Türöffner, Kontaktbelastbarkeit 30V AC/DC max. 2A"
           },
           {
-            "id": "df467743-1a04-4dbd-a727-254c9bcc3ce3",
+            "id": "52c38793-d36a-4672-87e0-608aa05c1f35",
             "nr": "COM",
             "bezeichnung": "Relaisausgang COM",
             "funktion": "signal",
             "info": "Türöffner, gemeinsamer Kontakt"
           },
           {
-            "id": "d7e2d3c7-dc3c-48bb-af67-d370ff367de6",
+            "id": "d2377cd6-af57-40a4-b416-2cf52fbe2b27",
             "nr": "NO",
             "bezeichnung": "Relaisausgang NO",
             "funktion": "signal",
             "info": "Türöffner, Kontaktbelastbarkeit 30V AC/DC max. 2A"
           },
           {
-            "id": "4d6e46ca-b678-40cb-9109-398e03bbdcb2",
+            "id": "9b7a2353-ba7d-45e9-8676-1c93d28250ba",
             "nr": "IN1",
             "bezeichnung": "Digitaler Eingang 1",
             "funktion": "signal",
             "info": "z.B. Türrahmenkontakt, leitungsüberwachbar"
           },
           {
-            "id": "6a00eb15-55c8-4e74-ad05-a71842bcd524",
+            "id": "49a89288-ac22-4d0b-825c-b133b6f03980",
             "nr": "IN2",
             "bezeichnung": "Digitaler Eingang 2",
             "funktion": "signal",
             "info": "leitungsüberwachbar"
           },
           {
-            "id": "4afb4e02-7ddf-4a28-90c1-61f4e9b7bf55",
+            "id": "6ad3e3d4-da8d-4381-8836-3adb25840719",
             "nr": "GND",
             "bezeichnung": "Bezugsmasse Eingänge",
             "funktion": "signal",
@@ -782,66 +782,66 @@
     "quelle": "dormakaba Technisches Handbuch Remoteleser 91 15, Dok. 04047115, Stand 11/2018 — verbindet sich per RS-485 mit dem übergeordneten Zutrittsmanager 92 00. Für den Zutrittsmanager 92 00 selbst (Controller-Box) war keine öffentlich zugängliche, detaillierte Klemmenliste auffindbar — diese liegt im geschützten dormakaba-Partnerbereich (Extranet). Allgemeine Eckdaten: 4 überwachte digitale Eingänge, 3 Relaisausgänge, RS-485, Ethernet, 10-34V DC."
   },
   {
-    "id": "bf252a1f-56dc-4999-a9c1-55766f339888",
+    "id": "32bfc4c2-3f69-461e-8d9a-9bade27f2c17",
     "hersteller": "SimonsVoss",
     "modell": "RouterNode 2 / GatewayNode 2 / SmartBridge — IO-Connector",
     "bauteile": [
       {
-        "id": "7707a79f-3d4d-4169-870a-be7a292a2918",
+        "id": "6712d93b-1635-42ed-a410-adc18ce87332",
         "typ": "sonstiges",
         "name": "RouterNode 2 — IO-Connector (nur RouterNode 2 nutzbar)",
         "klemmen": [
           {
-            "id": "91d2d7ce-fcd5-4e55-8c40-150225b03f45",
+            "id": "207ad229-9b40-471f-8686-cf5892f2d1eb",
             "nr": "IO-Vout",
             "bezeichnung": "IO Spannungsausgang",
             "funktion": "power",
             "info": "+3,3V Versorgung für externe Beschaltung"
           },
           {
-            "id": "9855c833-ce1e-44e0-b520-3754ce4b754c",
+            "id": "a5b784a6-9f4a-4139-9434-36ec2e54ea23",
             "nr": "AI",
             "bezeichnung": "Analog Input",
             "funktion": "signal",
             "info": "Analoge Signalauswertung 0-3,3V DC"
           },
           {
-            "id": "49bf1237-a152-4494-96d9-d7bebc3b1154",
+            "id": "94472511-1f34-446c-9b19-4279d6a74287",
             "nr": "DI1",
             "bezeichnung": "Digitaler Eingang 1",
             "funktion": "signal",
             "info": "0V=Low, ab +2,0V=High"
           },
           {
-            "id": "085253a0-412b-4106-a5b1-a385b89f72be",
+            "id": "fb978dc9-f57b-40b1-b39d-b63f7db000a0",
             "nr": "DI2",
             "bezeichnung": "Digitaler Eingang 2",
             "funktion": "signal",
             "info": ""
           },
           {
-            "id": "e84b927c-643c-443c-bc6c-8f2fea3aeae7",
+            "id": "07db2458-f72c-4974-a096-c34702870959",
             "nr": "DI3",
             "bezeichnung": "Digitaler Eingang 3",
             "funktion": "signal",
             "info": ""
           },
           {
-            "id": "27587c61-e7da-4ae7-88ee-06466fd64fc3",
+            "id": "904ba98c-3518-4be4-8ccf-2153c3c550ae",
             "nr": "O1.NC",
             "bezeichnung": "Relais 1 NC",
             "funktion": "signal",
             "info": "Max. Schaltspannung 12V DC"
           },
           {
-            "id": "bed56e53-2112-4a58-898e-b49ed0230df5",
+            "id": "e51b933e-033c-4dbb-8e6f-272e3683f26e",
             "nr": "O1.NO",
             "bezeichnung": "Relais 1 NO",
             "funktion": "signal",
             "info": "Max. Schaltspannung 12V DC"
           },
           {
-            "id": "fe23904f-fd79-47db-934e-fade4ccce831",
+            "id": "20ecd054-bd4c-4a21-a06d-e6cc3c280206",
             "nr": "O1.COM",
             "bezeichnung": "Relais 1 COM",
             "funktion": "signal",
@@ -850,26 +850,26 @@
         ]
       },
       {
-        "id": "8a86e59c-f3e5-4ed6-aebc-c69da3151d8a",
+        "id": "b9241a4b-fc38-495b-9007-b79af5837005",
         "typ": "netzteil",
         "name": "RouterNode 2 / GatewayNode 2 / SmartBridge — Stromversorgung",
         "klemmen": [
           {
-            "id": "1a0335b4-84af-4821-bbd2-7d92c1dc4a78",
+            "id": "d0ea4ad2-7810-447d-8c03-f13988f87abd",
             "nr": "DC In",
             "bezeichnung": "Rundstecker 5,5mm",
             "funktion": "power",
             "info": "Pin 2,0mm — externes Netzteil, Vorrang wenn >12V DC vor PoE"
           },
           {
-            "id": "367b0761-aa46-4fab-a5d0-b18606b3d46a",
+            "id": "cfc3c1fc-4e79-4121-a649-7918be168ab5",
             "nr": "PoE",
             "bezeichnung": "RJ45 Power-over-Ethernet",
             "funktion": "power",
             "info": "Netzwerk + Stromversorgung kombiniert"
           },
           {
-            "id": "57994c6c-c853-441c-8380-b5f6abe943ee",
+            "id": "03045ce8-1510-4aae-b29a-dbb3ab2e658b",
             "nr": "+/-",
             "bezeichnung": "2-pol. Schraubklemme",
             "funktion": "power",
@@ -881,227 +881,227 @@
     "quelle": "SimonsVoss Kurzanleitung/Handbuch RouterNode 2, GatewayNode 2, SmartBridge (NW10.900210, Stand 05.03.2024). IO-Connector nur am RouterNode 2 nutzbar, nicht an GatewayNode 2/SmartBridge."
   },
   {
-    "id": "e65422d9-da52-4f92-bb64-f12bc9265a40",
+    "id": "82e6e865-ceef-4645-81fd-ad411dfe0129",
     "hersteller": "GEZE",
     "modell": "Powerturn (DCU800/DCU802) — Drehtürantrieb",
     "bauteile": [
       {
-        "id": "97456b69-f841-4703-a972-938251ab04e5",
+        "id": "e1024eda-3298-438e-a01d-165a4c22a7de",
         "typ": "steuerung",
         "name": "Steuerung DCU800/DCU802",
         "klemmen": [
           {
-            "id": "75464070-e4eb-499e-ab8d-dc31fe7cfe76",
+            "id": "c372512f-5df4-4dcb-93d1-670187f452b5",
             "nr": "1",
             "bezeichnung": "GND",
             "funktion": "power",
             "info": "Bezugsmasse, Steuerspannung 24V DC ±10%"
           },
           {
-            "id": "c6b49082-30bd-42a3-b4fe-c7877a3a2217",
+            "id": "2c984998-38d5-4e1f-99e5-8231c9769fae",
             "nr": "2",
             "bezeichnung": "24V",
             "funktion": "power",
             "info": "Steuerspannung für externe Komponenten, max. 1200mA dauernd / 1800mA kurzzeitig (5s)"
           },
           {
-            "id": "18ec805c-66b0-4cb1-a0f3-49e97303d8d4",
+            "id": "775b6b57-b182-41e2-b1f6-35e461d5f10d",
             "nr": "20",
             "bezeichnung": "KB",
             "funktion": "signal",
             "info": "Kontaktgeber Berechtigt"
           },
           {
-            "id": "c17b7fdc-faee-4f9c-8967-12c7e1116833",
+            "id": "554e0cba-6226-4073-b503-ddc9003d958e",
             "nr": "3",
             "bezeichnung": "KB 24V",
             "funktion": "power",
             "info": "Versorgung Kontaktgeber Berechtigt"
           },
           {
-            "id": "5a786f9c-c61d-4425-99a3-187fee356fc3",
+            "id": "747ff3a2-c95a-4406-b649-55ae54a6a4d4",
             "nr": "21",
             "bezeichnung": "KI",
             "funktion": "signal",
             "info": "Kontaktgeber Innen"
           },
           {
-            "id": "ec826aa6-8919-455b-90d8-cd069e41d913",
+            "id": "888e0e20-73da-4ad7-9e60-6fb2491127d5",
             "nr": "4",
             "bezeichnung": "KI 24VSens",
             "funktion": "power",
             "info": "Versorgung Kontaktgeber Innen"
           },
           {
-            "id": "30416220-3e78-48ce-850f-e8a0889d3c98",
+            "id": "d30f9e7c-a8b5-4579-b951-bdb949b311fe",
             "nr": "23",
             "bezeichnung": "KA",
             "funktion": "signal",
             "info": "Kontaktgeber Außen"
           },
           {
-            "id": "8ca39e38-7522-4413-9854-3b116db8985f",
+            "id": "d27aaadc-d295-41d0-9fb5-04b097728379",
             "nr": "4",
             "bezeichnung": "KA 24VSens",
             "funktion": "power",
             "info": "Versorgung Kontaktgeber Außen (gleiche Klemme wie KI)"
           },
           {
-            "id": "3ec9f398-2377-4d76-a779-f11842dfa4c6",
+            "id": "457b5718-d724-4095-972d-b7c519f2d5c0",
             "nr": "11",
             "bezeichnung": "SIS",
             "funktion": "signal",
             "info": "Sicherheitssensor Schließen"
           },
           {
-            "id": "fe683b5d-3e6a-40ac-aad8-a722b6ac89a4",
+            "id": "7c60e081-c836-4bef-aedf-67bb53f181ae",
             "nr": "10",
             "bezeichnung": "SIS TST",
             "funktion": "signal",
             "info": "Testsignal Sicherheitssensor Schließen"
           },
           {
-            "id": "79aad089-3c62-4182-a9a1-cff5242b6b5f",
+            "id": "96c6426d-04ca-4c77-b1a6-9aa68194f35d",
             "nr": "13",
             "bezeichnung": "SIO",
             "funktion": "signal",
             "info": "Sicherheitssensor Öffnen"
           },
           {
-            "id": "1969dbc7-cb14-45b4-a3ea-534637324ac7",
+            "id": "6c9803f6-fd98-4da0-b2bb-d4d956ac2e11",
             "nr": "10",
             "bezeichnung": "SIO TST",
             "funktion": "signal",
             "info": "Testsignal Sicherheitssensor Öffnen (gleiche Klemme wie SIS TST)"
           },
           {
-            "id": "ea113fd2-8f09-4d9f-8399-d8575de75df4",
+            "id": "d9430188-e0ad-4dc9-b691-2b0932595db9",
             "nr": "31",
             "bezeichnung": "TOEA",
             "funktion": "power",
             "info": "Türöffner Anschluss A"
           },
           {
-            "id": "ae5713aa-522f-4363-88e9-b6361c81cda4",
+            "id": "9d3731c0-0892-4d2c-b385-fbe69f4e18b6",
             "nr": "32",
             "bezeichnung": "TOEB",
             "funktion": "power",
             "info": "Türöffner Anschluss B"
           },
           {
-            "id": "7024070a-f94a-4433-b82f-325c0b9d1a5e",
+            "id": "d9242de7-c474-4608-8dbe-b19e0270b894",
             "nr": "33",
             "bezeichnung": "RM",
             "funktion": "signal",
             "info": "Riegelmeldung (Rückmeldung Motorschloss/Verriegelung)"
           },
           {
-            "id": "aa4e72c2-7343-4966-8e45-8c6303062b36",
+            "id": "2d06c8af-ee1c-4523-b28d-7b98dbee428b",
             "nr": "51",
             "bezeichnung": "PE1",
             "funktion": "signal",
             "info": "Parametrierbarer Eingang 1 (z.B. Sabotage, Schließlage, Stop, Brandalarm)"
           },
           {
-            "id": "3c34219b-c4aa-4152-a7d9-72d0ced34cfc",
+            "id": "925447c1-25ed-4957-8131-4a41da0587a4",
             "nr": "52",
             "bezeichnung": "PE2",
             "funktion": "signal",
             "info": "Parametrierbarer Eingang 2 (z.B. MPS, Notverriegelung, Stop)"
           },
           {
-            "id": "95a7c605-9c46-4fcc-be3f-829728fdc621",
+            "id": "88b06949-bf63-410b-a449-b899aaa4efbc",
             "nr": "53",
             "bezeichnung": "PE3",
             "funktion": "signal",
             "info": "Parametrierbarer Eingang 3 (analog zu PE2)"
           },
           {
-            "id": "41aa6aa5-b7ce-4ac7-b533-97de398072ba",
+            "id": "4f8f3aed-2892-401a-beb5-29e6803c002a",
             "nr": "55",
             "bezeichnung": "PA1A",
             "funktion": "signal",
             "info": "Parametrierbarer Ausgang 1 — potentialfreier Relaiskontakt, max. 24V AC/DC 0,5A"
           },
           {
-            "id": "4e46eadc-915d-4132-8962-8645b35713fd",
+            "id": "fa5e01ef-1df2-4c8f-a73b-99fbbe44803b",
             "nr": "56",
             "bezeichnung": "PA1B",
             "funktion": "signal",
             "info": "Parametrierbarer Ausgang 1 — Gegenkontakt"
           },
           {
-            "id": "00a051b4-369b-4a0c-9454-cfafdaa6e264",
+            "id": "bfb0a691-b26b-445e-bafd-3bfd845e2203",
             "nr": "57",
             "bezeichnung": "PA2",
             "funktion": "signal",
             "info": "Parametrierbarer Ausgang 2 — Transistorausgang, max. 24V DC 0,5A"
           },
           {
-            "id": "4b37bded-bf5a-4be2-b25c-4129d53773bc",
+            "id": "2cbb7a75-4687-4694-a235-1a63f0f660e4",
             "nr": "9",
             "bezeichnung": "DO",
             "funktion": "signal",
             "info": "Programmschalter Daueroffen"
           },
           {
-            "id": "6b8f05be-c08d-486b-b38d-94f863154953",
+            "id": "5eec0b32-cb24-48e8-807c-ff273c347da4",
             "nr": "8",
             "bezeichnung": "AU",
             "funktion": "signal",
             "info": "Programmschalter Automatik"
           },
           {
-            "id": "6669302f-f07b-4815-a45b-390440e031f6",
+            "id": "dfcb2199-219b-47a2-a5f9-c9f0cf3239e6",
             "nr": "7",
             "bezeichnung": "LS",
             "funktion": "signal",
             "info": "Programmschalter Ladenschluss"
           },
           {
-            "id": "cc3e2004-80b8-4ec8-967a-9deaad050463",
+            "id": "5c5663a9-56b3-4f5a-9891-193497dce837",
             "nr": "6",
             "bezeichnung": "NA",
             "funktion": "signal",
             "info": "Programmschalter Nacht"
           },
           {
-            "id": "dbaec9e6-48cf-41c2-bc17-ebabf00327c0",
+            "id": "52e94313-573f-4c9a-9831-055cc23111f3",
             "nr": "0",
             "bezeichnung": "OFF",
             "funktion": "signal",
             "info": "Programmschalter Aus"
           },
           {
-            "id": "da3b2823-172e-4a78-9cc5-ccfa351f8cfe",
+            "id": "37f0e9c1-ad43-4908-b748-6762e4d977f0",
             "nr": "41",
             "bezeichnung": "RS485-B",
             "funktion": "data",
             "info": "Datenleitung B zu DPS / zweitem Antrieb (2-flügelig)"
           },
           {
-            "id": "401351da-05a7-4840-b436-dfe2e91c0980",
+            "id": "68924a70-ec78-47ac-8ca2-6084e4aef8ae",
             "nr": "42",
             "bezeichnung": "RS485-A",
             "funktion": "data",
             "info": "Datenleitung A zu DPS / zweitem Antrieb (2-flügelig)"
           },
           {
-            "id": "17698aaa-14c4-4ac6-9a47-d95a0a80e848",
+            "id": "c2856749-cab7-463f-bb8a-efe80637c521",
             "nr": "43",
             "bezeichnung": "SCR",
             "funktion": "data",
             "info": "Schirm RS485-Leitung"
           },
           {
-            "id": "dc79aba2-5619-407e-adb3-d76ed1afb3bf",
+            "id": "418b59b4-d681-438e-ad44-054ba7ef1648",
             "nr": "95",
             "bezeichnung": "24V (Frei)",
             "funktion": "power",
             "info": "Freie Leitungsverbindung über Flachbandkabel DCU802↔DCU800"
           },
           {
-            "id": "ccbf0e71-d9a8-4542-9f90-774a01cac527",
+            "id": "8d2b919d-9e29-48b9-8446-f14e6205de8a",
             "nr": "98",
             "bezeichnung": "GND (Frei)",
             "funktion": "power",
@@ -1110,40 +1110,40 @@
         ]
       },
       {
-        "id": "170ad056-408a-42f4-96d5-c3c6401c601d",
+        "id": "be801984-f6dc-4468-ac72-ff0424ee86fe",
         "typ": "verriegelung",
         "name": "Türöffner (TOE, an DCU800/802)",
         "klemmen": [
           {
-            "id": "f5677c05-f7bd-4ec2-93a2-4ca42de59a69",
+            "id": "12f222bf-66bc-4852-b734-43d8e5eb28ae",
             "nr": "31",
             "bezeichnung": "TOEA",
             "funktion": "power",
             "info": "Antriebsseitig versorgt: 24V DC (Arbeits-/Ruhestrom) — bauseitig versorgt: 12V AC max. 1A"
           },
           {
-            "id": "82acf3cb-c6af-4db5-9ce2-0a2f8f1f86ae",
+            "id": "1567108c-741f-4c22-bd18-823fb22d0442",
             "nr": "32",
             "bezeichnung": "TOEB",
             "funktion": "power",
             "info": "Gegenkontakt TOE"
           },
           {
-            "id": "12885cf9-5d29-422c-bd25-487c1df9b37d",
+            "id": "a76fc4a2-0cbc-4a7a-b986-b96c89384d45",
             "nr": "33",
             "bezeichnung": "RM",
             "funktion": "signal",
             "info": "Riegelmeldung — schaltet DPS bei aktivem Signal in Betriebsart Nacht"
           },
           {
-            "id": "d8aacc39-7a48-4493-98d5-836ef959a4ff",
+            "id": "bdf0c8e8-4fef-4f9a-8eef-e88fe9dbdb75",
             "nr": "2",
             "bezeichnung": "24V",
             "funktion": "power",
             "info": "Bei antriebsseitiger Versorgung"
           },
           {
-            "id": "68c6c031-e240-4d30-87fe-617a2dd7ec7c",
+            "id": "9ed1829c-a274-42f2-99e4-542b1dec508f",
             "nr": "1",
             "bezeichnung": "GND",
             "funktion": "power",
@@ -1152,40 +1152,40 @@
         ]
       },
       {
-        "id": "eba7a9fd-0825-4d41-ade9-6c8b164c0d11",
+        "id": "8d5ced7d-201e-4243-8187-d8af1bd31038",
         "typ": "tuerkontakt",
         "name": "Rauchschalterzentrale RSZ (DCU801, Brandschutz-Kit, optional)",
         "klemmen": [
           {
-            "id": "01e90486-eefd-4f1b-afee-9fa0e519659a",
+            "id": "38c645fd-3502-45d0-b587-d0ba81825949",
             "nr": "62",
             "bezeichnung": "RSZ 24V",
             "funktion": "power",
             "info": "Versorgung Rauchschalterzentrale"
           },
           {
-            "id": "338bedca-fd0a-4a64-9f3f-e4df124204e1",
+            "id": "76826f5e-03f7-4f9f-8f11-2b6f12b2ebfb",
             "nr": "61",
             "bezeichnung": "RSZ GND",
             "funktion": "power",
             "info": "Bezugsmasse Rauchschalterzentrale"
           },
           {
-            "id": "3b5783cf-ddca-46c2-a394-bffcd1fba943",
+            "id": "ca3095ca-b45c-4816-9ac8-c05e03248227",
             "nr": "63",
             "bezeichnung": "zweiter Antrieb",
             "funktion": "power",
             "info": "Brücke zum zweiten Antrieb bei 2-flügeliger Anlage"
           },
           {
-            "id": "83398750-78b4-410e-9221-ebe63e8fa8d4",
+            "id": "536c6041-86c8-477d-9734-0ddf659eac1b",
             "nr": "2",
             "bezeichnung": "24V",
             "funktion": "power",
             "info": "Allgemeine Versorgung DCU801"
           },
           {
-            "id": "5b8c2278-9b62-4884-b3fd-8084f8f7fd51",
+            "id": "9e7445c4-5786-42f1-b8b4-35c0ab83191c",
             "nr": "1",
             "bezeichnung": "GND",
             "funktion": "power",
@@ -1197,108 +1197,108 @@
     "quelle": "GEZE Powerturn Anschlussplan, Mat.-Nr. 154919-03, gültig ab Software DCU8 V1.8 / Hardware Revision DCU800 Rev F. Vom Nutzer per PDF bereitgestellt und Klemmenwerte direkt daraus übernommen."
   },
   {
-    "id": "f487f1a6-b09a-4eec-ba78-8e814f07a36d",
+    "id": "13777936-c4c1-47a8-bb95-4d313f98ee5f",
     "hersteller": "DOM Sicherheitstechnik (Tapkey)",
     "modell": "DOM Tapkey AccessManager V1 — Steuerung (Compact/HiSec)",
     "bauteile": [
       {
-        "id": "4f3098a8-3ece-4a79-b04b-629ef654e89d",
+        "id": "88658361-5453-4173-b91b-b0baef1257d7",
         "typ": "steuerung",
         "name": "DOM Tapkey AccessManager (Steuerung)",
         "klemmen": [
           {
-            "id": "3d5a4088-b943-46b2-bccb-b0a4e7d64494",
+            "id": "de001d81-1cc2-44d9-aaf3-58b234b8abe9",
             "nr": "7",
             "bezeichnung": "DC In + (12-24V)",
             "funktion": "power",
             "info": "Spannungsversorgung der Einheit, Pluspol — externe Spannungsquelle 12-24V DC"
           },
           {
-            "id": "de12a394-3267-4639-bdc5-25fb7d75cd7a",
+            "id": "9940b0cb-5c80-451e-9cce-e3ac9bbca429",
             "nr": "8",
             "bezeichnung": "DC In – (12-24V)",
             "funktion": "power",
             "info": "Spannungsversorgung der Einheit, Minuspol"
           },
           {
-            "id": "211e29c3-e086-4222-b609-a7829641daba",
+            "id": "94665fc5-e6c8-4339-8c11-2392fa9a7167",
             "nr": "9",
             "bezeichnung": "DC Out +",
             "funktion": "power",
             "info": "Bereitstellung Spannung extern — versorgt optional einen angeschlossenen DOM PassivLeser (HiSec) mit"
           },
           {
-            "id": "81101e05-0ddb-41d7-9448-19e5cba77997",
+            "id": "ad824dba-d125-48c3-8d01-f5b2bae48e02",
             "nr": "10",
             "bezeichnung": "DC Out –",
             "funktion": "power",
             "info": "Bereitstellung Spannung extern, Bezugspotential zu Klemme 9"
           },
           {
-            "id": "9681e422-fee1-4256-99dc-af352f80f86b",
+            "id": "276c9d31-1a20-4634-99e8-616101eb17fd",
             "nr": "11",
             "bezeichnung": "IN1",
             "funktion": "signal",
             "info": "Eingang 1 — werkseitig Türkontakt (Öffner)"
           },
           {
-            "id": "9305ec3d-c906-40ae-9d82-0c8648cda530",
+            "id": "f97ed166-114a-48a0-9035-2aa756d025f7",
             "nr": "12",
             "bezeichnung": "GND (Eingang 1)",
             "funktion": "signal",
             "info": "Bezugsmasse zu IN1"
           },
           {
-            "id": "6c99bb4c-d27a-4e69-a206-d5ca1e5ca249",
+            "id": "80dca326-430e-40cf-b8d5-a81a5cca8719",
             "nr": "13",
             "bezeichnung": "IN2",
             "funktion": "signal",
             "info": "Eingang 2 — werkseitig Freigabetaster (Schließer)"
           },
           {
-            "id": "445dad9f-d65e-4d57-9244-e48fcd304533",
+            "id": "020b4e4e-5639-453b-ade5-107385066fa3",
             "nr": "14",
             "bezeichnung": "GND (Eingang 2)",
             "funktion": "signal",
             "info": "Bezugsmasse zu IN2"
           },
           {
-            "id": "cc7fd202-b368-4289-896a-4270d8d52924",
+            "id": "ae600394-b385-4bea-83c7-52fb32f0e5e3",
             "nr": "15",
             "bezeichnung": "Ö (NC)",
             "funktion": "signal",
             "info": "Relais-Wechslerkontakt — Öffnerkontakt (Normally Closed), Ansteuerung Stellglied/Türöffner"
           },
           {
-            "id": "113bc25f-7a40-4b5b-8b5e-cd86cb1ec88b",
+            "id": "337c78fa-9cc1-4f72-a7e1-be7486409a02",
             "nr": "16",
             "bezeichnung": "C",
             "funktion": "signal",
             "info": "Relais-Wechslerkontakt — gemeinsamer Kontakt (COM)"
           },
           {
-            "id": "d7ba5f2c-3e25-4652-a72a-58e7a7240fe2",
+            "id": "ed195427-a132-4ef1-b034-52d6875186fc",
             "nr": "17",
             "bezeichnung": "S (NO)",
             "funktion": "signal",
             "info": "Relais-Wechslerkontakt — Schließerkontakt (Normally Open)"
           },
           {
-            "id": "080b55cf-b64a-4d94-8587-6a7ca4533ef5",
+            "id": "a23a0c23-3413-4b88-a37b-81ae84f2c39d",
             "nr": "18",
             "bezeichnung": "RxD",
             "funktion": "data",
             "info": "RS232/RS485 zum DOM PassivLeser (nur HiSec-Variante)"
           },
           {
-            "id": "82940cf0-a066-436e-83a3-a2a1a557f89b",
+            "id": "75b11bd9-0099-4623-a9b2-1b933c604416",
             "nr": "19",
             "bezeichnung": "TxD",
             "funktion": "data",
             "info": "RS232/RS485 zum DOM PassivLeser (nur HiSec-Variante)"
           },
           {
-            "id": "4048d543-a235-4906-ac1d-69391e1c02b4",
+            "id": "95552e2b-12e1-416a-9081-b1dd95bd8a7a",
             "nr": "20",
             "bezeichnung": "GND (RS232/RS485)",
             "funktion": "signal",
@@ -1307,19 +1307,19 @@
         ]
       },
       {
-        "id": "24545d44-7438-45f7-8877-c9e9bbfe2efb",
+        "id": "18f4f2b8-0bb4-42ac-8013-11db05614966",
         "typ": "verriegelung",
         "name": "E-Öffner (Türöffner, generisch 2-Draht)",
         "klemmen": [
           {
-            "id": "dc41e61f-e8d5-49ac-a440-688fc559f447",
+            "id": "d3d21e5c-6714-403c-8745-f6992eb6dc3a",
             "nr": "1",
             "bezeichnung": "Anschluss 1",
             "funktion": "signal",
             "info": "Generischer Türöffner-Anschluss — exakte Klemmenbezeichnung (oft 1/2, +/-, oder AC1/AC2) je nach verbautem Modell/Hersteller prüfen. Anschluss an den Relais-Wechsler der Steuerung: Klemme Ö (15, Ruhestrom/NC) bei Fluchtweg-/Brandschutztüren zwingend erforderlich, Klemme S (17, Arbeitsstrom/NO) nur bei normalen Zutrittstüren ohne Fluchtwegfunktion."
           },
           {
-            "id": "fabd3939-c20d-4d77-8323-b822043aad43",
+            "id": "e3bf4ad6-9a84-4e5c-8c84-2dd402909155",
             "nr": "2",
             "bezeichnung": "Anschluss 2",
             "funktion": "signal",
@@ -1331,199 +1331,2452 @@
     "quelle": "DOM/ENiQ/ELS Montage- und Bedienungsanleitung (Wandleser AccessManager etc.), Systemfamilien ENiQ, ELS und DOM Tapkey, Ausgabe 01/2022, Kap. \"Klemmenbelegung der Geräte\" — Klemmen 1-6 (Ethernet/PoE) entfallen beim DOM Tapkey Gerät, da dieses laut Anleitung über keine Ethernet-Funktion verfügt (nur BLE). Bitte gegen verbaute Geräterevision (V1) prüfen. Der E-Öffner ist bewusst generisch gehalten (kein spezifisches Herstellermodell) — exakte Klemmenbezeichnung und Ruhestrom/Arbeitsstrom-Anforderung immer gegen das tatsächlich verbaute Türöffner-Modell und die Brandschutz-/Fluchtwegvorgaben der Tür prüfen."
   },
   {
-    "id": "d832fc5f-aa46-4fa9-9dee-a2ef47982d75",
+    "id": "29af0f00-5be9-4cb9-aa90-70028d5365da",
+    "hersteller": "ASSA ABLOY (effeff)",
+    "modell": "Fluchttürsteuerterminal 1385 / 1384",
+    "bauteile": [
+      {
+        "id": "5bde77b3-a9b6-407b-baa3-e069ac809f26",
+        "typ": "steuerung",
+        "name": "Steuerterminal 1385-11N (mit Netzteil, Schlüsselschalter)",
+        "klemmen": [
+          {
+            "id": "1735ac45-8508-4096-862c-4d84f16c1d49",
+            "nr": "230V AC",
+            "bezeichnung": "Netzanschluss (integriertes Netzteil)",
+            "funktion": "power",
+            "info": ""
+          },
+          {
+            "id": "2fd16545-b1c5-4731-a2dc-c790b83a8315",
+            "nr": "Nottaste",
+            "bezeichnung": "Integrierte Nottaste",
+            "funktion": "signal",
+            "info": ""
+          },
+          {
+            "id": "d107bbe7-2401-4861-80df-587702b45e03",
+            "nr": "Schlüsselschalter",
+            "bezeichnung": "Integrierter Schlüsselschalter",
+            "funktion": "signal",
+            "info": "Kurzzeitfreigabe, Dauerfreigabe, Wiederverriegelung, Alarmquittierung"
+          },
+          {
+            "id": "f2993245-df5b-4265-9be7-c2fd34924b1e",
+            "nr": "Eingang 1",
+            "bezeichnung": "Steuereingang (BMA/EMA)",
+            "funktion": "signal",
+            "info": "FT Basis: 1 Eingang integriert; FT Plus (mit E/A-Modul 901-20): bis zu 8 zusätzliche Eingänge"
+          },
+          {
+            "id": "3826a140-401f-48ea-b955-a5e1056c8387",
+            "nr": "Ausgang 1",
+            "bezeichnung": "Relaisausgang (Alarm/Systemzustand)",
+            "funktion": "signal",
+            "info": "FT Basis: 1 Ausgang integriert; FT Plus (mit E/A-Modul 901-20): bis zu 2 zusätzliche Ausgänge"
+          },
+          {
+            "id": "fddc406a-f70f-4093-a254-86ff0ebd76b8",
+            "nr": "Verriegelung 1",
+            "bezeichnung": "Anschluss Fluchttüröffner/Haftmagnet 1",
+            "funktion": "power",
+            "info": "Bis zu 2x FTÖ oder 1x FTÖ + 1x HM je nach Ausführung"
+          },
+          {
+            "id": "c1a79ae6-9d0f-4ab2-a213-5121854c1406",
+            "nr": "Verriegelung 2",
+            "bezeichnung": "Anschluss Fluchttüröffner/Haftmagnet 2",
+            "funktion": "power",
+            "info": ""
+          },
+          {
+            "id": "ab940231-0417-4f76-b1e7-6703c298db93",
+            "nr": "TS-Bus A",
+            "bezeichnung": "Bus-Datenleitung A",
+            "funktion": "data",
+            "info": "effeff TS-Bus: systemeigener 2-Draht-Bus (Stern-, Strang- oder Baumstruktur), max. Leitungslänge 1.000m, über Repeater 901-35 um je weitere 1.000m erweiterbar. Der Katalog nennt keine numerierte Klemmenbezeichnung für die beiden Busadern."
+          },
+          {
+            "id": "9c8319ab-5a43-4bc9-9273-7c3b3a53b2da",
+            "nr": "TS-Bus B",
+            "bezeichnung": "Bus-Datenleitung B",
+            "funktion": "data",
+            "info": "effeff TS-Bus: systemeigener 2-Draht-Bus (Stern-, Strang- oder Baumstruktur), max. Leitungslänge 1.000m, über Repeater 901-35 um je weitere 1.000m erweiterbar. Der Katalog nennt keine numerierte Klemmenbezeichnung für die beiden Busadern."
+          }
+        ]
+      },
+      {
+        "id": "a45e3456-7e39-451a-af55-855d978b4ac7",
+        "typ": "steuerung",
+        "name": "Steuerterminal 1385-11 (ohne Netzteil, vernetzt/TS-Bus)",
+        "klemmen": [
+          {
+            "id": "21651fce-2fad-4178-9862-7087f0c13096",
+            "nr": "24V DC",
+            "bezeichnung": "Spannungsversorgung extern (z.B. Netzteil 1003-24-1/2)",
+            "funktion": "power",
+            "info": ""
+          },
+          {
+            "id": "51087972-af1f-489c-ac5d-61114fb861ca",
+            "nr": "Nottaste",
+            "bezeichnung": "Integrierte Nottaste",
+            "funktion": "signal",
+            "info": ""
+          },
+          {
+            "id": "56fb39b8-e35b-4f84-b537-02abbc0ab3fa",
+            "nr": "Schlüsselschalter",
+            "bezeichnung": "Integrierter Schlüsselschalter",
+            "funktion": "signal",
+            "info": ""
+          },
+          {
+            "id": "bbbebf68-4e91-4b52-9e28-e2388d79dd8b",
+            "nr": "Eingang 1",
+            "bezeichnung": "Steuereingang (BMA/EMA)",
+            "funktion": "signal",
+            "info": ""
+          },
+          {
+            "id": "c845bd03-1da9-480a-979a-bc58ad525f2d",
+            "nr": "Ausgang 1",
+            "bezeichnung": "Relaisausgang (Alarm/Systemzustand)",
+            "funktion": "signal",
+            "info": ""
+          },
+          {
+            "id": "e4f4ff29-a453-4a23-bc1c-c0bd34080cfb",
+            "nr": "Verriegelung 1",
+            "bezeichnung": "Anschluss Fluchttüröffner/Haftmagnet 1",
+            "funktion": "power",
+            "info": ""
+          },
+          {
+            "id": "af9eff46-7b8d-4605-b388-db87cc1a93f7",
+            "nr": "Verriegelung 2",
+            "bezeichnung": "Anschluss Fluchttüröffner/Haftmagnet 2",
+            "funktion": "power",
+            "info": ""
+          },
+          {
+            "id": "2415610c-7b51-4e56-b10f-67748a75d2cd",
+            "nr": "TS-Bus A",
+            "bezeichnung": "Bus-Datenleitung A",
+            "funktion": "data",
+            "info": "effeff TS-Bus: systemeigener 2-Draht-Bus (Stern-, Strang- oder Baumstruktur), max. Leitungslänge 1.000m, über Repeater 901-35 um je weitere 1.000m erweiterbar. Der Katalog nennt keine numerierte Klemmenbezeichnung für die beiden Busadern."
+          },
+          {
+            "id": "cf4bd59e-bbc2-4aa5-8358-69a17b7c87d2",
+            "nr": "TS-Bus B",
+            "bezeichnung": "Bus-Datenleitung B",
+            "funktion": "data",
+            "info": "effeff TS-Bus: systemeigener 2-Draht-Bus (Stern-, Strang- oder Baumstruktur), max. Leitungslänge 1.000m, über Repeater 901-35 um je weitere 1.000m erweiterbar. Der Katalog nennt keine numerierte Klemmenbezeichnung für die beiden Busadern."
+          }
+        ]
+      },
+      {
+        "id": "b1e83c8c-e69d-4480-8261-c51c55ffd8e9",
+        "typ": "steuerung",
+        "name": "Steuerterminal 1384-11N/1384-11 (mit integrierbarem ZK-System statt Schlüsselschalter)",
+        "klemmen": [
+          {
+            "id": "42aa84a4-b163-43f7-90e3-93462e47cc58",
+            "nr": "230V AC / 24V DC",
+            "bezeichnung": "Spannungsversorgung (intern bei -11N, extern bei -11)",
+            "funktion": "power",
+            "info": ""
+          },
+          {
+            "id": "c4f563c5-50ca-4e21-885a-f69ab4244dfc",
+            "nr": "Nottaste",
+            "bezeichnung": "Integrierte Nottaste",
+            "funktion": "signal",
+            "info": ""
+          },
+          {
+            "id": "38fd7e01-c4bf-490b-a155-4d16bd9d8381",
+            "nr": "ZK-System",
+            "bezeichnung": "Slot für Zutrittskontrollsystem (Kartenleser, Zahlencode) statt Schlüsselschalter",
+            "funktion": "signal",
+            "info": "Übernimmt Kurzzeitfreigabe, Dauerfreigabe, Wiederverriegelung, Alarmquittierung"
+          },
+          {
+            "id": "50dbc209-356e-4a80-b792-fb39acbb3e69",
+            "nr": "Eingang 1",
+            "bezeichnung": "Steuereingang (BMA/EMA)",
+            "funktion": "signal",
+            "info": ""
+          },
+          {
+            "id": "7e81bc50-7ce6-4610-887f-86dfed718d25",
+            "nr": "Ausgang 1",
+            "bezeichnung": "Relaisausgang (Alarm/Systemzustand)",
+            "funktion": "signal",
+            "info": ""
+          },
+          {
+            "id": "6f84352c-97b6-4ceb-b2d9-fccc71bfd73c",
+            "nr": "Verriegelung 1",
+            "bezeichnung": "Anschluss Fluchttüröffner/Haftmagnet/Motorschloss 1",
+            "funktion": "power",
+            "info": ""
+          },
+          {
+            "id": "b1154502-e769-4d47-a218-6fdbf4d1d2a4",
+            "nr": "Verriegelung 2",
+            "bezeichnung": "Anschluss Fluchttüröffner/Haftmagnet/Motorschloss 2",
+            "funktion": "power",
+            "info": ""
+          },
+          {
+            "id": "83382652-fae6-4205-8ba9-49bfc89ec4e0",
+            "nr": "TS-Bus A",
+            "bezeichnung": "Bus-Datenleitung A",
+            "funktion": "data",
+            "info": "effeff TS-Bus: systemeigener 2-Draht-Bus (Stern-, Strang- oder Baumstruktur), max. Leitungslänge 1.000m, über Repeater 901-35 um je weitere 1.000m erweiterbar. Der Katalog nennt keine numerierte Klemmenbezeichnung für die beiden Busadern."
+          },
+          {
+            "id": "a20bd987-e9ce-41cf-99fb-2ca1730a0490",
+            "nr": "TS-Bus B",
+            "bezeichnung": "Bus-Datenleitung B",
+            "funktion": "data",
+            "info": "effeff TS-Bus: systemeigener 2-Draht-Bus (Stern-, Strang- oder Baumstruktur), max. Leitungslänge 1.000m, über Repeater 901-35 um je weitere 1.000m erweiterbar. Der Katalog nennt keine numerierte Klemmenbezeichnung für die beiden Busadern."
+          }
+        ]
+      }
+    ],
+    "quelle": "ASSA ABLOY / effeff Katalog \"Rettungswegtechnik – Technische Informationen\" (automatikshop.de/media/pdf/1c/0e/55/AssaAbloy-FT-Katalog_low.pdf) — offizieller Herstellerkatalog. Ein-/Ausgangszahlen stammen aus den Leistungsmerkmale-Tabellen der Systemlösungen FTT001–FTT014 (FT Basis/FT Plus); wo dort nur Gesamtzahlen pro Systemlösung (Terminal + ggf. E/A-Modul 901-20) angegeben sind, ist das im Info-Feld vermerkt. Für die genaue Klemmennummerierung an den Geräten selbst bitte die jeweilige Installationsanleitung bzw. den Anschlussplan (\"Anschluss Verriegelungen\") von ASSA ABLOY heranziehen."
+  },
+  {
+    "id": "5b158059-5211-4e26-866b-a6830da8003d",
+    "hersteller": "ASSA ABLOY (effeff)",
+    "modell": "Türüberwachungsterminal 1385T",
+    "bauteile": [
+      {
+        "id": "2cdb8167-2a28-4e73-92bf-042dc5056b8e",
+        "typ": "sonstiges",
+        "name": "Türüberwachung 1385T11N (mit Netzteil)",
+        "klemmen": [
+          {
+            "id": "d4c9232a-4e73-48d9-83ee-3ac9670084e0",
+            "nr": "230V AC",
+            "bezeichnung": "Netzanschluss (integriertes Netzteil)",
+            "funktion": "power",
+            "info": ""
+          },
+          {
+            "id": "b9135992-6004-45a0-8222-9e74378efc01",
+            "nr": "Schlüsselschalter",
+            "bezeichnung": "Integrierter Schlüsselschalter",
+            "funktion": "signal",
+            "info": ""
+          },
+          {
+            "id": "12548068-f28a-4c09-8c9d-9800fa3b2dea",
+            "nr": "Eingang 1",
+            "bezeichnung": "Steuereingang (z.B. Zeitschaltuhr)",
+            "funktion": "signal",
+            "info": "FT Basis: 1 Eingang; FT Plus (mit E/A-Modul 901-20): bis zu 9 Eingänge"
+          },
+          {
+            "id": "d66803fb-edcc-492a-9f8f-4004879f8e02",
+            "nr": "Ausgang 1",
+            "bezeichnung": "Relaisausgang (Alarm, Türzustand)",
+            "funktion": "signal",
+            "info": "FT Basis: 1 Ausgang; FT Plus: bis zu 3 Ausgänge"
+          },
+          {
+            "id": "d918972e-0d78-4312-90b5-2987f796dc0b",
+            "nr": "Türkontakt",
+            "bezeichnung": "Anschluss Türkontakt 1380A",
+            "funktion": "signal",
+            "info": "Tür wird NICHT verriegelt, nur überwacht — Alarm bei Öffnung ohne Identifizierung"
+          },
+          {
+            "id": "73d7d208-3a34-490f-b9d8-88c2aab62bce",
+            "nr": "TS-Bus A",
+            "bezeichnung": "Bus-Datenleitung A",
+            "funktion": "data",
+            "info": "effeff TS-Bus: systemeigener 2-Draht-Bus (Stern-, Strang- oder Baumstruktur), max. Leitungslänge 1.000m, über Repeater 901-35 um je weitere 1.000m erweiterbar. Der Katalog nennt keine numerierte Klemmenbezeichnung für die beiden Busadern."
+          },
+          {
+            "id": "ff2dfe7a-b84d-4eca-85e0-74c33444f1da",
+            "nr": "TS-Bus B",
+            "bezeichnung": "Bus-Datenleitung B",
+            "funktion": "data",
+            "info": "effeff TS-Bus: systemeigener 2-Draht-Bus (Stern-, Strang- oder Baumstruktur), max. Leitungslänge 1.000m, über Repeater 901-35 um je weitere 1.000m erweiterbar. Der Katalog nennt keine numerierte Klemmenbezeichnung für die beiden Busadern."
+          }
+        ]
+      },
+      {
+        "id": "88193659-831c-4a0c-bd41-08ee9c83afc3",
+        "typ": "sonstiges",
+        "name": "Türüberwachung 1385T11 (ohne Netzteil)",
+        "klemmen": [
+          {
+            "id": "0e8b01c1-cf95-4e58-9e81-00168aede226",
+            "nr": "24V DC",
+            "bezeichnung": "Spannungsversorgung extern (Netzteil 1003-24-1)",
+            "funktion": "power",
+            "info": ""
+          },
+          {
+            "id": "0957b992-98e7-4078-9bc6-b168aabe56ff",
+            "nr": "Schlüsselschalter",
+            "bezeichnung": "Integrierter Schlüsselschalter",
+            "funktion": "signal",
+            "info": ""
+          },
+          {
+            "id": "c191177c-8428-4ae4-9873-ed80038946ec",
+            "nr": "Eingang 1",
+            "bezeichnung": "Steuereingang",
+            "funktion": "signal",
+            "info": "FT Basis: keine zusätzlichen; FT Plus (mit E/A-Modul 901-20): 8 Eingänge"
+          },
+          {
+            "id": "ba9af456-74fd-4b27-95d9-075029d2e805",
+            "nr": "Ausgang 1",
+            "bezeichnung": "Relaisausgang",
+            "funktion": "signal",
+            "info": "FT Plus: 2 Ausgänge"
+          },
+          {
+            "id": "325df005-10b5-4aec-8050-21892fd8b1d2",
+            "nr": "Türkontakt",
+            "bezeichnung": "Anschluss Türkontakt 1380A",
+            "funktion": "signal",
+            "info": ""
+          },
+          {
+            "id": "e57febcc-936e-41a2-b067-2fbd90780270",
+            "nr": "TS-Bus A",
+            "bezeichnung": "Bus-Datenleitung A",
+            "funktion": "data",
+            "info": "effeff TS-Bus: systemeigener 2-Draht-Bus (Stern-, Strang- oder Baumstruktur), max. Leitungslänge 1.000m, über Repeater 901-35 um je weitere 1.000m erweiterbar. Der Katalog nennt keine numerierte Klemmenbezeichnung für die beiden Busadern."
+          },
+          {
+            "id": "68958ff8-b2ad-4f6a-89e2-6cebd50099b1",
+            "nr": "TS-Bus B",
+            "bezeichnung": "Bus-Datenleitung B",
+            "funktion": "data",
+            "info": "effeff TS-Bus: systemeigener 2-Draht-Bus (Stern-, Strang- oder Baumstruktur), max. Leitungslänge 1.000m, über Repeater 901-35 um je weitere 1.000m erweiterbar. Der Katalog nennt keine numerierte Klemmenbezeichnung für die beiden Busadern."
+          }
+        ]
+      }
+    ],
+    "quelle": "ASSA ABLOY / effeff Katalog \"Rettungswegtechnik – Technische Informationen\" (automatikshop.de/media/pdf/1c/0e/55/AssaAbloy-FT-Katalog_low.pdf) — offizieller Herstellerkatalog. Ein-/Ausgangszahlen stammen aus den Leistungsmerkmale-Tabellen der Systemlösungen FTT001–FTT014 (FT Basis/FT Plus); wo dort nur Gesamtzahlen pro Systemlösung (Terminal + ggf. E/A-Modul 901-20) angegeben sind, ist das im Info-Feld vermerkt. Für die genaue Klemmennummerierung an den Geräten selbst bitte die jeweilige Installationsanleitung bzw. den Anschlussplan (\"Anschluss Verriegelungen\") von ASSA ABLOY heranziehen."
+  },
+  {
+    "id": "15627de0-8ad4-429d-9cb6-44f7ac470146",
+    "hersteller": "ASSA ABLOY (effeff)",
+    "modell": "Kompakt-Steuerterminal 1338/1340 & Türterminal 1380/1337",
+    "bauteile": [
+      {
+        "id": "13d3dc35-2926-452c-a253-0c93c53891fe",
+        "typ": "steuerung",
+        "name": "Steuerterminal 1338-14/15 bzw. 1338-20/21 (mit Netzteil)",
+        "klemmen": [
+          {
+            "id": "6fd8eb05-2399-4222-ba19-3185939ffc7d",
+            "nr": "230V AC",
+            "bezeichnung": "Netzanschluss (integriertes Netzteil)",
+            "funktion": "power",
+            "info": ""
+          },
+          {
+            "id": "69fa7a6b-1a48-48e8-8b52-f5d5fc47fa74",
+            "nr": "Schlüsselschalter",
+            "bezeichnung": "Anschluss Schlüsseltaster 1140-10/11",
+            "funktion": "signal",
+            "info": ""
+          },
+          {
+            "id": "a049b51d-0baf-44a7-b7ad-f8f134dd585d",
+            "nr": "Eingang 1–3",
+            "bezeichnung": "Steuereingänge (z.B. BMA, ZK)",
+            "funktion": "signal",
+            "info": "3 Eingänge"
+          },
+          {
+            "id": "bf1da41d-ad53-497c-98c2-73183dbdc15a",
+            "nr": "Ausgang 1–2",
+            "bezeichnung": "Relaisausgänge (Alarm/Systemzustand)",
+            "funktion": "signal",
+            "info": "2 Ausgänge"
+          },
+          {
+            "id": "ff14a72d-b85a-4f06-9744-b351909518ab",
+            "nr": "Verriegelung",
+            "bezeichnung": "Anschluss Flächenhaftmagnet 827HA bzw. Sicherheits-Türschließer DC700G-FT",
+            "funktion": "power",
+            "info": ""
+          }
+        ]
+      },
+      {
+        "id": "cdbd1b8e-153d-4321-9400-c3f9ed1c09a8",
+        "typ": "steuerung",
+        "name": "Steuerterminal 1340-14/15 bzw. 1340-20/21 (ohne Netzteil)",
+        "klemmen": [
+          {
+            "id": "9c290d78-0959-4017-9ebf-d71f910bb01f",
+            "nr": "24V DC",
+            "bezeichnung": "Spannungsversorgung extern (Netzteil 1003-24-1)",
+            "funktion": "power",
+            "info": ""
+          },
+          {
+            "id": "3af9deb7-3754-45fc-a9a6-f411718e6060",
+            "nr": "Schlüsselschalter",
+            "bezeichnung": "Anschluss Schlüsseltaster 1140-10/11",
+            "funktion": "signal",
+            "info": ""
+          },
+          {
+            "id": "d733942c-0779-4f1a-aa36-6d8e82fc7e53",
+            "nr": "Eingang 1–3",
+            "bezeichnung": "Steuereingänge",
+            "funktion": "signal",
+            "info": "3 Eingänge"
+          },
+          {
+            "id": "ae1e4ba4-0c42-40c6-bc60-a9e9cd2af7a1",
+            "nr": "Ausgang 1–2",
+            "bezeichnung": "Relaisausgänge",
+            "funktion": "signal",
+            "info": "2 Ausgänge"
+          },
+          {
+            "id": "31bcfa94-0f5e-408c-9284-56d6eef8f233",
+            "nr": "Verriegelung",
+            "bezeichnung": "Anschluss Flächenhaftmagnet/Türschließer",
+            "funktion": "power",
+            "info": ""
+          }
+        ]
+      },
+      {
+        "id": "5e4ee381-52ec-4fb8-9888-85ebc29c404e",
+        "typ": "taster",
+        "name": "Türterminal IP54 1337-12-10 (Außenbereich)",
+        "klemmen": [
+          {
+            "id": "9741f953-db3e-428f-b172-8156e4a4e71a",
+            "nr": "Anschlusskabel",
+            "bezeichnung": "Vorkonfektioniertes Anschlusskabel zur Steuerung 720-40",
+            "funktion": "signal",
+            "info": "Für Türen mit Fluchtrichtung von außen nach innen; integrierte Nottaste + Schlüsselschalter, wassergeschützt"
+          }
+        ]
+      },
+      {
+        "id": "6b5bf8b5-b4bb-4109-8df0-9a05c4f4cb65",
+        "typ": "sonstiges",
+        "name": "Türterminal 1380 / 1380-12 (bidirektional) & Türkontakt 1380A",
+        "klemmen": [
+          {
+            "id": "70dc3d64-eabc-404f-bd9f-a634fe1eff00",
+            "nr": "Anschlusskabel",
+            "bezeichnung": "Vorkonfektioniertes Anschlusskabel zur Steuerung 720-40 bzw. Steuerterminal",
+            "funktion": "signal",
+            "info": "1380: Terminal mit Nottaste+Schlüsselschalter für 2. Fluchtrichtung; 1380A: reiner Türkontakt für Türüberwachung 1385T; 10380U: zusätzlicher Türkontakt bei zweiflügeligen Türen"
+          }
+        ]
+      }
+    ],
+    "quelle": "ASSA ABLOY / effeff Katalog \"Rettungswegtechnik – Technische Informationen\" (automatikshop.de/media/pdf/1c/0e/55/AssaAbloy-FT-Katalog_low.pdf) — offizieller Herstellerkatalog. Ein-/Ausgangszahlen stammen aus den Leistungsmerkmale-Tabellen der Systemlösungen FTT001–FTT014 (FT Basis/FT Plus); wo dort nur Gesamtzahlen pro Systemlösung (Terminal + ggf. E/A-Modul 901-20) angegeben sind, ist das im Info-Feld vermerkt. Für die genaue Klemmennummerierung an den Geräten selbst bitte die jeweilige Installationsanleitung bzw. den Anschlussplan (\"Anschluss Verriegelungen\") von ASSA ABLOY heranziehen."
+  },
+  {
+    "id": "27741be0-e292-41bf-817e-1ab2c71b5766",
+    "hersteller": "ASSA ABLOY (effeff)",
+    "modell": "Abgesetzte Fluchttürsteuerung 720-40/720-42",
+    "bauteile": [
+      {
+        "id": "52e10c03-1629-47bd-a8da-99c0470d3e57",
+        "typ": "steuerung",
+        "name": "Fluchttürsteuerung 720-40/720-42 (Hutschienenmontage)",
+        "klemmen": [
+          {
+            "id": "74783da1-8029-4c15-a958-3f32d9784a3b",
+            "nr": "24V DC",
+            "bezeichnung": "Spannungsversorgung extern",
+            "funktion": "power",
+            "info": "Über Netzteil 1003-24-1 (Basis) oder 1003-24-2 (Plus, leistungsstärker); kompakte Montage auf 35mm-Hutschiene im Elektroverteiler"
+          },
+          {
+            "id": "a7a7a509-6b57-42c4-91d4-700ca10080c6",
+            "nr": "Eingang 1–8",
+            "bezeichnung": "Frei konfigurierbare Steuereingänge",
+            "funktion": "signal",
+            "info": "Bis zu 8 Eingänge (FT Plus), z.B. BMA, EMA, ZK-System; Konfiguration menügeführt über 7-Segment-Anzeige oder FT Manager"
+          },
+          {
+            "id": "519e87fe-f885-4ce7-ae8f-20461f9c7df1",
+            "nr": "Ausgang 1–4",
+            "bezeichnung": "Frei konfigurierbare Relaisausgänge",
+            "funktion": "signal",
+            "info": "Bis zu 2–4 Ausgänge je nach Türlösung, z.B. Alarm/Systemzustand"
+          },
+          {
+            "id": "85163c75-03b7-42dd-8074-0bb10bd787e2",
+            "nr": "Verriegelung 1",
+            "bezeichnung": "Anschluss Fluchttüröffner/Haftmagnet 1",
+            "funktion": "power",
+            "info": "Bis zu 2x FTÖ + 2x HM gleichzeitig ansteuerbar"
+          },
+          {
+            "id": "28e7af0c-e7cd-436b-9a7a-ef2c596a57ef",
+            "nr": "Verriegelung 2",
+            "bezeichnung": "Anschluss Fluchttüröffner/Haftmagnet 2",
+            "funktion": "power",
+            "info": ""
+          },
+          {
+            "id": "46897fc7-0ee1-4917-b710-08a833a176c2",
+            "nr": "Türterminal",
+            "bezeichnung": "Anschluss Türterminal 1380/1337",
+            "funktion": "signal",
+            "info": "Vorkonfektioniertes Anschlusskabel"
+          },
+          {
+            "id": "1a4a890d-b352-4923-9a37-cf280e7573d9",
+            "nr": "TS-Bus A",
+            "bezeichnung": "Bus-Datenleitung A",
+            "funktion": "data",
+            "info": "effeff TS-Bus: systemeigener 2-Draht-Bus (Stern-, Strang- oder Baumstruktur), max. Leitungslänge 1.000m, über Repeater 901-35 um je weitere 1.000m erweiterbar. Der Katalog nennt keine numerierte Klemmenbezeichnung für die beiden Busadern."
+          },
+          {
+            "id": "5f58e97e-33b8-4a26-bee0-3677a73e20bd",
+            "nr": "TS-Bus B",
+            "bezeichnung": "Bus-Datenleitung B",
+            "funktion": "data",
+            "info": "effeff TS-Bus: systemeigener 2-Draht-Bus (Stern-, Strang- oder Baumstruktur), max. Leitungslänge 1.000m, über Repeater 901-35 um je weitere 1.000m erweiterbar. Der Katalog nennt keine numerierte Klemmenbezeichnung für die beiden Busadern."
+          }
+        ]
+      },
+      {
+        "id": "6939ff6d-d7e8-40b8-8861-642ad512c1f7",
+        "typ": "sonstiges",
+        "name": "E/A-Modul 901-20 (Erweiterungsmodul)",
+        "klemmen": [
+          {
+            "id": "c3906fa4-fc4a-4b84-b0f9-ff4281e4dfda",
+            "nr": "Eingang 1–8",
+            "bezeichnung": "8 konfigurierbare Eingänge",
+            "funktion": "signal",
+            "info": "Erweitert Steuerterminal/-ung um zusätzliche Ein-/Ausgänge"
+          },
+          {
+            "id": "da12b9aa-839c-4162-be76-34cd16647d75",
+            "nr": "Ausgang 1–2",
+            "bezeichnung": "2 konfigurierbare Ausgänge",
+            "funktion": "signal",
+            "info": ""
+          },
+          {
+            "id": "4fa3c6ba-0cc3-4802-8df5-404e9c47ae6a",
+            "nr": "Anschluss Terminal",
+            "bezeichnung": "Verbindung zum Steuerterminal/zur Steuerung",
+            "funktion": "data",
+            "info": ""
+          }
+        ]
+      }
+    ],
+    "quelle": "ASSA ABLOY / effeff Katalog \"Rettungswegtechnik – Technische Informationen\" (automatikshop.de/media/pdf/1c/0e/55/AssaAbloy-FT-Katalog_low.pdf) — offizieller Herstellerkatalog. Ein-/Ausgangszahlen stammen aus den Leistungsmerkmale-Tabellen der Systemlösungen FTT001–FTT014 (FT Basis/FT Plus); wo dort nur Gesamtzahlen pro Systemlösung (Terminal + ggf. E/A-Modul 901-20) angegeben sind, ist das im Info-Feld vermerkt. Für die genaue Klemmennummerierung an den Geräten selbst bitte die jeweilige Installationsanleitung bzw. den Anschlussplan (\"Anschluss Verriegelungen\") von ASSA ABLOY heranziehen."
+  },
+  {
+    "id": "75a8f1d3-b021-4c82-8411-718aa38c034f",
+    "hersteller": "ASSA ABLOY (effeff)",
+    "modell": "Verriegelungselemente",
+    "bauteile": [
+      {
+        "id": "e27c09f0-0a54-42b7-84d8-d5d94fc49e21",
+        "typ": "verriegelung",
+        "name": "Fluchttüröffner 332.80 (12V/24V)",
+        "klemmen": [
+          {
+            "id": "4947cd3d-66a4-455b-83cd-6e738781aef7",
+            "nr": "Anschlusskabel",
+            "bezeichnung": "Spannungsversorgung + Ansteuerung",
+            "funktion": "power",
+            "info": "12V oder 24V Ausführung je nach Türlösung; in Kombination mit Fallenschloss 807"
+          }
+        ]
+      },
+      {
+        "id": "6821e143-d324-46a1-89f8-ae557d24f9c1",
+        "typ": "verriegelung",
+        "name": "Fluchttüröffner 331U80 (Alternativausführung)",
+        "klemmen": [
+          {
+            "id": "4aac920d-d6db-4401-b526-529dbc75cdd2",
+            "nr": "Anschlusskabel",
+            "bezeichnung": "Spannungsversorgung + Ansteuerung",
+            "funktion": "power",
+            "info": "Als Alternative zu 332.80 einsetzbar (siehe Systemtabellen: \"•\" = alternative Komponente)"
+          }
+        ]
+      },
+      {
+        "id": "798bd2a9-403e-45ca-9a90-a029e5b4783e",
+        "typ": "verriegelung",
+        "name": "Kompakt-Flächenhaftmagnet 827HA (mit Montageset 827-6-1)",
+        "klemmen": [
+          {
+            "id": "4a2f4fee-3ce8-412e-89e4-494b48158d11",
+            "nr": "24V DC",
+            "bezeichnung": "Betriebsspannung Haltemagnet",
+            "funktion": "power",
+            "info": "Ruhestromprinzip"
+          }
+        ]
+      },
+      {
+        "id": "9774bc11-ae9f-4031-a5d2-e0c909ad42f7",
+        "typ": "verriegelung",
+        "name": "Flächenhaftmagnet 828",
+        "klemmen": [
+          {
+            "id": "3d220892-408f-49ba-a777-6436fd199e3f",
+            "nr": "24V DC",
+            "bezeichnung": "Betriebsspannung Haltemagnet",
+            "funktion": "power",
+            "info": ""
+          }
+        ]
+      },
+      {
+        "id": "7906bed5-a948-42cf-ab2e-7b23bfd098b1",
+        "typ": "verriegelung",
+        "name": "Flächenhaftmagnet 827H / 827-IP",
+        "klemmen": [
+          {
+            "id": "2e76bd40-3c6e-4439-9c1b-e1fc201f7767",
+            "nr": "24V DC",
+            "bezeichnung": "Betriebsspannung Haltemagnet",
+            "funktion": "power",
+            "info": "827-IP: Außenbereich-Ausführung"
+          }
+        ]
+      },
+      {
+        "id": "50fe6c79-ec0b-4f3c-be13-ec235f6bf7d7",
+        "typ": "verriegelung",
+        "name": "Sicherheits-Türschließer DC 700G-FT (mit integrierter Rettungswegverriegelung)",
+        "klemmen": [
+          {
+            "id": "87959830-3a68-4071-a755-a0bf260cf154",
+            "nr": "12V / 24V DC",
+            "bezeichnung": "Betriebsspannung",
+            "funktion": "power",
+            "info": "Nachrüstung an Feuerschutztüren ohne Zulassungsverlust (Bohrbild nach DIN EN 1154 Beiblatt 1); Montageplatte DCFAxx je nach Türsituation"
+          }
+        ]
+      },
+      {
+        "id": "1d26cc9a-c48f-40b1-a04b-bd3166e5f725",
+        "typ": "sonstiges",
+        "name": "Fallenschloss 807 (mechanisch, Ergänzung zu FTÖ 332.80)",
+        "klemmen": [
+          {
+            "id": "afa0e241-43d6-458f-9eec-e06b9a3acaa1",
+            "nr": "—",
+            "bezeichnung": "Rein mechanisches Bauteil",
+            "funktion": "signal",
+            "info": "Keine eigene elektrische Anbindung — wirkt mit dem Fluchttüröffner 332.80 zusammen"
+          }
+        ]
+      },
+      {
+        "id": "e43e0872-a15c-4311-a796-003b9cd2a249",
+        "typ": "verriegelung",
+        "name": "Motorschloss / elektrisches Panikschloss (Serie 509X/519, Drückersteuerung/Motorschloss)",
+        "klemmen": [
+          {
+            "id": "cdf58507-c647-458f-b088-f884dd1a00b9",
+            "nr": "Steuerung Motorschloss",
+            "bezeichnung": "Anschluss an Steuerterminal bzw. externes Steuermodul \"Steuerung Motorschloss\"",
+            "funktion": "power",
+            "info": "Details zur Klemmenbelegung siehe separater Schließtechnik-Katalog von ASSA ABLOY, hier nur die Systemanbindung dokumentiert"
+          },
+          {
+            "id": "82c4ac6e-8afd-4372-a0a6-b72d7a437090",
+            "nr": "Zylinderkontakt",
+            "bezeichnung": "Integrierter PZ-/Zylinderkontakt zur Kurzzeitfreigabe bei Begehung entgegen der Fluchtrichtung",
+            "funktion": "signal",
+            "info": ""
+          }
+        ]
+      }
+    ],
+    "quelle": "ASSA ABLOY / effeff Katalog \"Rettungswegtechnik – Technische Informationen\" (automatikshop.de/media/pdf/1c/0e/55/AssaAbloy-FT-Katalog_low.pdf) — offizieller Herstellerkatalog. Ein-/Ausgangszahlen stammen aus den Leistungsmerkmale-Tabellen der Systemlösungen FTT001–FTT014 (FT Basis/FT Plus); wo dort nur Gesamtzahlen pro Systemlösung (Terminal + ggf. E/A-Modul 901-20) angegeben sind, ist das im Info-Feld vermerkt. Für die genaue Klemmennummerierung an den Geräten selbst bitte die jeweilige Installationsanleitung bzw. den Anschlussplan (\"Anschluss Verriegelungen\") von ASSA ABLOY heranziehen."
+  },
+  {
+    "id": "3c1df596-615d-44eb-a9aa-d0ed5a79bd25",
+    "hersteller": "ASSA ABLOY (effeff)",
+    "modell": "Türkontakte & Kabelübergänge",
+    "bauteile": [
+      {
+        "id": "14550640-d438-42c8-a725-86fb4c0a8855",
+        "typ": "tuerkontakt",
+        "name": "Türkontakt 1380A",
+        "klemmen": [
+          {
+            "id": "0673792f-f45d-4743-b353-d4deef8f72f4",
+            "nr": "Kontakt",
+            "bezeichnung": "Meldekontakt Türzustand",
+            "funktion": "signal",
+            "info": "Für Türüberwachung 1385T; Tür wird nicht verriegelt, nur überwacht"
+          }
+        ]
+      },
+      {
+        "id": "a47e92de-ef1a-4645-ad1d-71c157e072c4",
+        "typ": "tuerkontakt",
+        "name": "Türkontakt 10380U (Zusatzkontakt bei zweiflügeligen Türen)",
+        "klemmen": [
+          {
+            "id": "838dc0e4-50af-4749-8ec8-b7ca36cd287c",
+            "nr": "Kontakt",
+            "bezeichnung": "Zusätzlicher Meldekontakt Standflügel",
+            "funktion": "signal",
+            "info": ""
+          }
+        ]
+      },
+      {
+        "id": "69215759-c500-49fb-9967-2d924da22d8f",
+        "typ": "sonstiges",
+        "name": "Kabelübergang (steckbar) 10314-20 / 10312-20",
+        "klemmen": [
+          {
+            "id": "4b4c1cd9-33b8-4483-a3fb-0a4a88a6da6a",
+            "nr": "Klemm/Steck",
+            "bezeichnung": "Kabelübergang Tür/Zarge",
+            "funktion": "signal",
+            "info": "Ermöglicht komplettes Aushängen der Tür z.B. zur Wartung, ohne Kabel zu trennen"
+          }
+        ]
+      }
+    ],
+    "quelle": "ASSA ABLOY / effeff Katalog \"Rettungswegtechnik – Technische Informationen\" (automatikshop.de/media/pdf/1c/0e/55/AssaAbloy-FT-Katalog_low.pdf) — offizieller Herstellerkatalog. Ein-/Ausgangszahlen stammen aus den Leistungsmerkmale-Tabellen der Systemlösungen FTT001–FTT014 (FT Basis/FT Plus); wo dort nur Gesamtzahlen pro Systemlösung (Terminal + ggf. E/A-Modul 901-20) angegeben sind, ist das im Info-Feld vermerkt. Für die genaue Klemmennummerierung an den Geräten selbst bitte die jeweilige Installationsanleitung bzw. den Anschlussplan (\"Anschluss Verriegelungen\") von ASSA ABLOY heranziehen."
+  },
+  {
+    "id": "df5c3af4-f273-49b8-a380-ee4b4e8afb4c",
+    "hersteller": "ASSA ABLOY (effeff)",
+    "modell": "Netzteile",
+    "bauteile": [
+      {
+        "id": "5fa7d75f-b7e4-43cf-96b2-2e6e7a1898a3",
+        "typ": "netzteil",
+        "name": "Netzteil 1003-24-1 (FT Basis)",
+        "klemmen": [
+          {
+            "id": "06953b8b-3152-421f-adbd-d27cc3e76b00",
+            "nr": "AC In",
+            "bezeichnung": "Netzanschluss",
+            "funktion": "power",
+            "info": "230V AC"
+          },
+          {
+            "id": "fea1e39c-d163-40ab-8bf9-e2c3ebf3449a",
+            "nr": "24V DC Out",
+            "bezeichnung": "Ausgang",
+            "funktion": "power",
+            "info": "24V DC — Standardnetzteil für Steuerterminal/-terminal-Verbund ohne integriertes Netzteil"
+          }
+        ]
+      },
+      {
+        "id": "fb0b685c-4a0e-4ca6-967b-176f7c64b3b9",
+        "typ": "netzteil",
+        "name": "Netzteil 1003-24-2 (FT Plus, leistungsstärker)",
+        "klemmen": [
+          {
+            "id": "4c9d4173-5a0a-489d-93c4-d13a7b042861",
+            "nr": "AC In",
+            "bezeichnung": "Netzanschluss",
+            "funktion": "power",
+            "info": "230V AC"
+          },
+          {
+            "id": "83f6d84b-d0fd-4cdf-8890-bfd634784c2d",
+            "nr": "24V DC Out",
+            "bezeichnung": "Ausgang",
+            "funktion": "power",
+            "info": "24V DC, höhere Leistung als 1003-24-1 für FT-Plus-Systeme mit mehr Ein-/Ausgängen"
+          }
+        ]
+      },
+      {
+        "id": "9331fd1f-7a6d-44dd-ad68-2ce8d6b3e05a",
+        "typ": "netzteil",
+        "name": "Netzteil 1003-12-4 (12V, Kindergarten-Anwendungen)",
+        "klemmen": [
+          {
+            "id": "841323fd-6268-43b8-b939-f2d13f8ba91a",
+            "nr": "AC In",
+            "bezeichnung": "Netzanschluss",
+            "funktion": "power",
+            "info": "230V AC"
+          },
+          {
+            "id": "a5fb2d2e-f129-4667-b4d6-98f02686e9c9",
+            "nr": "12V DC Out",
+            "bezeichnung": "Ausgang",
+            "funktion": "power",
+            "info": "12V DC — für 12V-Varianten z.B. Fluchttüröffner 332.80 12V"
+          }
+        ]
+      },
+      {
+        "id": "dfd79c1c-12d3-4fd6-b0d1-8bf7b3b00938",
+        "typ": "netzteil",
+        "name": "Netzteil 1001-24-1 (für Tableau 925)",
+        "klemmen": [
+          {
+            "id": "a9fd227a-1cea-43a5-a89e-573332ff6d4f",
+            "nr": "AC In",
+            "bezeichnung": "Netzanschluss",
+            "funktion": "power",
+            "info": "230V AC"
+          },
+          {
+            "id": "625d0f3c-0199-4c34-9138-6b695df2d36d",
+            "nr": "24V DC Out",
+            "bezeichnung": "Ausgang",
+            "funktion": "power",
+            "info": "24V DC"
+          }
+        ]
+      },
+      {
+        "id": "776d5ee7-faeb-4a28-b896-54c5428742d3",
+        "typ": "netzteil",
+        "name": "Netzteil 1001-12-1 (für Repeater 901-35)",
+        "klemmen": [
+          {
+            "id": "d02d1e23-f25f-46e6-a843-2ae4613aad8e",
+            "nr": "AC In",
+            "bezeichnung": "Netzanschluss",
+            "funktion": "power",
+            "info": "230V AC"
+          },
+          {
+            "id": "146c9a7c-0e8e-459e-94a7-3449032b7976",
+            "nr": "12V DC Out",
+            "bezeichnung": "Ausgang",
+            "funktion": "power",
+            "info": "12V DC"
+          }
+        ]
+      },
+      {
+        "id": "6dc0126b-3553-47b7-80a7-f2dda0d87405",
+        "typ": "netzteil",
+        "name": "Netzteil 470-9-2-03--00 (für Buscontroller 970-TSB-30)",
+        "klemmen": [
+          {
+            "id": "c303082b-357a-412c-bbd0-2d879a0b27fe",
+            "nr": "AC In",
+            "bezeichnung": "Netzanschluss",
+            "funktion": "power",
+            "info": "230V AC"
+          },
+          {
+            "id": "1f5f0893-18ba-4e3a-b54f-7c09b617a98e",
+            "nr": "DC Out",
+            "bezeichnung": "Ausgang",
+            "funktion": "power",
+            "info": "Für Buscontroller 970-TSB-30"
+          }
+        ]
+      }
+    ],
+    "quelle": "ASSA ABLOY / effeff Katalog \"Rettungswegtechnik – Technische Informationen\" (automatikshop.de/media/pdf/1c/0e/55/AssaAbloy-FT-Katalog_low.pdf) — offizieller Herstellerkatalog. Ein-/Ausgangszahlen stammen aus den Leistungsmerkmale-Tabellen der Systemlösungen FTT001–FTT014 (FT Basis/FT Plus); wo dort nur Gesamtzahlen pro Systemlösung (Terminal + ggf. E/A-Modul 901-20) angegeben sind, ist das im Info-Feld vermerkt. Für die genaue Klemmennummerierung an den Geräten selbst bitte die jeweilige Installationsanleitung bzw. den Anschlussplan (\"Anschluss Verriegelungen\") von ASSA ABLOY heranziehen."
+  },
+  {
+    "id": "e68717ec-8fa2-4115-aeb3-734ef5b8893c",
+    "hersteller": "ASSA ABLOY (effeff)",
+    "modell": "Bedienelemente",
+    "bauteile": [
+      {
+        "id": "80e5e9bc-80a0-426e-affb-d4caabbbf79e",
+        "typ": "taster",
+        "name": "Schlüsselschalter 1140-10/11",
+        "klemmen": [
+          {
+            "id": "fd3f6f26-20f0-4ffe-92db-f06f4eb797c5",
+            "nr": "Kontakt",
+            "bezeichnung": "Schaltkontakt für Kurzzeit-/Dauerfreigabe",
+            "funktion": "signal",
+            "info": "Standard-Schlüsseltaster für Steuerterminal/-ung"
+          }
+        ]
+      },
+      {
+        "id": "c2886092-41c0-4ff5-a0d9-47985ca369a7",
+        "typ": "taster",
+        "name": "Schlüsselschalter 1332-10/11",
+        "klemmen": [
+          {
+            "id": "feedba81-111e-4a05-95ee-d928c8a3b4ae",
+            "nr": "Kontakt",
+            "bezeichnung": "Schaltkontakt",
+            "funktion": "signal",
+            "info": "Verwendet bei Türterminal 1337-12-10 (IP54)"
+          }
+        ]
+      },
+      {
+        "id": "18d3a8c4-496e-4b4b-8b04-0f014c18c5bf",
+        "typ": "taster",
+        "name": "Freigabetaster innen 1011-…-20",
+        "klemmen": [
+          {
+            "id": "7a4a65c2-3934-4726-9027-b86fb6cd11bb",
+            "nr": "Kontakt",
+            "bezeichnung": "Schaltkontakt Freigabe",
+            "funktion": "signal",
+            "info": "z.B. Montage in 1,80m Höhe bei Kindergarten-Anwendungen (für Kinder unerreichbar)"
+          }
+        ]
+      },
+      {
+        "id": "73f00ef7-d8e9-40f2-838e-3ed493c3f452",
+        "typ": "taster",
+        "name": "Freigabetaster außen 1012-…-20",
+        "klemmen": [
+          {
+            "id": "9581aeee-b5d9-42de-a05a-94b96d06ccc7",
+            "nr": "Kontakt",
+            "bezeichnung": "Schaltkontakt Freigabe",
+            "funktion": "signal",
+            "info": "Typisch über Zeitschaltuhr nur zu bestimmten Zeiten aktiv geschaltet"
+          }
+        ]
+      },
+      {
+        "id": "eeab6cc8-88b2-4350-a97c-a64ce556cd42",
+        "typ": "sonstiges",
+        "name": "Zeitschaltuhr 2032-10 (Wochenprogramm)",
+        "klemmen": [
+          {
+            "id": "186c7467-ffef-4059-93cd-cbd80ece95a5",
+            "nr": "230V AC",
+            "bezeichnung": "Betriebsspannung",
+            "funktion": "power",
+            "info": ""
+          },
+          {
+            "id": "eb04bc97-3498-4d8b-bb21-cf301eb77059",
+            "nr": "Schaltausgang",
+            "bezeichnung": "Zeitgesteuerter Schaltkontakt, z.B. zur Aktivierung eines Freigabetasters",
+            "funktion": "signal",
+            "info": ""
+          }
+        ]
+      }
+    ],
+    "quelle": "ASSA ABLOY / effeff Katalog \"Rettungswegtechnik – Technische Informationen\" (automatikshop.de/media/pdf/1c/0e/55/AssaAbloy-FT-Katalog_low.pdf) — offizieller Herstellerkatalog. Ein-/Ausgangszahlen stammen aus den Leistungsmerkmale-Tabellen der Systemlösungen FTT001–FTT014 (FT Basis/FT Plus); wo dort nur Gesamtzahlen pro Systemlösung (Terminal + ggf. E/A-Modul 901-20) angegeben sind, ist das im Info-Feld vermerkt. Für die genaue Klemmennummerierung an den Geräten selbst bitte die jeweilige Installationsanleitung bzw. den Anschlussplan (\"Anschluss Verriegelungen\") von ASSA ABLOY heranziehen."
+  },
+  {
+    "id": "a68f2751-994c-4a99-b0a4-b0f5695d21a4",
+    "hersteller": "ASSA ABLOY (effeff)",
+    "modell": "Vernetzung (Tableau, Buscontroller, Repeater)",
+    "bauteile": [
+      {
+        "id": "3043fc08-bc5c-4a67-a175-6024a941c3cd",
+        "typ": "steuerung",
+        "name": "Tableau 925 (zentrale Bedienstelle, bis 50 Türen je Tableau)",
+        "klemmen": [
+          {
+            "id": "65eb5dd1-de2f-4642-96c1-656e7f0ebef6",
+            "nr": "24V DC",
+            "bezeichnung": "Spannungsversorgung (Netzteil 1001-24-1)",
+            "funktion": "power",
+            "info": ""
+          },
+          {
+            "id": "3d136d77-8891-4202-8b04-bd0e82d97f7f",
+            "nr": "Anzeige",
+            "bezeichnung": "3 LEDs je Tür (rot/grün/gelb) + Summer",
+            "funktion": "signal",
+            "info": "Zeigt verriegelt/entriegelt/kurzzeitentriegelt/Alarm; 2 Bedientaster je Tür + zentrale Sammeltaste"
+          },
+          {
+            "id": "0885e03b-6734-4ec6-a72a-cbdf0477d1a0",
+            "nr": "Schlüsselschalter",
+            "bezeichnung": "Integrierter Schlüsselschalter zur Bediensperre",
+            "funktion": "signal",
+            "info": "Alternativ externer Schlüsselschalter oder Kartenleser"
+          },
+          {
+            "id": "f7b9741f-2737-4023-806b-0f6c1508dad9",
+            "nr": "Nottaste",
+            "bezeichnung": "Optionale zentrale Nottaste",
+            "funktion": "signal",
+            "info": "Notentriegelt alle Türen des Tableaus"
+          },
+          {
+            "id": "65b91844-162c-4371-b19d-088db7beb92b",
+            "nr": "TS-Bus A",
+            "bezeichnung": "Bus-Datenleitung A",
+            "funktion": "data",
+            "info": "effeff TS-Bus: systemeigener 2-Draht-Bus (Stern-, Strang- oder Baumstruktur), max. Leitungslänge 1.000m, über Repeater 901-35 um je weitere 1.000m erweiterbar. Der Katalog nennt keine numerierte Klemmenbezeichnung für die beiden Busadern."
+          },
+          {
+            "id": "7d44c420-8592-45bf-9d36-2f4b26f9ebce",
+            "nr": "TS-Bus B",
+            "bezeichnung": "Bus-Datenleitung B",
+            "funktion": "data",
+            "info": "effeff TS-Bus: systemeigener 2-Draht-Bus (Stern-, Strang- oder Baumstruktur), max. Leitungslänge 1.000m, über Repeater 901-35 um je weitere 1.000m erweiterbar. Der Katalog nennt keine numerierte Klemmenbezeichnung für die beiden Busadern."
+          }
+        ]
+      },
+      {
+        "id": "d605f835-44dd-4388-b764-f616a4b1ba0b",
+        "typ": "steuerung",
+        "name": "Buscontroller 970-TSB-30 (zentrale Schnittstelle, inkl. FT Manager)",
+        "klemmen": [
+          {
+            "id": "058377f9-c129-45b8-86ae-c27dacfddcf0",
+            "nr": "DC",
+            "bezeichnung": "Spannungsversorgung (Netzteil 470-9-2-03--00)",
+            "funktion": "power",
+            "info": ""
+          },
+          {
+            "id": "aa9d11f7-329d-4ea1-be78-fc9e28cdba49",
+            "nr": "Eingang 1–5",
+            "bezeichnung": "Zentrale Eingänge (z.B. BMA, EMA, Zeitschaltuhr)",
+            "funktion": "signal",
+            "info": "5 Eingänge, wirken auf alle oder gruppierte Türen am Bus"
+          },
+          {
+            "id": "1d084e11-66af-4d63-b18f-dc4fd61f18e6",
+            "nr": "Ausgang 1–3",
+            "bezeichnung": "Zentrale Relaisausgänge (z.B. Alarm, Störung)",
+            "funktion": "signal",
+            "info": "3 Ausgänge"
+          },
+          {
+            "id": "212448bc-dd49-4ba3-ac1f-81f79da02797",
+            "nr": "Ethernet",
+            "bezeichnung": "Anbindung PC / Konfigurationssoftware FT Manager / OPC Server / Visualisierung 970-VIS",
+            "funktion": "data",
+            "info": "Bis zu 50 Türen je Bus (mit Tableau), bis zu 110 Türen mit Visualisierungssoftware, bis 1.000 Türen im OPC-Verbund mehrerer Bussysteme"
+          },
+          {
+            "id": "9ac0a209-9ca6-4282-b5f0-6e2c6f8f38f2",
+            "nr": "TS-Bus A",
+            "bezeichnung": "Bus-Datenleitung A",
+            "funktion": "data",
+            "info": "effeff TS-Bus: systemeigener 2-Draht-Bus (Stern-, Strang- oder Baumstruktur), max. Leitungslänge 1.000m, über Repeater 901-35 um je weitere 1.000m erweiterbar. Der Katalog nennt keine numerierte Klemmenbezeichnung für die beiden Busadern."
+          },
+          {
+            "id": "a552d7d1-61a9-460d-bdfc-fa9fcc088e2b",
+            "nr": "TS-Bus B",
+            "bezeichnung": "Bus-Datenleitung B",
+            "funktion": "data",
+            "info": "effeff TS-Bus: systemeigener 2-Draht-Bus (Stern-, Strang- oder Baumstruktur), max. Leitungslänge 1.000m, über Repeater 901-35 um je weitere 1.000m erweiterbar. Der Katalog nennt keine numerierte Klemmenbezeichnung für die beiden Busadern."
+          }
+        ]
+      },
+      {
+        "id": "48a346b8-bccf-4325-8c88-90ddd3695509",
+        "typ": "sonstiges",
+        "name": "Repeater 901-35 (Busverlängerung/Entkopplung)",
+        "klemmen": [
+          {
+            "id": "9a32f4a6-6ca9-489b-8ff7-6f9916bbc0cc",
+            "nr": "12V DC",
+            "bezeichnung": "Spannungsversorgung (Netzteil 1001-12-1)",
+            "funktion": "power",
+            "info": ""
+          },
+          {
+            "id": "f8c78531-816c-449c-ba3b-05d6f26c233d",
+            "nr": "TS-Bus A",
+            "bezeichnung": "Bus-Datenleitung A",
+            "funktion": "data",
+            "info": "effeff TS-Bus: systemeigener 2-Draht-Bus (Stern-, Strang- oder Baumstruktur), max. Leitungslänge 1.000m, über Repeater 901-35 um je weitere 1.000m erweiterbar. Der Katalog nennt keine numerierte Klemmenbezeichnung für die beiden Busadern."
+          },
+          {
+            "id": "e42d6f89-ec01-4edd-b0f7-e1cce801b9fc",
+            "nr": "TS-Bus B",
+            "bezeichnung": "Bus-Datenleitung B",
+            "funktion": "data",
+            "info": "effeff TS-Bus: systemeigener 2-Draht-Bus (Stern-, Strang- oder Baumstruktur), max. Leitungslänge 1.000m, über Repeater 901-35 um je weitere 1.000m erweiterbar. Der Katalog nennt keine numerierte Klemmenbezeichnung für die beiden Busadern."
+          },
+          {
+            "id": "b8a6ab00-5322-4ba8-8e72-904097e97a7c",
+            "nr": "Bus-Erweiterung",
+            "bezeichnung": "Verlängerung um weitere 1.000m, entkoppelt Teilbereiche bei Busstörung/Kurzschluss",
+            "funktion": "data",
+            "info": ""
+          }
+        ]
+      }
+    ],
+    "quelle": "ASSA ABLOY / effeff Katalog \"Rettungswegtechnik – Technische Informationen\" (automatikshop.de/media/pdf/1c/0e/55/AssaAbloy-FT-Katalog_low.pdf) — offizieller Herstellerkatalog. Ein-/Ausgangszahlen stammen aus den Leistungsmerkmale-Tabellen der Systemlösungen FTT001–FTT014 (FT Basis/FT Plus); wo dort nur Gesamtzahlen pro Systemlösung (Terminal + ggf. E/A-Modul 901-20) angegeben sind, ist das im Info-Feld vermerkt. Für die genaue Klemmennummerierung an den Geräten selbst bitte die jeweilige Installationsanleitung bzw. den Anschlussplan (\"Anschluss Verriegelungen\") von ASSA ABLOY heranziehen."
+  },
+  {
+    "id": "9d573ada-7aee-4750-bb22-2e0f106f1a8e",
+    "hersteller": "dormakaba",
+    "modell": "Drehtürantrieb ED 100/ED 250",
+    "bauteile": [
+      {
+        "id": "ca0bbb60-c887-42f2-b22e-80419baaf39d",
+        "typ": "steuerung",
+        "name": "ED 100/ED 250 Antriebssteuerung (integriert im Antrieb)",
+        "klemmen": [
+          {
+            "id": "bd5df8e3-8f30-494c-995b-4ed3992d1d25",
+            "nr": "1",
+            "bezeichnung": "DCW-Bus (Bestandteil Upgrade-Card DCW)",
+            "funktion": "data",
+            "info": "Nur vorhanden/nutzbar wenn Upgrade-Card DCW installiert ist"
+          },
+          {
+            "id": "3d884321-31ac-4698-875d-e3645e34a7be",
+            "nr": "1G",
+            "bezeichnung": "Systemklemme (gemeinsame Masse/Bezug)",
+            "funktion": "power",
+            "info": "Zusammen mit Klemme 1 und 3: max. 1,5A Gesamtlast an diesen drei Klemmen; Kabellänge max. 30m bei J-Y(ST)Y 0,8mm"
+          },
+          {
+            "id": "a32c1ff1-4f35-437c-a06c-31dacf5566dd",
+            "nr": "3",
+            "bezeichnung": "Systemklemme (gemeinsamer Bezug, u.a. für DCW-Bus A/B)",
+            "funktion": "power",
+            "info": "ACHTUNG — geringere Datenqualität als bei den anderen Bibliotheken: Diese Klemmen stammen aus einer grafischen Anschluss-Skizze in der dormakaba-Anleitung (WN 059798), die bei der Web-Extraktion in Textform nur bruchstückhaft und in vermutlich falscher Lesereihenfolge vorlag. Zuordnung Klemmennummer↔Funktion ist eine plausible Rekonstruktion, KEINE zuverlässig gesicherte 1:1-Übernahme aus der Originalgrafik. Vor Verwendung unbedingt gegen die Original-Anschlussskizze (Kapitel 6.1 Klemmenbelegung) am tatsächlich verbauten Gerät prüfen."
+          },
+          {
+            "id": "5949f916-2356-4da9-9a01-5f6546bbb592",
+            "nr": "2",
+            "bezeichnung": "Spannungsklemme (Bestandteil Upgrade-Card Brandschutz)",
+            "funktion": "power",
+            "info": "Nur bei installierter Upgrade-Card Brandschutz. Ist diese installiert, MUSS entweder ein Rauchmelder RM-ED oder der Abschlusswiderstand 18kΩ an der zugehörigen Klemme angeschlossen sein, sonst Störung."
+          },
+          {
+            "id": "19eeb56b-e9d4-415d-854d-486ee3e971d6",
+            "nr": "A",
+            "bezeichnung": "DCW-Bus Datenleitung A",
+            "funktion": "data",
+            "info": "ACHTUNG — geringere Datenqualität als bei den anderen Bibliotheken: Diese Klemmen stammen aus einer grafischen Anschluss-Skizze in der dormakaba-Anleitung (WN 059798), die bei der Web-Extraktion in Textform nur bruchstückhaft und in vermutlich falscher Lesereihenfolge vorlag. Zuordnung Klemmennummer↔Funktion ist eine plausible Rekonstruktion, KEINE zuverlässig gesicherte 1:1-Übernahme aus der Originalgrafik. Vor Verwendung unbedingt gegen die Original-Anschlussskizze (Kapitel 6.1 Klemmenbelegung) am tatsächlich verbauten Gerät prüfen."
+          },
+          {
+            "id": "8966cbb0-91e6-4100-af9a-34c388ea1f75",
+            "nr": "B",
+            "bezeichnung": "DCW-Bus Datenleitung B",
+            "funktion": "data",
+            "info": "ACHTUNG — geringere Datenqualität als bei den anderen Bibliotheken: Diese Klemmen stammen aus einer grafischen Anschluss-Skizze in der dormakaba-Anleitung (WN 059798), die bei der Web-Extraktion in Textform nur bruchstückhaft und in vermutlich falscher Lesereihenfolge vorlag. Zuordnung Klemmennummer↔Funktion ist eine plausible Rekonstruktion, KEINE zuverlässig gesicherte 1:1-Übernahme aus der Originalgrafik. Vor Verwendung unbedingt gegen die Original-Anschlussskizze (Kapitel 6.1 Klemmenbelegung) am tatsächlich verbauten Gerät prüfen."
+          },
+          {
+            "id": "c6d5aa72-4a67-4b12-91a5-edc3df8c7177",
+            "nr": "41",
+            "bezeichnung": "Rauchmelder-Steuerspannung (0V, je nach Rauchmelderzustand geschaltet)",
+            "funktion": "signal",
+            "info": "Nur bei Upgrade-Card Brandschutz. ACHTUNG — geringere Datenqualität als bei den anderen Bibliotheken: Diese Klemmen stammen aus einer grafischen Anschluss-Skizze in der dormakaba-Anleitung (WN 059798), die bei der Web-Extraktion in Textform nur bruchstückhaft und in vermutlich falscher Lesereihenfolge vorlag. Zuordnung Klemmennummer↔Funktion ist eine plausible Rekonstruktion, KEINE zuverlässig gesicherte 1:1-Übernahme aus der Originalgrafik. Vor Verwendung unbedingt gegen die Original-Anschlussskizze (Kapitel 6.1 Klemmenbelegung) am tatsächlich verbauten Gerät prüfen."
+          },
+          {
+            "id": "e457f5bc-53aa-4b50-bb2f-dbde58754ab0",
+            "nr": "42",
+            "bezeichnung": "Rauchmelder-Steuerspannung (+24V, je nach Rauchmelderzustand geschaltet)",
+            "funktion": "signal",
+            "info": "Nur bei Upgrade-Card Brandschutz. ACHTUNG — geringere Datenqualität als bei den anderen Bibliotheken: Diese Klemmen stammen aus einer grafischen Anschluss-Skizze in der dormakaba-Anleitung (WN 059798), die bei der Web-Extraktion in Textform nur bruchstückhaft und in vermutlich falscher Lesereihenfolge vorlag. Zuordnung Klemmennummer↔Funktion ist eine plausible Rekonstruktion, KEINE zuverlässig gesicherte 1:1-Übernahme aus der Originalgrafik. Vor Verwendung unbedingt gegen die Original-Anschlussskizze (Kapitel 6.1 Klemmenbelegung) am tatsächlich verbauten Gerät prüfen."
+          },
+          {
+            "id": "77d242b2-338a-4a6e-bffe-080d5468d1bc",
+            "nr": "57",
+            "bezeichnung": "Anschluss Rauchmelder RM-ED bzw. Abschlusswiderstand 18kΩ",
+            "funktion": "signal",
+            "info": "ACHTUNG — geringere Datenqualität als bei den anderen Bibliotheken: Diese Klemmen stammen aus einer grafischen Anschluss-Skizze in der dormakaba-Anleitung (WN 059798), die bei der Web-Extraktion in Textform nur bruchstückhaft und in vermutlich falscher Lesereihenfolge vorlag. Zuordnung Klemmennummer↔Funktion ist eine plausible Rekonstruktion, KEINE zuverlässig gesicherte 1:1-Übernahme aus der Originalgrafik. Vor Verwendung unbedingt gegen die Original-Anschlussskizze (Kapitel 6.1 Klemmenbelegung) am tatsächlich verbauten Gerät prüfen."
+          },
+          {
+            "id": "afcc91f7-d5e1-4cc6-94ae-70c39cb3071a",
+            "nr": "57a",
+            "bezeichnung": "Anschluss Rauchmelder RM-ED bzw. Abschlusswiderstand 18kΩ (Gegenader)",
+            "funktion": "signal",
+            "info": "ACHTUNG — geringere Datenqualität als bei den anderen Bibliotheken: Diese Klemmen stammen aus einer grafischen Anschluss-Skizze in der dormakaba-Anleitung (WN 059798), die bei der Web-Extraktion in Textform nur bruchstückhaft und in vermutlich falscher Lesereihenfolge vorlag. Zuordnung Klemmennummer↔Funktion ist eine plausible Rekonstruktion, KEINE zuverlässig gesicherte 1:1-Übernahme aus der Originalgrafik. Vor Verwendung unbedingt gegen die Original-Anschlussskizze (Kapitel 6.1 Klemmenbelegung) am tatsächlich verbauten Gerät prüfen."
+          },
+          {
+            "id": "18bce774-2d4e-475c-a509-3c9a167815bc",
+            "nr": "15",
+            "bezeichnung": "Verriegelungsrelais — Kontakt 1 (COM/NO)",
+            "funktion": "signal",
+            "info": "Potentialfreier Kontakt, max. 1A / 48V DC/AC. ACHTUNG — geringere Datenqualität als bei den anderen Bibliotheken: Diese Klemmen stammen aus einer grafischen Anschluss-Skizze in der dormakaba-Anleitung (WN 059798), die bei der Web-Extraktion in Textform nur bruchstückhaft und in vermutlich falscher Lesereihenfolge vorlag. Zuordnung Klemmennummer↔Funktion ist eine plausible Rekonstruktion, KEINE zuverlässig gesicherte 1:1-Übernahme aus der Originalgrafik. Vor Verwendung unbedingt gegen die Original-Anschlussskizze (Kapitel 6.1 Klemmenbelegung) am tatsächlich verbauten Gerät prüfen."
+          },
+          {
+            "id": "7fdec047-c394-4892-801d-0bcf57b1f4a5",
+            "nr": "17",
+            "bezeichnung": "Verriegelungsrelais — Kontakt 2 (NO/NC)",
+            "funktion": "signal",
+            "info": "Potentialfreier Kontakt, max. 1A / 48V DC/AC. ACHTUNG — geringere Datenqualität als bei den anderen Bibliotheken: Diese Klemmen stammen aus einer grafischen Anschluss-Skizze in der dormakaba-Anleitung (WN 059798), die bei der Web-Extraktion in Textform nur bruchstückhaft und in vermutlich falscher Lesereihenfolge vorlag. Zuordnung Klemmennummer↔Funktion ist eine plausible Rekonstruktion, KEINE zuverlässig gesicherte 1:1-Übernahme aus der Originalgrafik. Vor Verwendung unbedingt gegen die Original-Anschlussskizze (Kapitel 6.1 Klemmenbelegung) am tatsächlich verbauten Gerät prüfen."
+          },
+          {
+            "id": "f98f036a-2b80-47f2-846b-afe69f279a84",
+            "nr": "11",
+            "bezeichnung": "Verriegelungsrückmeldung — 0V-Bezug",
+            "funktion": "signal",
+            "info": "ACHTUNG — geringere Datenqualität als bei den anderen Bibliotheken: Diese Klemmen stammen aus einer grafischen Anschluss-Skizze in der dormakaba-Anleitung (WN 059798), die bei der Web-Extraktion in Textform nur bruchstückhaft und in vermutlich falscher Lesereihenfolge vorlag. Zuordnung Klemmennummer↔Funktion ist eine plausible Rekonstruktion, KEINE zuverlässig gesicherte 1:1-Übernahme aus der Originalgrafik. Vor Verwendung unbedingt gegen die Original-Anschlussskizze (Kapitel 6.1 Klemmenbelegung) am tatsächlich verbauten Gerät prüfen."
+          },
+          {
+            "id": "6490019d-5ef7-4c85-a23a-b0a78fff34ad",
+            "nr": "13",
+            "bezeichnung": "Verriegelungsrückmeldung — Signal",
+            "funktion": "signal",
+            "info": "ACHTUNG — geringere Datenqualität als bei den anderen Bibliotheken: Diese Klemmen stammen aus einer grafischen Anschluss-Skizze in der dormakaba-Anleitung (WN 059798), die bei der Web-Extraktion in Textform nur bruchstückhaft und in vermutlich falscher Lesereihenfolge vorlag. Zuordnung Klemmennummer↔Funktion ist eine plausible Rekonstruktion, KEINE zuverlässig gesicherte 1:1-Übernahme aus der Originalgrafik. Vor Verwendung unbedingt gegen die Original-Anschlussskizze (Kapitel 6.1 Klemmenbelegung) am tatsächlich verbauten Gerät prüfen."
+          }
+        ]
+      },
+      {
+        "id": "76a6ac4b-057e-427d-9101-d453b36b7dba",
+        "typ": "sonstiges",
+        "name": "Funkempfänger (Zubehör ED 100/ED 250)",
+        "klemmen": [
+          {
+            "id": "f75c1049-a160-41bc-bb6d-99111e3e2dae",
+            "nr": "1G",
+            "bezeichnung": "Betriebsspannung –",
+            "funktion": "power",
+            "info": "Ader lila/violett = +24V, siehe Klemme unten"
+          },
+          {
+            "id": "c895d8e9-4716-43e2-9bca-68e80b40742e",
+            "nr": "+24V (violett)",
+            "bezeichnung": "Betriebsspannung +",
+            "funktion": "power",
+            "info": "Farbcodierte Steckverbindung, kein separater Klemmenblock"
+          },
+          {
+            "id": "de07042c-1a4e-4a60-9a83-67b660796565",
+            "nr": "64",
+            "bezeichnung": "Funkkanal/Funktion 1",
+            "funktion": "signal",
+            "info": "Genaue Funktionsbelegung 62/63/64 nicht in den ausgewerteten Textfragmenten enthalten — bitte Original-Anleitung Funkempfänger prüfen"
+          },
+          {
+            "id": "ad54ecea-4459-4700-862c-6def99f252d5",
+            "nr": "63",
+            "bezeichnung": "Funkkanal/Funktion 2",
+            "funktion": "signal",
+            "info": ""
+          },
+          {
+            "id": "1874566c-600d-4091-a5ba-3997765e8c5e",
+            "nr": "62",
+            "bezeichnung": "Funkkanal/Funktion 3",
+            "funktion": "signal",
+            "info": ""
+          },
+          {
+            "id": "a4bf6ceb-9e77-4ee9-95b4-54377d98da0a",
+            "nr": "Impuls (weiß)",
+            "bezeichnung": "Impulsausgang",
+            "funktion": "signal",
+            "info": "Farbcodierte Ader"
+          },
+          {
+            "id": "871345fb-7636-4bdd-9224-0a5221265b98",
+            "nr": "Impuls (blau)",
+            "bezeichnung": "Impulsausgang Bezug",
+            "funktion": "signal",
+            "info": "Farbcodierte Ader"
+          },
+          {
+            "id": "04a5c336-5eb9-4ce8-b64b-42a1ceaae5bd",
+            "nr": "Impuls (grau)",
+            "bezeichnung": "Impulsausgang",
+            "funktion": "signal",
+            "info": "Farbcodierte Ader"
+          },
+          {
+            "id": "6d2bc621-2d8d-46a4-a007-070302d3079e",
+            "nr": "3",
+            "bezeichnung": "Systemklemme Bezug",
+            "funktion": "power",
+            "info": ""
+          }
+        ]
+      },
+      {
+        "id": "d22be550-943b-4e11-92bd-2dfd4d0706ad",
+        "typ": "taster",
+        "name": "Schlüsseltaster ST 32 DCW (Zubehör, am DCW-Bus)",
+        "klemmen": [
+          {
+            "id": "932b5366-769e-4c52-ae24-5b5046aed0c2",
+            "nr": "A",
+            "bezeichnung": "DCW-Bus Datenleitung A",
+            "funktion": "data",
+            "info": "Schlüsseltaster wird als DCW-Busteilnehmer angeschlossen, keine separaten Signalklemmen"
+          },
+          {
+            "id": "0baa39b4-d19e-47a7-be2b-4dd0d6bd8249",
+            "nr": "B",
+            "bezeichnung": "DCW-Bus Datenleitung B",
+            "funktion": "data",
+            "info": ""
+          }
+        ]
+      }
+    ],
+    "quelle": "dormakaba Montage- und Inbetriebnahmeanleitung \"ED 100, ED 250\", WN 059798, aktuelle Ausgabe (my.dormakaba.com) — offizielle Anleitung, Kapitel 6 \"Zubehör anschließen\" / 6.1 \"Klemmenbelegung\". ACHTUNG — geringere Datenqualität als bei den anderen Bibliotheken: Diese Klemmen stammen aus einer grafischen Anschluss-Skizze in der dormakaba-Anleitung (WN 059798), die bei der Web-Extraktion in Textform nur bruchstückhaft und in vermutlich falscher Lesereihenfolge vorlag. Zuordnung Klemmennummer↔Funktion ist eine plausible Rekonstruktion, KEINE zuverlässig gesicherte 1:1-Übernahme aus der Originalgrafik. Vor Verwendung unbedingt gegen die Original-Anschlussskizze (Kapitel 6.1 Klemmenbelegung) am tatsächlich verbauten Gerät prüfen."
+  },
+  {
+    "id": "b60316cf-914e-43d1-9d6f-3e05483c18e9",
+    "hersteller": "GEZE",
+    "modell": "SecuLogic Türzentrale TZ 300 (Einzeltür, ohne Vernetzung)",
+    "bauteile": [
+      {
+        "id": "6269c2f9-4620-43d3-9446-ba8496e0dec8",
+        "typ": "steuerung",
+        "name": "TZ 300 SN Türzentrale (AP/UP)",
+        "klemmen": [
+          {
+            "id": "442769b5-3a7a-4651-9fed-0910aa52566a",
+            "nr": "230V AC",
+            "bezeichnung": "Netzanschluss",
+            "funktion": "power",
+            "info": "Versorgungsspannung 230V AC; interne Betriebsspannung 24V DC, Stromaufnahme 100mA"
+          },
+          {
+            "id": "474abdce-9baf-4a56-9614-f7de54466f4b",
+            "nr": "Ext. Verbraucher",
+            "bezeichnung": "Stromversorgung für externe Verbraucher",
+            "funktion": "power",
+            "info": "650mA (AP) / 600mA (UP)"
+          },
+          {
+            "id": "80eba472-a472-4395-8064-e6d524b2f97d",
+            "nr": "Eingang 1",
+            "bezeichnung": "Programmierbarer Eingang",
+            "funktion": "signal",
+            "info": "1 Eingang; z.B. Anbindung Brandmelde-/RWA-/Gefahrenmeldeanlage zur Notentriegelung"
+          },
+          {
+            "id": "667b68b3-03a6-4dab-b334-a1a6e3007757",
+            "nr": "Ausgang 1",
+            "bezeichnung": "Programmierbarer Ausgang",
+            "funktion": "signal",
+            "info": "1 Ausgang, Kontaktbelastbarkeit 30V/1A"
+          },
+          {
+            "id": "1daf17ea-402b-46d3-b4ff-7c3324b17cb6",
+            "nr": "Nottaste",
+            "bezeichnung": "Integrierte Nottaste",
+            "funktion": "signal",
+            "info": "Flächig bedienbare, beleuchtete Schlaghaube"
+          },
+          {
+            "id": "77fb0a66-7e0d-4598-b5dc-e7b967eba0e1",
+            "nr": "Schlüsseltaster",
+            "bezeichnung": "Integrierter Schlüsseltaster mit PHZ",
+            "funktion": "signal",
+            "info": "Vorkonfektioniert per Flachbandkabel verbunden"
+          },
+          {
+            "id": "a465e829-4856-4558-816f-589470953df3",
+            "nr": "Fluchtwegschild",
+            "bezeichnung": "Fluchtwegschild (unbeleuchtet, optional beleuchtet)",
+            "funktion": "signal",
+            "info": "Per Flachbandkabel"
+          },
+          {
+            "id": "7b833b24-7559-4609-a821-201949213c32",
+            "nr": "Sabotagekontakt",
+            "bezeichnung": "Sabotageüberwachung Gehäuse",
+            "funktion": "signal",
+            "info": ""
+          }
+        ]
+      }
+    ],
+    "quelle": "GEZE Produktprospekt \"BEWEGUNG MIT SYSTEM – GEZE SecuLogic Rettungswegsysteme\", Id.Nr. 132167, Vers. DE 1809 — offizielle Herstellerbroschüre. Wo die Broschüre nur die Anzahl der Ein-/Ausgänge nennt (z.B. \"Anzahl Eingänge: 3 St.\"), aber keine konkrete Klemmennummer, sind die Klemmen hier als \"Eingang 1/2/3\" bzw. \"Ausgang 1/2\" durchnummeriert – bitte gegen die tatsächliche Klemmenbeschriftung am Gerät prüfen (laut Broschüre farbcodierte Installationsklemmen zur besseren Übersicht)."
+  },
+  {
+    "id": "f74752d6-4c0e-4733-a50a-a9fd5523f813",
+    "hersteller": "GEZE",
+    "modell": "SecuLogic Türzentrale TZ 320 Standard",
+    "bauteile": [
+      {
+        "id": "4ff8b406-8b6f-41c5-9dd1-4e1719121964",
+        "typ": "steuerung",
+        "name": "TZ 320 SN Türzentrale (AP/UP, mit Busfunktion)",
+        "klemmen": [
+          {
+            "id": "a00a5900-dfbb-4df9-9cec-509a2bf38920",
+            "nr": "230V AC",
+            "bezeichnung": "Netzanschluss",
+            "funktion": "power",
+            "info": "Versorgungsspannung 230V AC; interne Betriebsspannung 24V DC, Stromaufnahme 100mA (AP/UP), 130mA (BSN)"
+          },
+          {
+            "id": "6107f6eb-1916-48ae-917c-1a318b0773bd",
+            "nr": "Ext. Verbraucher",
+            "bezeichnung": "Stromversorgung für externe Verbraucher",
+            "funktion": "power",
+            "info": "600–650mA je nach Variante"
+          },
+          {
+            "id": "7f53c51c-890b-4020-9d86-158786ad626c",
+            "nr": "Eingang 1",
+            "bezeichnung": "Frei parametrierbarer Eingang 1",
+            "funktion": "signal",
+            "info": "3 Eingänge insgesamt, z.B. EMA/BMA/Zeitschaltuhr/Zutrittskontrolle"
+          },
+          {
+            "id": "7fd690af-c588-4d47-8520-0c878a405f51",
+            "nr": "Eingang 2",
+            "bezeichnung": "Frei parametrierbarer Eingang 2",
+            "funktion": "signal",
+            "info": ""
+          },
+          {
+            "id": "ed93398c-7bd0-46c5-92bd-4c409a86904e",
+            "nr": "Eingang 3",
+            "bezeichnung": "Frei parametrierbarer Eingang 3",
+            "funktion": "signal",
+            "info": ""
+          },
+          {
+            "id": "cfa8d6ed-0bd2-415d-b148-fb8e346e74a3",
+            "nr": "Ausgang 1",
+            "bezeichnung": "Frei parametrierbarer Ausgang 1",
+            "funktion": "signal",
+            "info": "2 Ausgänge insgesamt, Kontaktbelastbarkeit 30V/1A, z.B. Alarmmeldung/Drehtürantrieb-Ansteuerung"
+          },
+          {
+            "id": "81bb4e43-857f-43cb-905e-5a1b8711a099",
+            "nr": "Ausgang 2",
+            "bezeichnung": "Frei parametrierbarer Ausgang 2",
+            "funktion": "signal",
+            "info": ""
+          },
+          {
+            "id": "c1ab0d7d-1718-496b-8d11-76064080c5dc",
+            "nr": "Nottaste",
+            "bezeichnung": "Integrierte Nottaste",
+            "funktion": "signal",
+            "info": "Flächig bedienbare, beleuchtete Schlaghaube"
+          },
+          {
+            "id": "118c8e3e-41fb-4f1e-834c-6db16610edec",
+            "nr": "Schlüsseltaster",
+            "bezeichnung": "Integrierter Schlüsseltaster mit PHZ",
+            "funktion": "signal",
+            "info": "Per Flachbandkabel"
+          },
+          {
+            "id": "a6585788-0ca3-4bd8-82d0-6daec8392ea5",
+            "nr": "Fluchtwegschild",
+            "bezeichnung": "Fluchtwegschild (unbeleuchtet/beleuchtet)",
+            "funktion": "signal",
+            "info": "Per Flachbandkabel"
+          },
+          {
+            "id": "00eebf91-6a23-4b72-8565-4866b5a044ff",
+            "nr": "Sabotagekontakt",
+            "bezeichnung": "Sabotageüberwachung Gehäuse",
+            "funktion": "signal",
+            "info": ""
+          },
+          {
+            "id": "f89f6331-e629-4d98-a0e6-158bfa8ebe90",
+            "nr": "Bus +",
+            "bezeichnung": "GEZE-Bus Versorgung +",
+            "funktion": "power",
+            "info": "GEZE-Bus (CAN-Bus-Technologie) zur Vernetzung mehrerer Türzentralen/Tableaus. Die Produktbroschüre nennt keine numerierte Klemmenbezeichnung für die Busadern, nur die Anschlussart. Klemmenbezeichnung bitte am Gerät ablesen. Max. Buslänge 1000m (empfohlen max. 900m), bis zu 64 Teilnehmer, Stern-/Baumstruktur über Repeater möglich."
+          },
+          {
+            "id": "8688987a-97fc-4192-b3b0-db1345775650",
+            "nr": "Bus –",
+            "bezeichnung": "GEZE-Bus Versorgung –",
+            "funktion": "power",
+            "info": "GEZE-Bus (CAN-Bus-Technologie) zur Vernetzung mehrerer Türzentralen/Tableaus. Die Produktbroschüre nennt keine numerierte Klemmenbezeichnung für die Busadern, nur die Anschlussart. Klemmenbezeichnung bitte am Gerät ablesen. Max. Buslänge 1000m (empfohlen max. 900m), bis zu 64 Teilnehmer, Stern-/Baumstruktur über Repeater möglich."
+          },
+          {
+            "id": "3a975685-411f-4d48-8057-3a1fb20271e9",
+            "nr": "CAN-H",
+            "bezeichnung": "GEZE-Bus Datenleitung H",
+            "funktion": "data",
+            "info": "GEZE-Bus (CAN-Bus-Technologie) zur Vernetzung mehrerer Türzentralen/Tableaus. Die Produktbroschüre nennt keine numerierte Klemmenbezeichnung für die Busadern, nur die Anschlussart. Klemmenbezeichnung bitte am Gerät ablesen. Max. Buslänge 1000m (empfohlen max. 900m), bis zu 64 Teilnehmer, Stern-/Baumstruktur über Repeater möglich."
+          },
+          {
+            "id": "6f456fa8-adea-410f-b091-60d2b57e4c5f",
+            "nr": "CAN-L",
+            "bezeichnung": "GEZE-Bus Datenleitung L",
+            "funktion": "data",
+            "info": "GEZE-Bus (CAN-Bus-Technologie) zur Vernetzung mehrerer Türzentralen/Tableaus. Die Produktbroschüre nennt keine numerierte Klemmenbezeichnung für die Busadern, nur die Anschlussart. Klemmenbezeichnung bitte am Gerät ablesen. Max. Buslänge 1000m (empfohlen max. 900m), bis zu 64 Teilnehmer, Stern-/Baumstruktur über Repeater möglich."
+          }
+        ]
+      }
+    ],
+    "quelle": "GEZE Produktprospekt \"BEWEGUNG MIT SYSTEM – GEZE SecuLogic Rettungswegsysteme\", Id.Nr. 132167, Vers. DE 1809 — offizielle Herstellerbroschüre. Wo die Broschüre nur die Anzahl der Ein-/Ausgänge nennt (z.B. \"Anzahl Eingänge: 3 St.\"), aber keine konkrete Klemmennummer, sind die Klemmen hier als \"Eingang 1/2/3\" bzw. \"Ausgang 1/2\" durchnummeriert – bitte gegen die tatsächliche Klemmenbeschriftung am Gerät prüfen (laut Broschüre farbcodierte Installationsklemmen zur besseren Übersicht)."
+  },
+  {
+    "id": "f683d000-1120-4b3c-bf61-11cfd98cc80d",
+    "hersteller": "GEZE",
+    "modell": "SecuLogic TZ 320 Komfort mit Klemmenbox KL 220",
+    "bauteile": [
+      {
+        "id": "aaefc1a1-2a8e-4a09-836a-c65171c6f1bb",
+        "typ": "steuerung",
+        "name": "TZ 320 S Türzentrale (ohne eigenes Netzteil, für Betrieb mit KL 220)",
+        "klemmen": [
+          {
+            "id": "d759c590-bc47-485e-8ea5-e652502a9d83",
+            "nr": "Eingang 1",
+            "bezeichnung": "Frei parametrierbarer Eingang 1",
+            "funktion": "signal",
+            "info": "3 Eingänge an der TZ 320 selbst"
+          },
+          {
+            "id": "d8b4240f-ef84-4458-a0b8-d14ea3f38a03",
+            "nr": "Eingang 2",
+            "bezeichnung": "Frei parametrierbarer Eingang 2",
+            "funktion": "signal",
+            "info": ""
+          },
+          {
+            "id": "11fea211-aee0-42e6-bc93-847cf7802e27",
+            "nr": "Eingang 3",
+            "bezeichnung": "Frei parametrierbarer Eingang 3",
+            "funktion": "signal",
+            "info": ""
+          },
+          {
+            "id": "bafee2bc-3b1b-4e45-bf10-9a3d7e16e4fc",
+            "nr": "Ausgang 1",
+            "bezeichnung": "Frei parametrierbarer Ausgang 1",
+            "funktion": "signal",
+            "info": "2 Ausgänge an der TZ 320 selbst, 30V/1A"
+          },
+          {
+            "id": "f801127d-c18f-4671-aa89-a5b06ab0bf21",
+            "nr": "Ausgang 2",
+            "bezeichnung": "Frei parametrierbarer Ausgang 2",
+            "funktion": "signal",
+            "info": ""
+          },
+          {
+            "id": "472b6611-c1fd-47ed-88b3-2a79e6bdd04a",
+            "nr": "Nottaste",
+            "bezeichnung": "Integrierte Nottaste",
+            "funktion": "signal",
+            "info": ""
+          },
+          {
+            "id": "98324e0f-c288-42b4-a8d0-0872bf762e4b",
+            "nr": "Schlüsseltaster",
+            "bezeichnung": "Integrierter Schlüsseltaster mit PHZ",
+            "funktion": "signal",
+            "info": "Per Flachbandkabel"
+          },
+          {
+            "id": "3ae49cf1-ad05-4df8-887e-c75b41ac8858",
+            "nr": "Bus +",
+            "bezeichnung": "GEZE-Bus Versorgung +",
+            "funktion": "power",
+            "info": "GEZE-Bus (CAN-Bus-Technologie) zur Vernetzung mehrerer Türzentralen/Tableaus. Die Produktbroschüre nennt keine numerierte Klemmenbezeichnung für die Busadern, nur die Anschlussart. Klemmenbezeichnung bitte am Gerät ablesen. Max. Buslänge 1000m (empfohlen max. 900m), bis zu 64 Teilnehmer, Stern-/Baumstruktur über Repeater möglich."
+          },
+          {
+            "id": "96f915d9-6cb2-4101-a76c-e8cfe7469732",
+            "nr": "Bus –",
+            "bezeichnung": "GEZE-Bus Versorgung –",
+            "funktion": "power",
+            "info": "GEZE-Bus (CAN-Bus-Technologie) zur Vernetzung mehrerer Türzentralen/Tableaus. Die Produktbroschüre nennt keine numerierte Klemmenbezeichnung für die Busadern, nur die Anschlussart. Klemmenbezeichnung bitte am Gerät ablesen. Max. Buslänge 1000m (empfohlen max. 900m), bis zu 64 Teilnehmer, Stern-/Baumstruktur über Repeater möglich."
+          },
+          {
+            "id": "c87c9c1d-f9a1-4bf0-a7cb-e0b7362286e7",
+            "nr": "CAN-H",
+            "bezeichnung": "GEZE-Bus Datenleitung H",
+            "funktion": "data",
+            "info": "GEZE-Bus (CAN-Bus-Technologie) zur Vernetzung mehrerer Türzentralen/Tableaus. Die Produktbroschüre nennt keine numerierte Klemmenbezeichnung für die Busadern, nur die Anschlussart. Klemmenbezeichnung bitte am Gerät ablesen. Max. Buslänge 1000m (empfohlen max. 900m), bis zu 64 Teilnehmer, Stern-/Baumstruktur über Repeater möglich."
+          },
+          {
+            "id": "c2869695-a21f-4898-9613-b02f0952ad14",
+            "nr": "CAN-L",
+            "bezeichnung": "GEZE-Bus Datenleitung L",
+            "funktion": "data",
+            "info": "GEZE-Bus (CAN-Bus-Technologie) zur Vernetzung mehrerer Türzentralen/Tableaus. Die Produktbroschüre nennt keine numerierte Klemmenbezeichnung für die Busadern, nur die Anschlussart. Klemmenbezeichnung bitte am Gerät ablesen. Max. Buslänge 1000m (empfohlen max. 900m), bis zu 64 Teilnehmer, Stern-/Baumstruktur über Repeater möglich."
+          },
+          {
+            "id": "d42a8cc6-4b2c-4148-8c2a-f5188aba7a62",
+            "nr": "KL 220 Bus",
+            "bezeichnung": "Verbindung zur Klemmenbox KL 220",
+            "funktion": "data",
+            "info": "WICHTIG: In Verbindung mit KL 220 ist die TZ 320 OHNE eigenes Netzteil zu verwenden — KL 220 übernimmt die Spannungsversorgung des Systems."
+          }
+        ]
+      },
+      {
+        "id": "a0c08cb7-0fbc-4883-ab98-ad2033fd3d89",
+        "typ": "sonstiges",
+        "name": "Klemmenbox KL 220 (AP/UP)",
+        "klemmen": [
+          {
+            "id": "04def495-8f0f-4260-b56b-6fe56fae493f",
+            "nr": "230V AC",
+            "bezeichnung": "Netzanschluss (integriertes Netzteil)",
+            "funktion": "power",
+            "info": "Versorgungsspannung 230V AC; interne Betriebsspannung 24V DC, Stromaufnahme 80mA"
+          },
+          {
+            "id": "8e4a6144-b29b-40bc-a33c-03cac9982ed0",
+            "nr": "Ext. Verbraucher",
+            "bezeichnung": "Stromversorgung für externe Verbraucher",
+            "funktion": "power",
+            "info": "600mA"
+          },
+          {
+            "id": "8426ce24-8752-4647-bca7-a3430b48b7ed",
+            "nr": "Eingang 1–4",
+            "bezeichnung": "4 zusätzliche frei programmierbare Eingänge",
+            "funktion": "signal",
+            "info": "Erweitert die TZ 320 um 4 Eingänge"
+          },
+          {
+            "id": "ebdfe4ad-4753-4814-9a8b-314b2b69d152",
+            "nr": "Ausgang 1–6",
+            "bezeichnung": "6 zusätzliche frei programmierbare Ausgänge",
+            "funktion": "signal",
+            "info": "Erweitert die TZ 320 um 6 Ausgänge"
+          },
+          {
+            "id": "b589f384-e942-4d12-a009-47d404d65af2",
+            "nr": "Sabotagekontakt",
+            "bezeichnung": "Sabotageüberwachung Gehäuse",
+            "funktion": "signal",
+            "info": ""
+          }
+        ]
+      }
+    ],
+    "quelle": "GEZE Produktprospekt \"BEWEGUNG MIT SYSTEM – GEZE SecuLogic Rettungswegsysteme\", Id.Nr. 132167, Vers. DE 1809 — offizielle Herstellerbroschüre. Wo die Broschüre nur die Anzahl der Ein-/Ausgänge nennt (z.B. \"Anzahl Eingänge: 3 St.\"), aber keine konkrete Klemmennummer, sind die Klemmen hier als \"Eingang 1/2/3\" bzw. \"Ausgang 1/2\" durchnummeriert – bitte gegen die tatsächliche Klemmenbeschriftung am Gerät prüfen (laut Broschüre farbcodierte Installationsklemmen zur besseren Übersicht)."
+  },
+  {
+    "id": "578464c2-2b26-4bb7-8668-2ea0c6eb41b7",
+    "hersteller": "GEZE",
+    "modell": "SecuLogic Türzentrale TZ 322 (ohne örtliche Nottaste)",
+    "bauteile": [
+      {
+        "id": "9b7ca2a7-179a-4e6c-8a27-05327247fbf1",
+        "typ": "steuerung",
+        "name": "TZ 322 SN/S Türzentrale AP (Sonderanwendung ohne Nottaste)",
+        "klemmen": [
+          {
+            "id": "6cf00ed9-89ca-4357-9705-96ad5fee8c26",
+            "nr": "230V AC / 24V",
+            "bezeichnung": "Netzanschluss",
+            "funktion": "power",
+            "info": "Versorgungsspannung 230V AC (SN) oder 24V (S); Stromaufnahme 100mA"
+          },
+          {
+            "id": "4067e6e6-7b22-4397-a16a-267d23c89419",
+            "nr": "Ext. Verbraucher",
+            "bezeichnung": "Stromversorgung für externe Verbraucher",
+            "funktion": "power",
+            "info": "650mA"
+          },
+          {
+            "id": "75168d1a-fbf3-44e4-aa83-b94aa2ca003d",
+            "nr": "Eingang 1",
+            "bezeichnung": "Frei parametrierbarer Eingang 1",
+            "funktion": "signal",
+            "info": "3 Eingänge insgesamt"
+          },
+          {
+            "id": "bca0e98a-bcca-44b9-9bc7-e46b80d05268",
+            "nr": "Eingang 2",
+            "bezeichnung": "Frei parametrierbarer Eingang 2",
+            "funktion": "signal",
+            "info": ""
+          },
+          {
+            "id": "8521af4f-792f-4512-98fd-5c0b55e8c2fb",
+            "nr": "Eingang 3",
+            "bezeichnung": "Frei parametrierbarer Eingang 3",
+            "funktion": "signal",
+            "info": ""
+          },
+          {
+            "id": "16639355-93d6-45ba-a991-7925aca5f7af",
+            "nr": "Ausgang 1",
+            "bezeichnung": "Frei parametrierbarer Ausgang 1",
+            "funktion": "signal",
+            "info": "2 Ausgänge, 30V/1A"
+          },
+          {
+            "id": "6e67785e-a2a1-4962-8e28-9fc857c80277",
+            "nr": "Ausgang 2",
+            "bezeichnung": "Frei parametrierbarer Ausgang 2",
+            "funktion": "signal",
+            "info": ""
+          },
+          {
+            "id": "f4c4a27f-1ac9-4261-a9d3-34b1602af0c0",
+            "nr": "Sicherheitskreis",
+            "bezeichnung": "Anschluss zentraler Sicherheitskreis",
+            "funktion": "safety",
+            "info": "Freischaltung NUR über zentralen Nottaster an ständig besetzter Stelle (Sicherheitskreis-Unterbrechung); erfordert Zustimmung im Einzelfall (ZiE) der Bauaufsichtsbehörde"
+          },
+          {
+            "id": "1cbf3dfb-2548-449e-8fb4-fc0090060db9",
+            "nr": "Schlüsseltaster",
+            "bezeichnung": "Integrierter Schlüsseltaster mit PHZ",
+            "funktion": "signal",
+            "info": "Per Flachbandkabel"
+          },
+          {
+            "id": "d95ecb2c-c829-43c0-b319-922d5fad0c48",
+            "nr": "Sabotagekontakt",
+            "bezeichnung": "Sabotageüberwachung Gehäuse",
+            "funktion": "signal",
+            "info": ""
+          }
+        ]
+      }
+    ],
+    "quelle": "GEZE Produktprospekt \"BEWEGUNG MIT SYSTEM – GEZE SecuLogic Rettungswegsysteme\", Id.Nr. 132167, Vers. DE 1809 — offizielle Herstellerbroschüre. Wo die Broschüre nur die Anzahl der Ein-/Ausgänge nennt (z.B. \"Anzahl Eingänge: 3 St.\"), aber keine konkrete Klemmennummer, sind die Klemmen hier als \"Eingang 1/2/3\" bzw. \"Ausgang 1/2\" durchnummeriert – bitte gegen die tatsächliche Klemmenbeschriftung am Gerät prüfen (laut Broschüre farbcodierte Installationsklemmen zur besseren Übersicht)."
+  },
+  {
+    "id": "8b89f7a6-467f-4f34-a594-743cbe507012",
+    "hersteller": "GEZE",
+    "modell": "SecuLogic Terminal T 320 (bidirektionaler Fluchtweg)",
+    "bauteile": [
+      {
+        "id": "5797ef20-522a-42d3-a061-f922300a9bec",
+        "typ": "steuerung",
+        "name": "Terminal T 320 (AP/UP, zweite Fluchtrichtung)",
+        "klemmen": [
+          {
+            "id": "0768e9ae-7796-4e2e-b3a2-9df5520d3a64",
+            "nr": "24V DC",
+            "bezeichnung": "Betriebs-/Versorgungsspannung",
+            "funktion": "power",
+            "info": "24V DC, Stromaufnahme 100mA"
+          },
+          {
+            "id": "f2d35646-b1d2-442c-af9f-85ecc70de4b6",
+            "nr": "Nottaste",
+            "bezeichnung": "Integrierte Nottaste",
+            "funktion": "signal",
+            "info": "Ermöglicht Freischaltung von der 2. Fluchtrichtung"
+          },
+          {
+            "id": "13032028-fa92-4e10-bd76-56f7dfe7ab7d",
+            "nr": "Schlüsseltaster",
+            "bezeichnung": "Integrierter Schlüsselschalter",
+            "funktion": "signal",
+            "info": "Per Flachbandkabel"
+          },
+          {
+            "id": "4d3ed755-5d83-4abe-a5eb-dd7438c716cd",
+            "nr": "Sabotagekontakt",
+            "bezeichnung": "Sabotageüberwachung Gehäuse",
+            "funktion": "signal",
+            "info": ""
+          },
+          {
+            "id": "cae1b8fb-a7fb-4d9e-865b-f741108db318",
+            "nr": "Bus +",
+            "bezeichnung": "GEZE-Bus Versorgung +",
+            "funktion": "power",
+            "info": "GEZE-Bus (CAN-Bus-Technologie) zur Vernetzung mehrerer Türzentralen/Tableaus. Die Produktbroschüre nennt keine numerierte Klemmenbezeichnung für die Busadern, nur die Anschlussart. Klemmenbezeichnung bitte am Gerät ablesen. Max. Buslänge 1000m (empfohlen max. 900m), bis zu 64 Teilnehmer, Stern-/Baumstruktur über Repeater möglich."
+          },
+          {
+            "id": "a56466b8-d310-4def-9d73-518a559b95b1",
+            "nr": "Bus –",
+            "bezeichnung": "GEZE-Bus Versorgung –",
+            "funktion": "power",
+            "info": "GEZE-Bus (CAN-Bus-Technologie) zur Vernetzung mehrerer Türzentralen/Tableaus. Die Produktbroschüre nennt keine numerierte Klemmenbezeichnung für die Busadern, nur die Anschlussart. Klemmenbezeichnung bitte am Gerät ablesen. Max. Buslänge 1000m (empfohlen max. 900m), bis zu 64 Teilnehmer, Stern-/Baumstruktur über Repeater möglich."
+          },
+          {
+            "id": "cadb4837-aeea-46a8-836a-40abe1604fd4",
+            "nr": "CAN-H",
+            "bezeichnung": "GEZE-Bus Datenleitung H",
+            "funktion": "data",
+            "info": "GEZE-Bus (CAN-Bus-Technologie) zur Vernetzung mehrerer Türzentralen/Tableaus. Die Produktbroschüre nennt keine numerierte Klemmenbezeichnung für die Busadern, nur die Anschlussart. Klemmenbezeichnung bitte am Gerät ablesen. Max. Buslänge 1000m (empfohlen max. 900m), bis zu 64 Teilnehmer, Stern-/Baumstruktur über Repeater möglich."
+          },
+          {
+            "id": "a0daf30c-a395-43b3-83af-3566f4d99f45",
+            "nr": "CAN-L",
+            "bezeichnung": "GEZE-Bus Datenleitung L",
+            "funktion": "data",
+            "info": "GEZE-Bus (CAN-Bus-Technologie) zur Vernetzung mehrerer Türzentralen/Tableaus. Die Produktbroschüre nennt keine numerierte Klemmenbezeichnung für die Busadern, nur die Anschlussart. Klemmenbezeichnung bitte am Gerät ablesen. Max. Buslänge 1000m (empfohlen max. 900m), bis zu 64 Teilnehmer, Stern-/Baumstruktur über Repeater möglich."
+          },
+          {
+            "id": "187671a1-b1ad-46ce-9147-0c6d5df845f3",
+            "nr": "TZ 320 Verbindung",
+            "bezeichnung": "Verbindung zur zugehörigen Türzentrale TZ 320",
+            "funktion": "data",
+            "info": "Steuerung/Überwachung erfolgt gleichwertig über T 320 oder TZ 320"
+          }
+        ]
+      }
+    ],
+    "quelle": "GEZE Produktprospekt \"BEWEGUNG MIT SYSTEM – GEZE SecuLogic Rettungswegsysteme\", Id.Nr. 132167, Vers. DE 1809 — offizielle Herstellerbroschüre. Wo die Broschüre nur die Anzahl der Ein-/Ausgänge nennt (z.B. \"Anzahl Eingänge: 3 St.\"), aber keine konkrete Klemmennummer, sind die Klemmen hier als \"Eingang 1/2/3\" bzw. \"Ausgang 1/2\" durchnummeriert – bitte gegen die tatsächliche Klemmenbeschriftung am Gerät prüfen (laut Broschüre farbcodierte Installationsklemmen zur besseren Übersicht)."
+  },
+  {
+    "id": "e5c6c81c-6148-4571-85d1-4ad700a67773",
+    "hersteller": "GEZE",
+    "modell": "SecuLogic Verriegelungselemente",
+    "bauteile": [
+      {
+        "id": "4167d702-4cdc-481e-847a-db2715427afe",
+        "typ": "verriegelung",
+        "name": "FTV 320 Fluchttürverriegelung",
+        "klemmen": [
+          {
+            "id": "241ac431-f560-4230-8952-ecc7441f045e",
+            "nr": "24V DC",
+            "bezeichnung": "Betriebsspannung",
+            "funktion": "power",
+            "info": "Stromaufnahme in verriegeltem Zustand 100mA; Ruhestromprinzip (entriegelt im stromlosen Zustand)"
+          },
+          {
+            "id": "85807db4-6d97-4a92-9e04-89cd897004dc",
+            "nr": "Rückmeldekontakt",
+            "bezeichnung": "Zustandsmeldung verriegelt/entriegelt",
+            "funktion": "signal",
+            "info": "Fallenvorlast 3.000N, Aufbruchfestigkeit 5.000N; keine Relaisplatine nötig, keine Doppelbelegung von Klemmen"
+          }
+        ]
+      },
+      {
+        "id": "9f53172a-6836-43e0-99d0-88096ebaeeb9",
+        "typ": "verriegelung",
+        "name": "FTÖ 331 Fluchttüröffner",
+        "klemmen": [
+          {
+            "id": "d5a3bb3b-ee29-481e-8568-119b480271ab",
+            "nr": "24V DC",
+            "bezeichnung": "Betriebsspannung",
+            "funktion": "power",
+            "info": "Stromaufnahme in verriegeltem Zustand 160mA; Ruhestromprinzip"
+          },
+          {
+            "id": "62faf28d-178e-4980-952e-fc799427bf8d",
+            "nr": "Rückmeldekontakt",
+            "bezeichnung": "Integrierter Anker- und Fallenkontakt",
+            "funktion": "signal",
+            "info": "Fallenvorlast 5.000N, Aufbruchfestigkeit 7.500N"
+          }
+        ]
+      },
+      {
+        "id": "e79519c8-2bba-4647-a3b9-1ac341076496",
+        "typ": "verriegelung",
+        "name": "FTÖ 332 Fluchttüröffner (kompakt)",
+        "klemmen": [
+          {
+            "id": "62f03987-aef1-4aed-bae3-c88b672a2de1",
+            "nr": "24V DC",
+            "bezeichnung": "Betriebsspannung",
+            "funktion": "power",
+            "info": "Stromaufnahme in verriegeltem Zustand 100mA; Ruhestromprinzip"
+          },
+          {
+            "id": "1986b31f-36b9-4d19-9da4-ecf90f67d775",
+            "nr": "Rückmeldekontakt",
+            "bezeichnung": "Integrierter Anker- und Fallenkontakt",
+            "funktion": "signal",
+            "info": "Fallenvorlast 3.000N, Aufbruchfestigkeit 3.000N"
+          }
+        ]
+      },
+      {
+        "id": "733a0cd3-d549-48fa-84e7-ddfa65f2a180",
+        "typ": "verriegelung",
+        "name": "MA 500 Haltemagnet",
+        "klemmen": [
+          {
+            "id": "407018ab-140c-4983-ae51-7d5fc46b8485",
+            "nr": "24V DC",
+            "bezeichnung": "Betriebsspannung",
+            "funktion": "power",
+            "info": "Ruhestromprinzip; integrierter Hall-Sensor"
+          },
+          {
+            "id": "667b7748-b2e3-4400-96be-d11f03ac3929",
+            "nr": "Meldekontakt",
+            "bezeichnung": "Meldung verriegelt/entriegelt",
+            "funktion": "signal",
+            "info": "Bicolor-LED: grün = verriegelt, rot = Störung; optional externer Reedkontakt (Flachreed-/Blockreedkontakt) als Türkontakt"
+          }
+        ]
+      },
+      {
+        "id": "b3845c11-cc73-4555-8504-0d374a84aaef",
+        "typ": "sonstiges",
+        "name": "RP 220 Relaisplatine (Zubehör für zusätzliche Türöffner)",
+        "klemmen": [
+          {
+            "id": "9e0ea801-8f82-4774-9cdb-8c425987a7ca",
+            "nr": "Anschluss TZ",
+            "bezeichnung": "Anbindung an TZ 300 / TZ 320 Ausgang",
+            "funktion": "signal",
+            "info": "Erforderlich zum Anschluss zusätzlicher elektrischer Türöffner oder Drückersperrschlösser, wenn diese nicht direkt an der Türzentrale betrieben werden können"
+          },
+          {
+            "id": "ef04f592-b711-41fa-97c8-6ff1c004dbc4",
+            "nr": "Türöffner-Ausgang",
+            "bezeichnung": "Geschaltete Spannung zum Türöffner/Drückersperrschloss",
+            "funktion": "power",
+            "info": "Keine detaillierte Klemmenbelegung im Prospekt angegeben"
+          }
+        ]
+      }
+    ],
+    "quelle": "GEZE Produktprospekt \"BEWEGUNG MIT SYSTEM – GEZE SecuLogic Rettungswegsysteme\", Id.Nr. 132167, Vers. DE 1809 — offizielle Herstellerbroschüre. Wo die Broschüre nur die Anzahl der Ein-/Ausgänge nennt (z.B. \"Anzahl Eingänge: 3 St.\"), aber keine konkrete Klemmennummer, sind die Klemmen hier als \"Eingang 1/2/3\" bzw. \"Ausgang 1/2\" durchnummeriert – bitte gegen die tatsächliche Klemmenbeschriftung am Gerät prüfen (laut Broschüre farbcodierte Installationsklemmen zur besseren Übersicht)."
+  },
+  {
+    "id": "0713fcf3-af26-4d26-aa63-daa12acea533",
+    "hersteller": "GEZE",
+    "modell": "SecuLogic Netzwerk- & Zentralkomponenten",
+    "bauteile": [
+      {
+        "id": "be75a527-906d-411e-8113-be7a19ea7b76",
+        "typ": "steuerung",
+        "name": "Tableaueinheit TE 220 (bis zu 20 Fluchttüren)",
+        "klemmen": [
+          {
+            "id": "e84db796-ceb4-49e0-a325-414a3074e6b6",
+            "nr": "Bus +",
+            "bezeichnung": "GEZE-Bus Versorgung +",
+            "funktion": "power",
+            "info": "GEZE-Bus (CAN-Bus-Technologie) zur Vernetzung mehrerer Türzentralen/Tableaus. Die Produktbroschüre nennt keine numerierte Klemmenbezeichnung für die Busadern, nur die Anschlussart. Klemmenbezeichnung bitte am Gerät ablesen. Max. Buslänge 1000m (empfohlen max. 900m), bis zu 64 Teilnehmer, Stern-/Baumstruktur über Repeater möglich."
+          },
+          {
+            "id": "4ce64280-934d-41dc-bbf4-9671608de289",
+            "nr": "Bus –",
+            "bezeichnung": "GEZE-Bus Versorgung –",
+            "funktion": "power",
+            "info": "GEZE-Bus (CAN-Bus-Technologie) zur Vernetzung mehrerer Türzentralen/Tableaus. Die Produktbroschüre nennt keine numerierte Klemmenbezeichnung für die Busadern, nur die Anschlussart. Klemmenbezeichnung bitte am Gerät ablesen. Max. Buslänge 1000m (empfohlen max. 900m), bis zu 64 Teilnehmer, Stern-/Baumstruktur über Repeater möglich."
+          },
+          {
+            "id": "57b4651b-6cba-4589-b128-ba0cb7495c3e",
+            "nr": "CAN-H",
+            "bezeichnung": "GEZE-Bus Datenleitung H",
+            "funktion": "data",
+            "info": "GEZE-Bus (CAN-Bus-Technologie) zur Vernetzung mehrerer Türzentralen/Tableaus. Die Produktbroschüre nennt keine numerierte Klemmenbezeichnung für die Busadern, nur die Anschlussart. Klemmenbezeichnung bitte am Gerät ablesen. Max. Buslänge 1000m (empfohlen max. 900m), bis zu 64 Teilnehmer, Stern-/Baumstruktur über Repeater möglich."
+          },
+          {
+            "id": "bab61678-d7bd-4ba4-847c-07fa9a4c1c86",
+            "nr": "CAN-L",
+            "bezeichnung": "GEZE-Bus Datenleitung L",
+            "funktion": "data",
+            "info": "GEZE-Bus (CAN-Bus-Technologie) zur Vernetzung mehrerer Türzentralen/Tableaus. Die Produktbroschüre nennt keine numerierte Klemmenbezeichnung für die Busadern, nur die Anschlussart. Klemmenbezeichnung bitte am Gerät ablesen. Max. Buslänge 1000m (empfohlen max. 900m), bis zu 64 Teilnehmer, Stern-/Baumstruktur über Repeater möglich."
+          },
+          {
+            "id": "4f89bd6f-d5b7-4e7d-828b-aa21b3942e74",
+            "nr": "Anzeige/Bedienung",
+            "bezeichnung": "Zentrale Anzeige & Steuerung",
+            "funktion": "signal",
+            "info": "Verriegelungszustand, Türzustand, Alarme je Bus-Teilnehmer; max. 20 Teilnehmer je Tableau. Keine gesonderte Spannungsversorgungs-Angabe im Prospekt."
+          }
+        ]
+      },
+      {
+        "id": "c8888052-068a-444e-a83f-4107697c5461",
+        "typ": "sonstiges",
+        "name": "Schnittstellenmodul IO 420 (BACnet-Modul)",
+        "klemmen": [
+          {
+            "id": "6ac91fe8-6c14-48c9-9699-e19775d8715d",
+            "nr": "24V DC",
+            "bezeichnung": "Betriebsspannung",
+            "funktion": "power",
+            "info": "±15%, mit Verpolungsschutz; Stromaufnahme max. 2,5A"
+          },
+          {
+            "id": "0d87b022-63d9-41da-99c9-70872aeea82f",
+            "nr": "Bus +",
+            "bezeichnung": "GEZE-Bus Versorgung +",
+            "funktion": "power",
+            "info": "GEZE-Bus (CAN-Bus-Technologie) zur Vernetzung mehrerer Türzentralen/Tableaus. Die Produktbroschüre nennt keine numerierte Klemmenbezeichnung für die Busadern, nur die Anschlussart. Klemmenbezeichnung bitte am Gerät ablesen. Max. Buslänge 1000m (empfohlen max. 900m), bis zu 64 Teilnehmer, Stern-/Baumstruktur über Repeater möglich."
+          },
+          {
+            "id": "25baa324-c381-47e8-91e9-ecd68b48555f",
+            "nr": "Bus –",
+            "bezeichnung": "GEZE-Bus Versorgung –",
+            "funktion": "power",
+            "info": "GEZE-Bus (CAN-Bus-Technologie) zur Vernetzung mehrerer Türzentralen/Tableaus. Die Produktbroschüre nennt keine numerierte Klemmenbezeichnung für die Busadern, nur die Anschlussart. Klemmenbezeichnung bitte am Gerät ablesen. Max. Buslänge 1000m (empfohlen max. 900m), bis zu 64 Teilnehmer, Stern-/Baumstruktur über Repeater möglich."
+          },
+          {
+            "id": "46b7c5d3-6c90-475f-b514-a8d4e90db9bc",
+            "nr": "CAN-H",
+            "bezeichnung": "GEZE-Bus Datenleitung H",
+            "funktion": "data",
+            "info": "GEZE-Bus (CAN-Bus-Technologie) zur Vernetzung mehrerer Türzentralen/Tableaus. Die Produktbroschüre nennt keine numerierte Klemmenbezeichnung für die Busadern, nur die Anschlussart. Klemmenbezeichnung bitte am Gerät ablesen. Max. Buslänge 1000m (empfohlen max. 900m), bis zu 64 Teilnehmer, Stern-/Baumstruktur über Repeater möglich."
+          },
+          {
+            "id": "8f1745d4-51e2-45b5-92ba-30727a466131",
+            "nr": "CAN-L",
+            "bezeichnung": "GEZE-Bus Datenleitung L",
+            "funktion": "data",
+            "info": "GEZE-Bus (CAN-Bus-Technologie) zur Vernetzung mehrerer Türzentralen/Tableaus. Die Produktbroschüre nennt keine numerierte Klemmenbezeichnung für die Busadern, nur die Anschlussart. Klemmenbezeichnung bitte am Gerät ablesen. Max. Buslänge 1000m (empfohlen max. 900m), bis zu 64 Teilnehmer, Stern-/Baumstruktur über Repeater möglich."
+          },
+          {
+            "id": "3ed593d5-be41-4991-92b2-ec13aa48b965",
+            "nr": "BACnet MS/TP",
+            "bezeichnung": "Anbindung an GEZE Cockpit / übergeordnete Gebäudeautomation",
+            "funktion": "data",
+            "info": "Ermöglicht busfähige Anbindung der GEZE-Produkte an BACnet"
+          }
+        ]
+      },
+      {
+        "id": "6f6985b1-75d3-4d18-8865-1a6714bed9bd",
+        "typ": "sonstiges",
+        "name": "Door Control Unit DCU 103",
+        "klemmen": [
+          {
+            "id": "318fb4f9-f646-4607-ab64-c77266ae6267",
+            "nr": "Bus +",
+            "bezeichnung": "GEZE-Bus Versorgung +",
+            "funktion": "power",
+            "info": "GEZE-Bus (CAN-Bus-Technologie) zur Vernetzung mehrerer Türzentralen/Tableaus. Die Produktbroschüre nennt keine numerierte Klemmenbezeichnung für die Busadern, nur die Anschlussart. Klemmenbezeichnung bitte am Gerät ablesen. Max. Buslänge 1000m (empfohlen max. 900m), bis zu 64 Teilnehmer, Stern-/Baumstruktur über Repeater möglich."
+          },
+          {
+            "id": "e0d2a2fa-0b7f-4c13-a77a-91734d36e223",
+            "nr": "Bus –",
+            "bezeichnung": "GEZE-Bus Versorgung –",
+            "funktion": "power",
+            "info": "GEZE-Bus (CAN-Bus-Technologie) zur Vernetzung mehrerer Türzentralen/Tableaus. Die Produktbroschüre nennt keine numerierte Klemmenbezeichnung für die Busadern, nur die Anschlussart. Klemmenbezeichnung bitte am Gerät ablesen. Max. Buslänge 1000m (empfohlen max. 900m), bis zu 64 Teilnehmer, Stern-/Baumstruktur über Repeater möglich."
+          },
+          {
+            "id": "9073fa4f-32a5-43e8-9632-ae5dba35a4b8",
+            "nr": "CAN-H",
+            "bezeichnung": "GEZE-Bus Datenleitung H",
+            "funktion": "data",
+            "info": "GEZE-Bus (CAN-Bus-Technologie) zur Vernetzung mehrerer Türzentralen/Tableaus. Die Produktbroschüre nennt keine numerierte Klemmenbezeichnung für die Busadern, nur die Anschlussart. Klemmenbezeichnung bitte am Gerät ablesen. Max. Buslänge 1000m (empfohlen max. 900m), bis zu 64 Teilnehmer, Stern-/Baumstruktur über Repeater möglich."
+          },
+          {
+            "id": "bc787633-97a2-4b2d-b70c-9dff948558e4",
+            "nr": "CAN-L",
+            "bezeichnung": "GEZE-Bus Datenleitung L",
+            "funktion": "data",
+            "info": "GEZE-Bus (CAN-Bus-Technologie) zur Vernetzung mehrerer Türzentralen/Tableaus. Die Produktbroschüre nennt keine numerierte Klemmenbezeichnung für die Busadern, nur die Anschlussart. Klemmenbezeichnung bitte am Gerät ablesen. Max. Buslänge 1000m (empfohlen max. 900m), bis zu 64 Teilnehmer, Stern-/Baumstruktur über Repeater möglich."
+          },
+          {
+            "id": "f7c541f1-e76e-4a84-a46d-f2582e3040b5",
+            "nr": "Antriebsanbindung",
+            "bezeichnung": "Schnittstelle zu GEZE Antriebstechnik (DCU 1, 2, 6)",
+            "funktion": "data",
+            "info": "Bindet automatische Türantriebe an das GEZE Gebäudesystem bzw. via IO 420 an BACnet an"
+          }
+        ]
+      },
+      {
+        "id": "29e46211-8a64-4716-a4c4-5fa6514c3fd2",
+        "typ": "sonstiges",
+        "name": "GEZE Bus-Repeater",
+        "klemmen": [
+          {
+            "id": "f4f303dd-a331-4271-bb20-4577896c63fa",
+            "nr": "10–32V DC",
+            "bezeichnung": "Betriebsspannung",
+            "funktion": "power",
+            "info": "Stromaufnahme 80mA bei 24V DC"
+          },
+          {
+            "id": "62df0f17-4bfa-4d9e-bedd-87fd349953b2",
+            "nr": "Bus +",
+            "bezeichnung": "GEZE-Bus Versorgung +",
+            "funktion": "power",
+            "info": "GEZE-Bus (CAN-Bus-Technologie) zur Vernetzung mehrerer Türzentralen/Tableaus. Die Produktbroschüre nennt keine numerierte Klemmenbezeichnung für die Busadern, nur die Anschlussart. Klemmenbezeichnung bitte am Gerät ablesen. Max. Buslänge 1000m (empfohlen max. 900m), bis zu 64 Teilnehmer, Stern-/Baumstruktur über Repeater möglich."
+          },
+          {
+            "id": "b1eb0dd8-fbbc-4ba7-98c3-2b5e4da58d21",
+            "nr": "Bus –",
+            "bezeichnung": "GEZE-Bus Versorgung –",
+            "funktion": "power",
+            "info": "GEZE-Bus (CAN-Bus-Technologie) zur Vernetzung mehrerer Türzentralen/Tableaus. Die Produktbroschüre nennt keine numerierte Klemmenbezeichnung für die Busadern, nur die Anschlussart. Klemmenbezeichnung bitte am Gerät ablesen. Max. Buslänge 1000m (empfohlen max. 900m), bis zu 64 Teilnehmer, Stern-/Baumstruktur über Repeater möglich."
+          },
+          {
+            "id": "614d7e2d-ec6e-4bd8-9a5b-6ec2d5127ab4",
+            "nr": "CAN-H",
+            "bezeichnung": "GEZE-Bus Datenleitung H",
+            "funktion": "data",
+            "info": "GEZE-Bus (CAN-Bus-Technologie) zur Vernetzung mehrerer Türzentralen/Tableaus. Die Produktbroschüre nennt keine numerierte Klemmenbezeichnung für die Busadern, nur die Anschlussart. Klemmenbezeichnung bitte am Gerät ablesen. Max. Buslänge 1000m (empfohlen max. 900m), bis zu 64 Teilnehmer, Stern-/Baumstruktur über Repeater möglich."
+          },
+          {
+            "id": "7106aac0-df7d-4bee-a447-10d2646c1101",
+            "nr": "CAN-L",
+            "bezeichnung": "GEZE-Bus Datenleitung L",
+            "funktion": "data",
+            "info": "GEZE-Bus (CAN-Bus-Technologie) zur Vernetzung mehrerer Türzentralen/Tableaus. Die Produktbroschüre nennt keine numerierte Klemmenbezeichnung für die Busadern, nur die Anschlussart. Klemmenbezeichnung bitte am Gerät ablesen. Max. Buslänge 1000m (empfohlen max. 900m), bis zu 64 Teilnehmer, Stern-/Baumstruktur über Repeater möglich."
+          },
+          {
+            "id": "0ec7c74d-23a6-42e5-8f5a-23496a7fccb5",
+            "nr": "Bus-Erweiterung",
+            "bezeichnung": "Verlängerung Buslänge um weitere 900m",
+            "funktion": "data",
+            "info": "Für Stern-/Baumstrukturen sind mehrere Repeater + Tragschienen-Connectoren nötig"
+          }
+        ]
+      }
+    ],
+    "quelle": "GEZE Produktprospekt \"BEWEGUNG MIT SYSTEM – GEZE SecuLogic Rettungswegsysteme\", Id.Nr. 132167, Vers. DE 1809 — offizielle Herstellerbroschüre. Wo die Broschüre nur die Anzahl der Ein-/Ausgänge nennt (z.B. \"Anzahl Eingänge: 3 St.\"), aber keine konkrete Klemmennummer, sind die Klemmen hier als \"Eingang 1/2/3\" bzw. \"Ausgang 1/2\" durchnummeriert – bitte gegen die tatsächliche Klemmenbeschriftung am Gerät prüfen (laut Broschüre farbcodierte Installationsklemmen zur besseren Übersicht)."
+  },
+  {
+    "id": "09d93105-999d-4994-97d6-d807b7dc45de",
+    "hersteller": "GEZE",
+    "modell": "SecuLogic Netzteile",
+    "bauteile": [
+      {
+        "id": "93d71b97-93a3-43f4-bc13-c5fffc0a7289",
+        "typ": "netzteil",
+        "name": "NET 320 (0,75A/24V DC, Unterputz)",
+        "klemmen": [
+          {
+            "id": "d6f7de0c-4547-49a9-aadd-5a8242cbc9b0",
+            "nr": "AC In",
+            "bezeichnung": "Netzeingang primär",
+            "funktion": "power",
+            "info": "230V AC, 50Hz"
+          },
+          {
+            "id": "e797abf1-dbc5-4740-9a98-5bcfb9808193",
+            "nr": "24V DC Out",
+            "bezeichnung": "Ausgang sekundär",
+            "funktion": "power",
+            "info": "24V DC ±5%, 750mA, 18W; Montage in tiefe UP-Dose"
+          }
+        ]
+      },
+      {
+        "id": "f1644646-3474-4d04-a1ee-3fbef9a64d44",
+        "typ": "netzteil",
+        "name": "NT 19.2–24 (0,8A/24V DC)",
+        "klemmen": [
+          {
+            "id": "a3bd661c-86f6-4a6e-a6a7-6b256c368cc9",
+            "nr": "AC In",
+            "bezeichnung": "Netzeingang primär",
+            "funktion": "power",
+            "info": "230V AC, 50Hz, Stromaufnahme 0,25A"
+          },
+          {
+            "id": "1491fb9a-5b14-4846-b897-324854b23ced",
+            "nr": "24V DC Out",
+            "bezeichnung": "Ausgang sekundär",
+            "funktion": "power",
+            "info": "24V DC, 800mA, 19,2W, IP54"
+          }
+        ]
+      },
+      {
+        "id": "deb36969-f06d-4a15-bdd6-fc68d4757441",
+        "typ": "netzteil",
+        "name": "NT 24 (5,0A/24V DC, Hutschiene)",
+        "klemmen": [
+          {
+            "id": "b775addc-6804-483d-81ce-ee4d0b23e6a7",
+            "nr": "AC In",
+            "bezeichnung": "Netzeingang primär",
+            "funktion": "power",
+            "info": "230V AC, 50Hz"
+          },
+          {
+            "id": "dcf18eff-f1e0-40ec-a636-11f0723a2ca3",
+            "nr": "24V DC Out",
+            "bezeichnung": "Ausgang sekundär",
+            "funktion": "power",
+            "info": "24V DC, 5A, 120W, IP20, Montage AP auf Hutschiene"
+          }
+        ]
+      },
+      {
+        "id": "67aa4af2-d3f0-4d96-85a7-60617409a22c",
+        "typ": "netzteil",
+        "name": "NT 24 (1,3A/24V DC, Hutschiene)",
+        "klemmen": [
+          {
+            "id": "d0d61592-4497-4d47-bb1c-bd1e18aa25e1",
+            "nr": "AC In",
+            "bezeichnung": "Netzeingang primär",
+            "funktion": "power",
+            "info": "230V AC, 50Hz"
+          },
+          {
+            "id": "76789202-810e-4bb6-8228-ee6dba2ea7db",
+            "nr": "24V DC Out",
+            "bezeichnung": "Ausgang sekundär",
+            "funktion": "power",
+            "info": "24V DC, 1,3A, 31,2W, IP20, Montage AP auf Hutschiene"
+          }
+        ]
+      }
+    ],
+    "quelle": "GEZE Produktprospekt \"BEWEGUNG MIT SYSTEM – GEZE SecuLogic Rettungswegsysteme\", Id.Nr. 132167, Vers. DE 1809 — offizielle Herstellerbroschüre. Wo die Broschüre nur die Anzahl der Ein-/Ausgänge nennt (z.B. \"Anzahl Eingänge: 3 St.\"), aber keine konkrete Klemmennummer, sind die Klemmen hier als \"Eingang 1/2/3\" bzw. \"Ausgang 1/2\" durchnummeriert – bitte gegen die tatsächliche Klemmenbeschriftung am Gerät prüfen (laut Broschüre farbcodierte Installationsklemmen zur besseren Übersicht)."
+  },
+  {
+    "id": "4b7e34ad-f753-458f-9e7a-766165e21b08",
+    "hersteller": "GEZE",
+    "modell": "SecuLogic Schlüsseltaster & Nottaster",
+    "bauteile": [
+      {
+        "id": "84471483-862b-4e58-b1b9-d3244008337d",
+        "typ": "taster",
+        "name": "SCT 320 Schlüsseltaster (beidseitig tastend, mit PHZ)",
+        "klemmen": [
+          {
+            "id": "f8af6d51-eb56-4f12-91d1-629a982d172d",
+            "nr": "Flachbandkabel",
+            "bezeichnung": "Anschluss an TZ 320/TZ 300/T 320",
+            "funktion": "signal",
+            "info": "Kontaktbelastung 24V DC, 1A; kein separater Klemmenblock, vorkonfektioniertes Flachbandkabel; Sabotagekontakt integriert"
+          }
+        ]
+      },
+      {
+        "id": "8698a359-c486-4562-a1f1-b770c3f2268e",
+        "typ": "taster",
+        "name": "SCT 221 Schlüsseltaster (einseitig tastend, AP/UP)",
+        "klemmen": [
+          {
+            "id": "0ffac884-3439-4698-af86-14b2672e2a2e",
+            "nr": "Kontakt",
+            "bezeichnung": "Schaltkontakt",
+            "funktion": "signal",
+            "info": "Leichtmetallgehäuse, IP54; Schlüssel nur in Mittelstellung abziehbar, Deckel nur mit Schlüssel demontierbar"
+          }
+        ]
+      },
+      {
+        "id": "1f3a315e-d5eb-4556-bf73-32b283bc0678",
+        "typ": "taster",
+        "name": "SCT 222 Schlüsseltaster mit LED-Anzeige (AP/UP)",
+        "klemmen": [
+          {
+            "id": "a61f9c41-cb67-450f-9667-1f11d5462e6d",
+            "nr": "24V DC",
+            "bezeichnung": "Betriebsspannung",
+            "funktion": "power",
+            "info": "Stromaufnahme 30mA, IP54"
+          },
+          {
+            "id": "809329b2-c390-4889-8de1-6bf36f928ed8",
+            "nr": "LED rechts",
+            "bezeichnung": "LED rot/grün (Zustandsanzeige)",
+            "funktion": "signal",
+            "info": ""
+          },
+          {
+            "id": "ac21eecb-6912-4bd2-8902-680d87fb495a",
+            "nr": "LED links",
+            "bezeichnung": "LED gelb (Zustandsanzeige)",
+            "funktion": "signal",
+            "info": ""
+          },
+          {
+            "id": "005ccc25-849a-41d3-9144-ff4a80a4751c",
+            "nr": "Kontakt",
+            "bezeichnung": "Schaltkontakt",
+            "funktion": "signal",
+            "info": ""
+          }
+        ]
+      },
+      {
+        "id": "87b4f769-fe6e-4ec8-8653-252cece66ef0",
+        "typ": "taster",
+        "name": "NOT 320 Nottaster (AP/UP, mit Rahmen)",
+        "klemmen": [
+          {
+            "id": "976a2b2c-a8b4-4ed7-b1a4-ded4794d17f0",
+            "nr": "24V DC",
+            "bezeichnung": "Betriebsspannung",
+            "funktion": "power",
+            "info": "Stromaufnahme 30mA"
+          },
+          {
+            "id": "7cbd6c41-f73e-432f-9076-998aea5add90",
+            "nr": "Öffnerkontakt",
+            "bezeichnung": "1 Öffnerkontakt",
+            "funktion": "signal",
+            "info": "Kontaktbelastbarkeit 1A, 30V"
+          },
+          {
+            "id": "7d4e263c-dcdb-42f3-8a84-fe6528740000",
+            "nr": "Schließerkontakt",
+            "bezeichnung": "1 Schließerkontakt",
+            "funktion": "signal",
+            "info": "Kontaktbelastbarkeit 1A, 30V"
+          }
+        ]
+      },
+      {
+        "id": "336397ab-152d-4684-856a-33496e8932cd",
+        "typ": "taster",
+        "name": "NOT 220 Nottaster (IP20/IP65, mit Fluchtwegschild)",
+        "klemmen": [
+          {
+            "id": "87a84dcb-4a7b-4cab-93fa-4266ffde7fed",
+            "nr": "Öffnerkontakt",
+            "bezeichnung": "1 Öffnerkontakt",
+            "funktion": "signal",
+            "info": "Teils zusätzlich 1 Schließerkontakt je nach Ausführung; keine Spannungsangabe im Prospekt"
+          }
+        ]
+      },
+      {
+        "id": "c00450a7-f4ab-4407-8bfd-f093dc91d071",
+        "typ": "sonstiges",
+        "name": "Serviceterminal ST 220 (Parametrierung/Diagnose, mobil)",
+        "klemmen": [
+          {
+            "id": "e3205970-a130-47f4-b212-443401934d3f",
+            "nr": "Infrarot",
+            "bezeichnung": "Infrarotschnittstelle zu TZ 320 / TE 220 / Antrieben",
+            "funktion": "data",
+            "info": "Batteriebetrieb 4x AA-Zellen; kontaktlose Parametrierung, kein Kabelanschluss an der Anlage"
+          }
+        ]
+      }
+    ],
+    "quelle": "GEZE Produktprospekt \"BEWEGUNG MIT SYSTEM – GEZE SecuLogic Rettungswegsysteme\", Id.Nr. 132167, Vers. DE 1809 — offizielle Herstellerbroschüre. Wo die Broschüre nur die Anzahl der Ein-/Ausgänge nennt (z.B. \"Anzahl Eingänge: 3 St.\"), aber keine konkrete Klemmennummer, sind die Klemmen hier als \"Eingang 1/2/3\" bzw. \"Ausgang 1/2\" durchnummeriert – bitte gegen die tatsächliche Klemmenbeschriftung am Gerät prüfen (laut Broschüre farbcodierte Installationsklemmen zur besseren Übersicht)."
+  },
+  {
+    "id": "4e6396b6-7783-47da-be8b-7cef0b3842df",
+    "hersteller": "GEZE",
+    "modell": "SecuLogic Signalgeräte",
+    "bauteile": [
+      {
+        "id": "ecaaeaf6-7e9e-4df3-852d-60def4cf4e4b",
+        "typ": "sonstiges",
+        "name": "SLE 220 Signalleuchte (AP/UP)",
+        "klemmen": [
+          {
+            "id": "b96334a2-1be3-4588-8d6a-0e67a56dba4a",
+            "nr": "24V DC",
+            "bezeichnung": "Betriebsspannung",
+            "funktion": "power",
+            "info": "Stromaufnahme 85mA; Reflektorfarbe grün oder rot"
+          }
+        ]
+      },
+      {
+        "id": "378f4bfb-7255-4952-9ec2-895a43ea03dc",
+        "typ": "sonstiges",
+        "name": "BLE 220 Blitzleuchte (AP)",
+        "klemmen": [
+          {
+            "id": "d7add4dc-152e-44fa-a324-dd94d6d33b3f",
+            "nr": "20–30V DC",
+            "bezeichnung": "Betriebsspannung",
+            "funktion": "power",
+            "info": "Stromaufnahme 90mA; Blitzfrequenz 1Hz ±20%, IP54"
+          }
+        ]
+      },
+      {
+        "id": "8499787d-41d2-4e73-b55a-b402268d38ab",
+        "typ": "sonstiges",
+        "name": "SLH 220 Signalhupe (AP/UP)",
+        "klemmen": [
+          {
+            "id": "0fea7b26-6786-4b97-90e7-06e07d1274b1",
+            "nr": "10–28V DC",
+            "bezeichnung": "Betriebsspannung",
+            "funktion": "power",
+            "info": "Stromaufnahme 16mA (AP) / 10mA (UP); Lautstärke regelbar bis 94–107dB/A, IP54"
+          }
+        ]
+      },
+      {
+        "id": "cc278baa-dbbe-4c4a-90f0-dc54f82dc4f7",
+        "typ": "sonstiges",
+        "name": "SHB 220 Signalhupe mit Blitzleuchte (AP)",
+        "klemmen": [
+          {
+            "id": "36fc1184-ad80-4653-a4aa-24f4d465d1e3",
+            "nr": "20–30V DC",
+            "bezeichnung": "Betriebsspannung",
+            "funktion": "power",
+            "info": "Stromaufnahme max. 110mA bei 24V DC; Lautstärke 74–94dB, IP54"
+          }
+        ]
+      }
+    ],
+    "quelle": "GEZE Produktprospekt \"BEWEGUNG MIT SYSTEM – GEZE SecuLogic Rettungswegsysteme\", Id.Nr. 132167, Vers. DE 1809 — offizielle Herstellerbroschüre. Wo die Broschüre nur die Anzahl der Ein-/Ausgänge nennt (z.B. \"Anzahl Eingänge: 3 St.\"), aber keine konkrete Klemmennummer, sind die Klemmen hier als \"Eingang 1/2/3\" bzw. \"Ausgang 1/2\" durchnummeriert – bitte gegen die tatsächliche Klemmenbeschriftung am Gerät prüfen (laut Broschüre farbcodierte Installationsklemmen zur besseren Übersicht)."
+  },
+  {
+    "id": "ff121423-09f3-466f-a1f6-06b33629a2a2",
     "hersteller": "E-Öffner",
+    "modell": "Divers",
+    "bauteile": [
+      {
+        "id": "01dc858f-05b0-4b7f-91c8-1436c50ac7d4",
+        "typ": "verriegelung",
+        "name": "E-Öffner 24 V",
+        "klemmen": [
+          {
+            "id": "0a7930bc-533d-4b33-8808-279a406825da",
+            "nr": "1",
+            "bezeichnung": "24V DC +",
+            "funktion": "power",
+            "info": ""
+          },
+          {
+            "id": "f6947a41-9669-494c-bf62-00b30b6c4290",
+            "nr": "2",
+            "bezeichnung": "GND",
+            "funktion": "power",
+            "info": ""
+          }
+        ]
+      },
+      {
+        "id": "9e3031c2-a059-4f2e-b9da-6c1f1b312a96",
+        "typ": "verriegelung",
+        "name": "E-Öffner 12V",
+        "klemmen": [
+          {
+            "id": "e46a197b-327e-4187-a65d-2f2a93e6dd85",
+            "nr": "1",
+            "bezeichnung": "12V DC +",
+            "funktion": "power",
+            "info": ""
+          },
+          {
+            "id": "19ad744a-0644-4a5f-bdf9-c200b16df9d3",
+            "nr": "2",
+            "bezeichnung": "GND",
+            "funktion": "power",
+            "info": ""
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "4e65c595-0ecb-4fbf-b444-901903419cb9",
+    "hersteller": "Netzteil",
     "modell": "24V DC",
     "bauteile": [
       {
-        "id": "1cf84c3e-197b-414d-bcb0-dd23c58c7b41",
-        "typ": "verriegelung",
-        "name": "Türöffner/Verriegelung",
-        "klemmen": [
-          {
-            "id": "b2bc2dab-30d0-469b-9e85-675b511e2d06",
-            "nr": "1",
-            "bezeichnung": "24VDC +",
-            "funktion": "power",
-            "info": "24VDC +"
-          },
-          {
-            "id": "9178c416-09b9-4fd7-8d8d-399a0a3e0e98",
-            "nr": "2",
-            "bezeichnung": "GND",
-            "funktion": "power",
-            "info": "GND"
-          }
-        ]
-      }
-    ]
-  },
-  {
-    "id": "c96697f6-5da6-4632-8110-fced921db2f5",
-    "hersteller": "E-Öffner",
-    "modell": "12V DC",
-    "bauteile": [
-      {
-        "id": "bd1b6650-9b64-47ac-9c76-0247a96982e6",
-        "typ": "verriegelung",
-        "name": "Türöffner/Verriegelung",
-        "klemmen": [
-          {
-            "id": "2bde276f-c62d-40b2-b71e-5cd521c2259c",
-            "nr": "1",
-            "bezeichnung": "12VDC +",
-            "funktion": "power",
-            "info": "12VDC +"
-          },
-          {
-            "id": "40bd505a-0f84-46a6-ba8b-6b0e86af0152",
-            "nr": "2",
-            "bezeichnung": "GND",
-            "funktion": "power",
-            "info": "GND"
-          }
-        ]
-      }
-    ]
-  },
-  {
-    "id": "c9f0e331-4df5-47e3-be76-018f15cfdfb0",
-    "hersteller": "dormakaba",
-    "modell": "ED100/250",
-    "bauteile": [
-      {
-        "id": "0feadb5a-8f53-4bbf-9585-f52aed2f3aeb",
-        "typ": "steuerung",
-        "name": "ED100/250",
-        "klemmen": [
-          {
-            "id": "8f0a2a31-fd95-4f8f-be2d-c20c1bda9600",
-            "nr": "42",
-            "bezeichnung": "Impuls Innen",
-            "funktion": "power",
-            "info": "Potentialfrei"
-          },
-          {
-            "id": "bca9ba78-bb53-4b6d-9815-7475b23f374f",
-            "nr": "41",
-            "bezeichnung": "Impuls Außen",
-            "funktion": "power",
-            "info": "Poterntialfrei"
-          },
-          {
-            "id": "0d9d3bfd-40a3-4dd1-87b0-b63e69af8c90",
-            "nr": "3",
-            "bezeichnung": "GND",
-            "funktion": "power",
-            "info": "GND"
-          },
-          {
-            "id": "253b70ac-dc39-4c64-bdfb-47124c31697a",
-            "nr": "1",
-            "bezeichnung": "24V DC",
-            "funktion": "power",
-            "info": "24V DC"
-          },
-          {
-            "id": "e0da957e-4124-428b-a4d6-af41528b4a8f",
-            "nr": "A",
-            "bezeichnung": "Busleitung A",
-            "funktion": "data",
-            "info": "Busleitung A"
-          },
-          {
-            "id": "9c2abee6-bbef-4e3e-ad2d-2b87664a5497",
-            "nr": "B",
-            "bezeichnung": "Busleitung B",
-            "funktion": "data",
-            "info": "Busleitung B"
-          },
-          {
-            "id": "b8564700-e6a9-4dc4-92d1-ceca208bba95",
-            "nr": "1G",
-            "bezeichnung": "24V DC Dauerspannung",
-            "funktion": "power",
-            "info": "24V DC Dauerspannung"
-          },
-          {
-            "id": "e991f2f5-3898-4fab-97f0-cc82e4bcc1a7",
-            "nr": "62",
-            "bezeichnung": "Relais C",
-            "funktion": "power",
-            "info": "Relais C"
-          },
-          {
-            "id": "397bbf75-24e8-43e0-b4a7-1dc776b6154b",
-            "nr": "63",
-            "bezeichnung": "Relais NO",
-            "funktion": "power",
-            "info": "Relais NO"
-          },
-          {
-            "id": "9052d3f9-2a0f-4bcb-8ef1-9069ebadeb70",
-            "nr": "64",
-            "bezeichnung": "Relais NC",
-            "funktion": "power",
-            "info": "Relais NC"
-          },
-          {
-            "id": "30989194-6141-41af-aa7a-a27d1ecf0611",
-            "nr": "43",
-            "bezeichnung": "Verriegelungsrückmeldung",
-            "funktion": "power",
-            "info": "Verriegelungsrückmeldung"
-          }
-        ]
-      }
-    ]
-  },
-  {
-    "id": "6a9d59fd-4986-4cc0-8ca2-df2521215183",
-    "hersteller": "Netzteil",
-    "modell": "230VAC zu 24VDC",
-    "bauteile": [
-      {
-        "id": "fde5ad95-17d8-449c-9e24-a783a5c46c53",
+        "id": "8f9f651b-904b-4e81-beac-5beaac8d61dc",
         "typ": "netzteil",
-        "name": "Netzteil 24VDC",
+        "name": "Netzteil",
         "klemmen": [
           {
-            "id": "f689ff47-6863-4e13-8b45-89161d1afed4",
+            "id": "ca8efce2-3503-403c-b786-d80ee1a73b03",
             "nr": "1",
-            "bezeichnung": "24VDC +",
+            "bezeichnung": "24V DC +",
             "funktion": "power",
             "info": ""
           },
           {
-            "id": "f341ccdd-ed32-4f62-9058-297488213037",
-            "nr": "2",
-            "bezeichnung": "GND",
-            "funktion": "power",
-            "info": ""
-          }
-        ]
-      }
-    ]
-  },
-  {
-    "id": "4a15b49e-d4b4-4255-a941-1a1dd401d32a",
-    "hersteller": "Netzteil",
-    "modell": "230VAC zu 12 VDC",
-    "bauteile": [
-      {
-        "id": "be641e00-fda7-46d0-975e-8b9934c441e2",
-        "typ": "netzteil",
-        "name": "Netzteil 12VDC",
-        "klemmen": [
-          {
-            "id": "e247ee3d-bc3d-4367-b03a-b103418def1f",
-            "nr": "1",
-            "bezeichnung": "12VDC",
-            "funktion": "power",
-            "info": ""
-          },
-          {
-            "id": "90fc3fef-de85-4eee-a22a-6d1ff09fd51d",
+            "id": "0741d3ce-7db9-41de-8bdf-0a42aeb012b2",
             "nr": "2",
             "bezeichnung": "GND",
             "funktion": "power",

@@ -7,15 +7,15 @@
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="apple-mobile-web-app-title" content="STOBER Schiebetür">
   <meta name="mobile-web-app-capable" content="yes">
-  <meta name="theme-color" content="#001B43">
+  <meta name="theme-color" content="#0a0a0c">
   <link rel="apple-touch-icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'%3E%3Crect width='512' height='512' rx='112' fill='%231A2D44'/%3E%3Crect x='40' y='60' width='20' height='392' rx='6' fill='%23D95E1F'/%3E%3Ctext x='75' y='310' font-family='Arial' font-weight='900' font-size='105' fill='white'%3ESCH%3C/text%3E%3C/svg%3E">
   <title>STOBER – Schiebetür Konfigurator</title>
 <style>
   :root{
-    --bg:#F2F4F7;--panel:#fff;--primary:#091636;--accent:#001B43;
-    --accent-l:#EEF2F8;--border:#D2DAE3;--muted:#6B7A8D;
-    --ok:#2A7A4B;--ok-l:#EAF7EF;--warn:#B45309;--warn-l:#FEF3C7;
-    --geze:#005A9C;--geze-l:#E6F0FA;
+    --bg:#0a0a0c;--panel:#111318;--primary:#e9edf2;--accent:#3a7bd5;
+    --accent-l:rgba(58,123,213,.15);--border:rgba(58,123,213,.25);--muted:#8b95a0;
+    --ok:#3ecf8e;--ok-l:rgba(62,207,142,.15);--warn:#e0a53d;--warn-l:rgba(224,165,61,.15);
+    --geze:#3a7bd5;--geze-l:rgba(58,123,213,.15);--glow:#5eead4;
     --safe-top:env(safe-area-inset-top,0px);--safe-bot:env(safe-area-inset-bottom,0px);
   }
   *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
@@ -39,7 +39,7 @@
   #prog-pct{color:#fff;font-size:11px;font-weight:700}
   #prog-bar{height:3px;background:var(--border)}
   #prog-fill{height:100%;transition:width .3s,background .3s}
-  #install-banner{background:#0A84FF;padding:12px 16px;display:flex;align-items:center;gap:10px}
+  #install-banner{background:var(--accent);padding:12px 16px;display:flex;align-items:center;gap:10px}
   #install-banner.hidden{display:none}
   #install-close{background:rgba(255,255,255,.2);border:none;border-radius:99px;padding:4px 10px;color:#fff;font-size:13px;font-weight:600;min-height:32px}
 
@@ -47,29 +47,29 @@
   #prod-sw{padding:14px 14px 0;display:grid;grid-template-columns:1fr 1fr;gap:10px}
   .ptab{flex:1;padding:14px 10px;border-radius:12px;border:2px solid var(--border);background:var(--panel);
         display:flex;flex-direction:column;align-items:center;gap:5px;cursor:pointer;transition:.15s}
-  .ptab.ak-dk{border-color:#D95E1F;background:#FFF5EF}
-  .ptab.ak-gz{border-color:#FFC72C;background:#FFFAEE}
-  .ptab.ak-rc{border-color:#1FAE85;background:#EAFBF5}
-  .ptab.ak-gi{border-color:#9B59B6;background:#F7EEFB}
+  .ptab.ak-dk{border-color:#D95E1F;background:rgba(217,94,31,.12)}
+  .ptab.ak-gz{border-color:#FFC72C;background:rgba(255,199,44,.12)}
+  .ptab.ak-rc{border-color:#1FAE85;background:rgba(31,174,133,.12)}
+  .ptab.ak-gi{border-color:#9B59B6;background:rgba(155,89,182,.12)}
   .ptab-icon{font-size:22px}
   .ptab-name{font-weight:700;font-size:13px;color:var(--primary)}
   .ptab-sub{font-size:11px;color:var(--muted)}
   .ptab.ak-dk .ptab-name{color:#D95E1F}
-  .ptab.ak-gz .ptab-name{color:#7A5000}
-  .ptab.ak-rc .ptab-name{color:#0B3D33}
-  .ptab.ak-gi .ptab-name{color:#6C3483}
+  .ptab.ak-gz .ptab-name{color:#f0c05a}
+  .ptab.ak-rc .ptab-name{color:#2fd9a3}
+  .ptab.ak-gi .ptab-name{color:#B388D9}
 
   #content{padding:14px 14px 0}
 
   .alert{border-radius:10px;padding:12px 14px;margin-bottom:14px;display:flex;align-items:flex-start;gap:10px}
   .alert-ok{background:var(--ok-l);border:1px solid rgba(42,122,75,.25)}
   .alert-warn{background:var(--warn-l);border:1px solid rgba(180,83,9,.25)}
-  .alert-info{background:#E8F0FE;border:1px solid rgba(26,45,68,.15)}
-  .alert-gz{background:#FFC72C22;border:1px solid rgba(255,199,44,.4)}
+  .alert-info{background:rgba(58,123,213,.12);border:1px solid rgba(58,123,213,.3)}
+  .alert-gz{background:rgba(255,199,44,.12);border:1px solid rgba(255,199,44,.4)}
   .alert-icon{font-size:18px;flex-shrink:0;margin-top:1px}
   .alert-head{font-weight:700;font-size:14px}
   .alert-head.ok{color:var(--ok)}.alert-head.warn{color:var(--warn)}
-  .alert-head.info{color:var(--primary)}.alert-head.gz{color:#7A5000}.alert-head.rc{color:#0B3D33}.alert-head.gi{color:#6C3483}
+  .alert-head.info{color:var(--primary)}.alert-head.gz{color:#f0c05a}.alert-head.rc{color:#2fd9a3}.alert-head.gi{color:#B388D9}
   .alert-body{color:var(--muted);font-size:12px;margin-top:2px}
 
   .section{background:var(--panel);border-radius:12px;margin-bottom:14px;overflow:hidden;box-shadow:0 1px 4px rgba(26,45,68,.08)}
@@ -95,10 +95,10 @@
   .btn-group{display:flex;flex-wrap:wrap;gap:8px}
   .opt-btn{padding:10px 14px;border-radius:8px;border:2px solid var(--border);background:var(--panel);color:var(--muted);
            font-weight:500;font-size:13px;display:flex;align-items:center;gap:5px;min-height:44px;transition:.12s}
-  .opt-btn.sel-dk{border-color:#D95E1F;background:#FFF5EF;color:#D95E1F;font-weight:700}
-  .opt-btn.sel-gz{border-color:#FFC72C;background:#FFFAEE;color:#7A5000;font-weight:700}
-  .opt-btn.sel-rc{border-color:#1FAE85;background:#EAFBF5;color:#0B3D33;font-weight:700}
-  .opt-btn.sel-gi{border-color:#9B59B6;background:#F7EEFB;color:#6C3483;font-weight:700}
+  .opt-btn.sel-dk{border-color:#D95E1F;background:rgba(217,94,31,.12);color:#D95E1F;font-weight:700}
+  .opt-btn.sel-gz{border-color:#FFC72C;background:rgba(255,199,44,.12);color:#f0c05a;font-weight:700}
+  .opt-btn.sel-rc{border-color:#1FAE85;background:rgba(31,174,133,.12);color:#2fd9a3;font-weight:700}
+  .opt-btn.sel-gi{border-color:#9B59B6;background:rgba(155,89,182,.12);color:#B388D9;font-weight:700}
   .opt-sub{font-size:11px;opacity:.75;font-weight:400}
   .chk-box{width:16px;height:16px;border-radius:4px;border:2px solid var(--border);background:transparent;
            display:inline-flex;align-items:center;justify-content:center;flex-shrink:0;font-size:10px;font-weight:900;color:transparent;transition:.12s}
@@ -110,16 +110,16 @@
   /* Modell cards */
   .modell-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:6px}
   .modell-card{border:2px solid var(--border);border-radius:10px;padding:12px;background:var(--panel);cursor:pointer;transition:.12s}
-  .modell-card.sel-dk{border-color:#D95E1F;background:#FFF5EF}
-  .modell-card.sel-gz{border-color:#FFC72C;background:#FFFAEE}
-  .modell-card.sel-rc{border-color:#1FAE85;background:#EAFBF5}
-  .modell-card.sel-gi{border-color:#9B59B6;background:#F7EEFB}
+  .modell-card.sel-dk{border-color:#D95E1F;background:rgba(217,94,31,.12)}
+  .modell-card.sel-gz{border-color:#FFC72C;background:rgba(255,199,44,.12)}
+  .modell-card.sel-rc{border-color:#1FAE85;background:rgba(31,174,133,.12)}
+  .modell-card.sel-gi{border-color:#9B59B6;background:rgba(155,89,182,.12)}
   .modell-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:5px}
   .modell-name{font-weight:800;font-size:13px;color:var(--primary)}
   .modell-card.sel-dk .modell-name{color:#D95E1F}
-  .modell-card.sel-gz .modell-name{color:#7A5000}
-  .modell-card.sel-rc .modell-name{color:#0B3D33}
-  .modell-card.sel-gi .modell-name{color:#6C3483}
+  .modell-card.sel-gz .modell-name{color:#f0c05a}
+  .modell-card.sel-rc .modell-name{color:#2fd9a3}
+  .modell-card.sel-gi .modell-name{color:#B388D9}
   .modell-badge{font-size:10px;font-weight:700;padding:2px 7px;border-radius:99px;display:inline-block;margin-bottom:5px}
   .modell-card.sel-dk .modell-badge{background:#D95E1F;color:#fff}
   .modell-card.sel-gz .modell-badge{background:#FFC72C;color:#001B43}
@@ -155,55 +155,55 @@
   .pdf-hint{font-size:11px;color:var(--muted);margin-top:8px;text-align:center}
   /* PayPal Payment Modal */
   #paywall-overlay{
-    display:none;position:fixed;inset:0;background:rgba(9,22,54,.65);
+    display:none;position:fixed;inset:0;background:rgba(0,0,0,.75);
     z-index:9999;align-items:center;justify-content:center;padding:20px;
   }
   #paywall-overlay.visible{display:flex;}
   #paywall-box{
-    background:#fff;border-radius:16px;max-width:360px;width:100%;
+    background:var(--panel);border-radius:16px;max-width:360px;width:100%;
     box-shadow:0 8px 40px rgba(0,0,0,.25);overflow:hidden;
   }
   #paywall-header{
-    background:linear-gradient(135deg,#091636 0%,#1B3A6B 100%);
+    background:linear-gradient(135deg,#0d1420 0%,#1e3a5f 100%);
     padding:20px;text-align:center;
   }
   #paywall-header h2{color:#fff;font-size:17px;font-weight:800;margin-bottom:4px;}
   #paywall-header p{color:rgba(255,255,255,.7);font-size:12px;}
   #paywall-body{padding:20px;}
   #paywall-price{
-    text-align:center;padding:14px;background:#F8F9FC;
+    text-align:center;padding:14px;background:#161a22;
     border-radius:10px;margin-bottom:16px;
   }
-  #paywall-price .amount{font-size:32px;font-weight:900;color:#001B43;}
-  #paywall-price .label{font-size:12px;color:#6B7A8D;margin-top:2px;}
+  #paywall-price .amount{font-size:32px;font-weight:900;color:var(--accent);}
+  #paywall-price .label{font-size:12px;color:var(--muted);margin-top:2px;}
   .paywall-step{
     display:flex;align-items:flex-start;gap:10px;
-    margin-bottom:12px;font-size:13px;color:#4A5568;
+    margin-bottom:12px;font-size:13px;color:var(--muted);
   }
   .paywall-step .step-num{
-    width:22px;height:22px;border-radius:50%;background:#001B43;
+    width:22px;height:22px;border-radius:50%;background:var(--accent);
     color:#fff;font-weight:700;font-size:11px;
     display:flex;align-items:center;justify-content:center;flex-shrink:0;
   }
   #btn-paypal{
     display:flex;align-items:center;justify-content:center;gap:8px;
     width:100%;padding:14px;border-radius:10px;border:none;
-    background:#003087;color:#fff;font-size:15px;font-weight:700;
+    background:var(--accent);color:#fff;font-size:15px;font-weight:700;
     cursor:pointer;font-family:inherit;margin-bottom:10px;
     text-decoration:none;
   }
   #btn-paypal .pp-yellow{color:#FFD700;font-weight:900;}
   #btn-paid{
     display:none;width:100%;padding:14px;border-radius:10px;border:none;
-    background:#2A7A4B;color:#fff;font-size:15px;font-weight:700;
+    background:var(--ok);color:#0a0a0c;font-size:15px;font-weight:700;
     cursor:pointer;font-family:inherit;margin-bottom:10px;
   }
   #btn-cancel-pay{
-    width:100%;padding:10px;border-radius:10px;border:1.5px solid #D2DAE3;
-    background:#fff;color:#6B7A8D;font-size:13px;cursor:pointer;font-family:inherit;
+    width:100%;padding:10px;border-radius:10px;border:1.5px solid var(--border);
+    background:#161a22;color:var(--muted);font-size:13px;cursor:pointer;font-family:inherit;
   }
   #paywall-hint{
-    font-size:11px;color:#6B7A8D;text-align:center;
+    font-size:11px;color:var(--muted);text-align:center;
     margin-top:10px;line-height:1.5;
   }
 
@@ -212,28 +212,28 @@
   .bug-btn {
     display: inline-flex; align-items: center; gap: 8px;
     padding: 11px 20px; border-radius: 99px;
-    border: 1.5px solid #D2DAE3; background: #fff;
-    color: #6B7A8D; font-size: 13px; font-weight: 500;
+    border: 1.5px solid var(--border); background: var(--panel);
+    color: var(--muted); font-size: 13px; font-weight: 500;
     font-family: inherit; cursor: pointer;
     text-decoration: none; transition: all .15s;
   }
-  .bug-btn:hover { border-color: #C0392B; color: #C0392B; background: #FDECEA; }
+  .bug-btn:hover { border-color: #e05a4e; color: #e05a4e; background: rgba(224,90,78,.15); }
 
 
   /* ─── Vorlagen Modal ─────────────────────────────────────── */
-  #vorlagen-overlay{display:none;position:fixed;inset:0;background:rgba(9,22,54,.65);z-index:9998;align-items:flex-end;justify-content:center;padding:0}
+  #vorlagen-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:9998;align-items:flex-end;justify-content:center;padding:0}
   #vorlagen-overlay.visible{display:flex}
-  #vorlagen-box{background:#fff;border-radius:20px 20px 0 0;width:100%;max-width:540px;max-height:82vh;overflow:hidden;display:flex;flex-direction:column;box-shadow:0 -4px 32px rgba(0,0,0,.18)}
+  #vorlagen-box{background:var(--panel);border-radius:20px 20px 0 0;width:100%;max-width:540px;max-height:82vh;overflow:hidden;display:flex;flex-direction:column;box-shadow:0 -4px 32px rgba(0,0,0,.6)}
   .vbox-hdr{background:#1A2D44;padding:16px 18px;display:flex;align-items:center;justify-content:space-between}
   .vbox-hdr h3{color:#fff;font-size:15px;font-weight:800}
   .vbox-hdr span{color:rgba(255,255,255,.55);font-size:12px}
   .vbox-close{background:rgba(255,255,255,.15);border:none;color:#fff;font-size:16px;border-radius:50%;width:28px;height:28px;cursor:pointer;font-family:inherit}
   .vbox-body{flex:1;overflow-y:auto;padding:14px 16px}
-  .vbox-save-row{padding:14px 16px;border-top:1px solid #E8EDF3;display:flex;gap:8px}
-  .vbox-save-row input{flex:1;padding:10px 12px;border:2px solid #D2DAE3;border-radius:8px;font-size:14px;font-family:inherit;outline:none}
-  .vbox-save-row input:focus{border-color:#001B43}
-  .vbox-save-btn{padding:10px 16px;border:none;border-radius:8px;background:#001B43;color:#fff;font-weight:700;font-size:13px;cursor:pointer;font-family:inherit;white-space:nowrap}
-  .vbox-reset-btn{padding:10px 14px;border:1.5px solid #D2DAE3;border-radius:8px;background:#fff;color:#C0392B;font-weight:600;font-size:12px;cursor:pointer;font-family:inherit}
+  .vbox-save-row{padding:14px 16px;border-top:1px solid var(--border);display:flex;gap:8px}
+  .vbox-save-row input{flex:1;padding:10px 12px;border:2px solid var(--border);border-radius:8px;font-size:14px;font-family:inherit;outline:none;background:#161a22;color:var(--primary)}
+  .vbox-save-row input:focus{border-color:var(--glow);box-shadow:0 0 0 3px rgba(94,234,212,.2)}
+  .vbox-save-btn{padding:10px 16px;border:none;border-radius:8px;background:var(--accent);color:#fff;font-weight:700;font-size:13px;cursor:pointer;font-family:inherit;white-space:nowrap}
+  .vbox-reset-btn{padding:10px 14px;border:1.5px solid var(--border);border-radius:8px;background:#161a22;color:#e05a4e;font-weight:600;font-size:12px;cursor:pointer;font-family:inherit}
 
   /* ─── Admin Panel ────────────────────────────────────────── */
 
@@ -243,19 +243,19 @@
 
 
   /* ─── Mitarbeitercode-Gate ───────────────────────────────── */
-  #code-gate{display:none;position:fixed;inset:0;background:rgba(9,22,54,.65);z-index:10000;align-items:center;justify-content:center;padding:20px}
+  #code-gate{display:none;position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:10000;align-items:center;justify-content:center;padding:20px}
   #code-gate.visible{display:flex}
-  #code-gate-box{background:#fff;border-radius:16px;max-width:340px;width:100%;box-shadow:0 8px 40px rgba(0,0,0,.25);padding:24px 22px;text-align:center}
+  #code-gate-box{background:var(--panel);border-radius:16px;max-width:340px;width:100%;box-shadow:0 8px 40px rgba(0,0,0,.6);padding:24px 22px;text-align:center}
   #code-gate-box .gate-icon{font-size:34px;margin-bottom:8px}
-  #code-gate-box h2{font-size:17px;font-weight:800;color:#001B43;margin-bottom:6px}
-  #code-gate-box p{font-size:12px;color:#6B7A8D;line-height:1.5;margin-bottom:16px}
+  #code-gate-box h2{font-size:17px;font-weight:800;color:var(--primary);margin-bottom:6px}
+  #code-gate-box p{font-size:12px;color:var(--muted);line-height:1.5;margin-bottom:16px}
   .gate-code-wrap{display:flex;gap:8px}
-  .gate-code-wrap input{flex:1;padding:11px 12px;border-radius:8px;border:2px solid #D2DAE3;font-size:15px;font-family:inherit;outline:none;letter-spacing:.1em;text-align:center}
-  .gate-code-wrap button{padding:11px 16px;border-radius:8px;border:none;background:#001B43;color:#fff;font-weight:700;font-size:14px;cursor:pointer;font-family:inherit}
+  .gate-code-wrap input{flex:1;padding:11px 12px;border-radius:8px;border:2px solid var(--border);font-size:15px;font-family:inherit;outline:none;letter-spacing:.1em;text-align:center;background:#161a22;color:var(--primary)}
+  .gate-code-wrap button{padding:11px 16px;border-radius:8px;border:none;background:var(--accent);color:#fff;font-weight:700;font-size:14px;cursor:pointer;font-family:inherit}
   #code-gate-msg{margin-top:10px;font-size:12px;min-height:16px}
-  #code-gate-msg.ok{color:#2A7A4B;font-weight:700}
-  #code-gate-msg.err{color:#C0392B;font-weight:600}
-  #code-gate-skip{margin-top:16px;background:none;border:none;color:#6B7A8D;font-size:12px;cursor:pointer;text-decoration:underline;font-family:inherit}
+  #code-gate-msg.ok{color:var(--ok);font-weight:700}
+  #code-gate-msg.err{color:#e05a4e;font-weight:600}
+  #code-gate-skip{margin-top:16px;background:none;border:none;color:var(--muted);font-size:12px;cursor:pointer;text-decoration:underline;font-family:inherit}
 </style>
 </head>
 <body>
@@ -344,31 +344,31 @@
       </button>
 
       <!-- Mitarbeitercode -->
-      <div style="margin-top:14px;border-top:1px solid #E8EDF3;padding-top:14px">
-        <div style="font-size:12px;font-weight:600;color:#6B7A8D;margin-bottom:8px;text-align:center">
+      <div style="margin-top:14px;border-top:1px solid var(--border);padding-top:14px">
+        <div style="font-size:12px;font-weight:600;color:var(--muted);margin-bottom:8px;text-align:center">
           🔑 Mitarbeiter? Code eingeben:
         </div>
         <div style="display:flex;gap:8px">
           <input id="ma-code-input" type="password" placeholder="Mitarbeitercode"
-            style="flex:1;padding:10px 12px;border-radius:8px;border:2px solid #D2DAE3;
+            style="flex:1;padding:10px 12px;border-radius:8px;border:2px solid var(--border);
                    font-size:15px;font-family:inherit;outline:none;letter-spacing:.2em"
             onkeydown="if(event.key==='Enter') checkMaCode()">
           <button onclick="checkMaCode()"
             style="padding:10px 16px;border-radius:8px;border:none;
-                   background:#001B43;color:#fff;font-weight:700;font-size:13px;
+                   background:var(--accent);color:#fff;font-weight:700;font-size:13px;
                    cursor:pointer;font-family:inherit;white-space:nowrap">
             ✓ OK
           </button>
         </div>
         <div id="ma-code-error"
-          style="display:none;margin-top:6px;font-size:12px;color:#C0392B;text-align:center">
+          style="display:none;margin-top:6px;font-size:12px;color:#e05a4e;text-align:center">
           ❌ Ungültiger Code. Bitte erneut versuchen.
         </div>
       </div>
 
       <p id="paywall-hint">
         Mit der Zahlung stimmst du den Nutzungsbedingungen zu.<br>
-        Bei Fragen: <a href="mailto:gerdau1979@gmail.com" style="color:#001B43">gerdau1979@gmail.com</a>
+        Bei Fragen: <a href="mailto:gerdau1979@gmail.com" style="color:var(--accent)">gerdau1979@gmail.com</a>
       </p>
     </div>
   </div>
@@ -577,10 +577,10 @@ function getEmp(){
 function radio(label,hint,field,options,req){
   var val=S[field]||"",cls=sc();
   var missing=req&&!val;
-  return '<div class="field" style="'+(missing?'border-left:3px solid #C0392B;padding-left:10px;margin-left:-13px;':'')+'">'+
+  return '<div class="field" style="'+(missing?'border-left:3px solid #e05a4e;padding-left:10px;margin-left:-13px;':'')+'">'+
     '<div class="field-label">'+label+
     (req?'<span class="field-req">*</span>':'')+
-    (missing?'<span style="margin-left:8px;font-size:11px;font-weight:600;color:#C0392B;background:#FDECEA;padding:2px 8px;border-radius:99px">Pflichtfeld</span>':'')+
+    (missing?'<span style="margin-left:8px;font-size:11px;font-weight:600;color:#e05a4e;background:rgba(224,90,78,.15);padding:2px 8px;border-radius:99px">Pflichtfeld</span>':'')+
     '</div>'+(hint?'<p class="field-hint">'+hint+'</p>':'')+
     '<div class="btn-group">'+
     options.map(function(o){
@@ -616,7 +616,7 @@ function txtInput(label,field,placeholder){
 }
 function buildProjectData(){
   return '<div style="padding:14px 14px 0">'+
-    '<div style="background:#fff;border-radius:12px;overflow:hidden;box-shadow:0 1px 4px rgba(26,45,68,.08)">'+
+    '<div style="background:var(--panel);border-radius:12px;overflow:hidden;box-shadow:0 1px 4px rgba(0,0,0,.4)">'+
     '<div style="background:#1A2D44;padding:13px 18px;display:flex;align-items:center;gap:10px">'+
     '<span style="font-size:18px">📋</span>'+
     '<span style="color:#fff;font-weight:700;font-size:13px;letter-spacing:.05em;text-transform:uppercase">Projekt &amp; Auftraggeber</span>'+
@@ -626,7 +626,7 @@ function buildProjectData(){
     '<div class="field"><div class="field-label">Aufgenommen durch</div>'+
     '<div style="display:flex;gap:8px;align-items:center">'+
     '<input type="text" class="txt-input ma-lookup-input" inputmode="text" maxlength="10" placeholder="Mitarbeitercode" value="'+esc(S.aufgenommenCode||'')+'" style="width:140px">'+
-    (S.aufgenommenDurch?'<span style="font-weight:700;font-size:14px;color:#2A7A4B">✓ '+esc(S.aufgenommenDurch)+'</span>':'<span style="font-size:12px;color:#6B7A8D">→ Name wird automatisch eingetragen</span>')+
+    (S.aufgenommenDurch?'<span style="font-weight:700;font-size:14px;color:var(--ok)">✓ '+esc(S.aufgenommenDurch)+'</span>':'<span style="font-size:12px;color:var(--muted)">→ Name wird automatisch eingetragen</span>')+
     '</div></div>'+
     txtInput('Firma / Auftraggeber','ag_firma','z. B. Musterbau GmbH')+
     txtInput('Ansprechpartner','ag_ansprechpartner','z. B. Max Mustermann')+
@@ -670,9 +670,9 @@ function alertBox(type,icon,head,body){
 function modellCards(liste,field){
   var cls=sc();
   var missing=!S[field];
-  return '<div class="field" style="'+(missing?'border-left:3px solid #C0392B;padding-left:10px;margin-left:-13px;':'')+'">'+
+  return '<div class="field" style="'+(missing?'border-left:3px solid #e05a4e;padding-left:10px;margin-left:-13px;':'')+'">'+
     '<div class="field-label">Antriebsmodell<span class="field-req">*</span>'+
-    (missing?'<span style="margin-left:8px;font-size:11px;font-weight:600;color:#C0392B;background:#FDECEA;padding:2px 8px;border-radius:99px">Pflichtfeld</span>':'')+
+    (missing?'<span style="margin-left:8px;font-size:11px;font-weight:600;color:#e05a4e;background:rgba(224,90,78,.15);padding:2px 8px;border-radius:99px">Pflichtfeld</span>':'')+
     '</div>'+
     '<p class="field-hint">Modell wählen – bestimmt max. Flügelgewicht, Öffnungsweite und Zulassung</p>'+
     '<div class="modell-grid">'+
@@ -1515,7 +1515,7 @@ function render(){
 
   document.getElementById('hdr').className=cls;
   document.getElementById('hdr-title').textContent=isDK()?'dormakaba ES PROLINE':isRC()?'Record TSA / DUO':isGI()?'Gilgen SL / SLX-M':'GEZE Schiebetür';
-  document.getElementById('prog-ring').style.background='conic-gradient('+ac()+' '+(filled/pflicht.length*360)+'deg,#2D4B66 0deg)';
+  document.getElementById('prog-ring').style.background='conic-gradient('+ac()+' '+(filled/pflicht.length*360)+'deg,rgba(58,123,213,.15) 0deg)';
   document.getElementById('prog-pct').textContent=pct+'%';
   document.getElementById('prog-fill').style.width=pct+'%';
   document.getElementById('prog-fill').style.background=ac();
@@ -1585,20 +1585,20 @@ function renderVorlagenModal(){
   var vl=getVorlagen();
   document.getElementById('vorlagen-count').textContent=vl.length+'/10';
   document.getElementById('vorlagen-list').innerHTML=vl.length===0?
-    '<p style="color:#6B7A8D;font-size:13px;text-align:center;padding:24px 0">Noch keine Vorlagen gespeichert</p>':
+    '<p style="color:var(--muted);font-size:13px;text-align:center;padding:24px 0">Noch keine Vorlagen gespeichert</p>':
     vl.map(function(v,i){
-      return '<div style="display:flex;align-items:center;gap:10px;padding:11px 0;border-bottom:1px solid #E8EDF3">'
+      return '<div style="display:flex;align-items:center;gap:10px;padding:11px 0;border-bottom:1px solid var(--border)">'
         +'<div style="flex:1"><div style="font-weight:700;font-size:14px">'+v.name+'</div>'
-        +'<div style="font-size:11px;color:#6B7A8D">'+v.date+' &middot; '+(v.state.produkt||'?')+'</div></div>'
-        +'<button onclick="loadVorlage('+i+')" style="padding:8px 14px;border-radius:8px;border:none;background:#001B43;color:#fff;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit">Laden</button>'
-        +'<button onclick="deleteVorlage('+i+')" style="padding:8px 10px;border-radius:8px;border:1.5px solid #D2DAE3;background:#fff;color:#C0392B;font-size:13px;cursor:pointer;font-family:inherit">✕</button>'
+        +'<div style="font-size:11px;color:var(--muted)">'+v.date+' &middot; '+(v.state.produkt||'?')+'</div></div>'
+        +'<button onclick="loadVorlage('+i+')" style="padding:8px 14px;border-radius:8px;border:none;background:var(--accent);color:#fff;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit">Laden</button>'
+        +'<button onclick="deleteVorlage('+i+')" style="padding:8px 10px;border-radius:8px;border:1.5px solid var(--border);background:#161a22;color:#e05a4e;font-size:13px;cursor:pointer;font-family:inherit">✕</button>'
         +'</div>';
     }).join('');
 }
 function saveNewVorlage(){
   var inp=document.getElementById('vorlage-name-input');
   var name=inp.value.trim();
-  if(!name){ inp.focus(); inp.style.borderColor='#C0392B'; setTimeout(function(){inp.style.borderColor='';},1500); return; }
+  if(!name){ inp.focus(); inp.style.borderColor='#e05a4e'; setTimeout(function(){inp.style.borderColor='';},1500); return; }
   var vl=getVorlagen();
   if(vl.length>=10){ alert('Maximal 10 Vorlagen – bitte erst eine löschen.'); return; }
   var tpl={};

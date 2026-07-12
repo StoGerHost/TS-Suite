@@ -22,7 +22,8 @@
     --accent-hover:  #2f66b3;
     --accent-mid:    #9dc0f5;
     --accent-lt:     #141b2c;
-    --orange:        #D95E1F;
+    --orange:        #5eead4;
+    --glow:          #5eead4;
     --text:          #e9edf2;
     --muted:         #8b9bb3;
     --check:         #3a7bd5;
@@ -84,7 +85,7 @@
     border-radius: 6px; color: var(--text); padding: 4px 9px;
     font-size: 12px; width: 140px;
   }
-  .id-field input:focus { outline: none; border-color: var(--accent); }
+  .id-field input:focus { outline: none; border-color: var(--glow); box-shadow: 0 0 0 3px rgba(94,234,212,0.18); }
   .id-field input::placeholder { color: var(--muted); opacity: 0.5; }
 
   .form-wrapper {
@@ -103,7 +104,7 @@
     display: flex; align-items: center; gap: 10px;
   }
   .section-title .num {
-    background: var(--orange); color: #fff; width: 20px; height: 20px;
+    background: var(--orange); color: #0a0a0c; width: 20px; height: 20px;
     border-radius: 50%; display: flex; align-items: center; justify-content: center;
     font-size: 10px; font-weight: 700; flex-shrink: 0;
   }
@@ -129,7 +130,7 @@
     padding: 5px 10px; font-family: -apple-system, 'Helvetica Neue', Arial, sans-serif; font-size: 13px;
     color: var(--text); width: 100%; transition: border-color 0.15s;
   }
-  .field-input:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 2px rgba(26,74,107,0.12); }
+  .field-input:focus { outline: none; border-color: var(--glow); box-shadow: 0 0 0 3px rgba(94,234,212,0.18); }
   textarea.field-input { resize: vertical; min-height: 50px; }
 
   /* GPS ROW */
@@ -207,7 +208,7 @@
     background: var(--surface);
   }
   .din-card:hover { border-color: #3A7AAB; }
-  .din-card.selected { border-color: var(--orange); box-shadow: 0 0 0 3px rgba(217,94,31,0.15); }
+  .din-card.selected { border-color: var(--orange); box-shadow: 0 0 0 3px rgba(94,234,212,0.18); }
   .din-card-header {
     background: var(--accent-lt); padding: 8px 14px; display: flex;
     align-items: center; gap: 10px; border-bottom: 1px solid var(--border);
@@ -304,8 +305,8 @@
   .btn-primary:hover { background: var(--accent-hover); }
   .btn-secondary { background: var(--surface); color: var(--text); border: 1.5px solid var(--border); border-radius: 10px; }
   .btn-secondary:hover { background: var(--field-bg); }
-  .btn-export { background: var(--orange); color: #fff; border-radius: 10px; font-weight: 700; }
-  .btn-export:hover { background: #A84815; }
+  .btn-export { background: var(--orange); color: #0a0a0c; border-radius: 10px; font-weight: 700; }
+  .btn-export:hover { background: #3ecfba; }
   .btn-email { background: var(--accent); color: #fff; border-radius: 10px; font-weight: 700; }
   .btn-email:hover { background: var(--accent-hover); }
 
@@ -393,7 +394,7 @@
     font-size: 13px; color: var(--text); background: var(--field-bg);
     font-family: -apple-system, monospace; font-weight: 600;
   }
-  .admin-employee-row input:focus { outline: none; border-color: var(--accent); }
+  .admin-employee-row input:focus { outline: none; border-color: var(--glow); box-shadow: 0 0 0 3px rgba(94,234,212,0.18); }
   .admin-employee-row input.name-input { font-family: -apple-system, sans-serif; font-weight: 400; }
   .admin-del-btn {
     background: none; border: none; color: var(--muted);
@@ -462,9 +463,9 @@
     flex: 1; padding: 10px 12px; border: 1.5px solid var(--border);
     border-radius: 8px; font-size: 16px; font-weight: 600;
     text-align: center; letter-spacing: 0.15em; color: var(--accent);
-    font-family: -apple-system, monospace;
+    font-family: -apple-system, monospace; background: var(--field-bg);
   }
-  .pay-code-wrap input:focus { outline: none; border-color: var(--accent); }
+  .pay-code-wrap input:focus { outline: none; border-color: var(--glow); box-shadow: 0 0 0 3px rgba(94,234,212,0.18); }
   .pay-code-wrap button {
     padding: 10px 16px; background: var(--accent); color: #fff;
     border: none; border-radius: 8px; font-size: 16px; font-weight: 700; cursor: pointer;
@@ -564,7 +565,7 @@
     border: none; border-radius: 8px; padding: 8px 16px;
     font-size: 12px; font-weight: 700; cursor: pointer;
   }
-  #pwa-prompt .pwa-install { background: var(--orange); color: #fff; }
+  #pwa-prompt .pwa-install { background: var(--orange); color: #0a0a0c; }
   #pwa-prompt .pwa-dismiss { background: rgba(255,255,255,0.15); color: #fff; }
 
   /* ── FILENAME PREVIEW ────────────────────────────────── */
@@ -2969,7 +2970,7 @@ function resetForm() {
     setTimeout(() => {
       const msg = document.getElementById('code-msg');
       msg.className = '';
-      msg.innerHTML = '<br>Zahlung abgeschlossen? <button onclick="confirmPaypal()" style="background:var(--orange);color:#fff;border:none;border-radius:6px;padding:6px 14px;font-weight:700;cursor:pointer;font-size:12px;">Ja, PDF erstellen ✓</button>';
+      msg.innerHTML = '<br>Zahlung abgeschlossen? <button onclick="confirmPaypal()" style="background:var(--orange);color:#0a0a0c;border:none;border-radius:6px;padding:6px 14px;font-weight:700;cursor:pointer;font-size:12px;">Ja, PDF erstellen ✓</button>';
     }, 4000);
   }
 
