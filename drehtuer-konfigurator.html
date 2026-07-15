@@ -772,18 +772,21 @@ function buildArtikelliste(){
   if(isD()){
     var modellLabel=LM.modell[S.modell]||S.modell;
     var basis=modellBasis(S.modell);
+    var antriebAnzahl=(S.modell==="ed250pa")?2:((S.fluegelanzahl==="2")?2:1); // Anzahl physischer Antriebe
     if(S.modell==="ed250pa"){
       addForce("ED 250 (Gangflügel)", getArtNr("dk.modell.ed250"), 1);
       addForce("ED 250 (Standflügel, ohne Power-Assist)", getArtNr("dk.modell.ed250pa"), 1);
     }else{
-      add(modellLabel, getArtNr("dk.modell."+S.modell), (S.fluegelanzahl==="2")?2:1);
+      add(modellLabel, getArtNr("dk.modell."+S.modell), antriebAnzahl);
     }
     montLabel=LM.montageart[S.montageart]||""; montPrefix='dk';
     if(S.betriebsart==="full"&&!fullEnergyEntfaellt()) add("Upgradecard Full Energy ("+modellLabel+")", getArtNr("dk.betriebsart.full."+basis), 1);
     if(S.tuerart==="brandschutz"||S.tuerart==="rauchschutz"){
       add("Upgradecard "+LM.tuerart[S.tuerart]+" ("+modellLabel+")", getArtNr("dk.tuerart."+S.tuerart+"."+basis), 1);
     }
-    if(S.verkleidung) add("Verkleidung "+LM.verkleidung[S.verkleidung], getArtNr("dk.verkleidung."+S.verkleidung), 1);
+    // Verkleidung BASIC wird je Antrieb immer benötigt (unabhängig von einer zusätzlich gewählten Verkleidung).
+    add("Verkleidung BASIC", getArtNr("dk.verkleidung.basic"), antriebAnzahl);
+    if(S.verkleidung && S.verkleidung!=="basic") add("Verkleidung "+LM.verkleidung[S.verkleidung], getArtNr("dk.verkleidung."+S.verkleidung), 1);
     if(varioZusatzPflicht()) add("Verkleidung VARIO (Pflichtzusatz bei zweiflügligen Anlagen)", getArtNr("dk.verkleidung.vario"), 1);
     if(S.notfunktion==="notstrom") add("Notstrom-Backup", getArtNr("dk.notfunktion.notstrom"), 1);
     if(S.motioniq==="ja") add("MotionIQ aktiv", getArtNr("dk.motioniq.ja"), 1);
