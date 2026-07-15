@@ -789,7 +789,7 @@ function buildArtikelliste(){
     // Verkleidung BASIC wird je Antrieb immer benötigt (unabhängig von einer zusätzlich gewählten Verkleidung).
     add("Verkleidung BASIC", getArtNr("dk.verkleidung.basic"), antriebAnzahl);
     if(S.verkleidung && S.verkleidung!=="basic") add("Verkleidung "+LM.verkleidung[S.verkleidung], getArtNr("dk.verkleidung."+S.verkleidung), 1);
-    if(varioZusatzPflicht()) add("Verkleidung VARIO (Pflichtzusatz bei zweiflügligen Anlagen)", getArtNr("dk.verkleidung.vario"), 1);
+    if(varioZusatzTyp()) add("Verkleidung "+LM.verkleidung[varioZusatzTyp()]+" (Pflichtzusatz bei zweiflügligen Anlagen)", getArtNr("dk.verkleidung."+varioZusatzTyp()), 1);
     if(S.notfunktion==="notstrom") add("Notstrom-Backup", getArtNr("dk.notfunktion.notstrom"), 1);
     if(S.motioniq==="ja") add("MotionIQ aktiv", getArtNr("dk.motioniq.ja"), 1);
     if(S.fluegelanzahl==="2"&&S.schliessfolge==="ja") add("Schließfolgeregelung ESR", getArtNr("dk.schliessfolge.ja"), 1);
@@ -885,13 +885,20 @@ function sc(){return "sel-"+prodCls();}
 function ac(){return isD()?"#D95E1F":isR()?"#1FAE85":isGi()?"#9B59B6":"#FFC72C";}
 
 // ─── Ausnahme: dormakaba + zweiflüglig → VARIO-Verkleidung zusätzlich zur gewählten Verkleidung ───
+// Bei Brand-/Rauchschutztüren wird VARIO RM statt normalem VARIO als Pflichtzusatz benötigt.
+function varioZusatzTyp(){
+  if(!isD() || S.fluegelanzahl!=="2" || !S.verkleidung) return null;
+  var required = (S.tuerart==="brandschutz") ? "vario_rm" : "vario";
+  return (S.verkleidung!==required) ? required : null;
+}
 function varioZusatzPflicht(){
-  return isD() && S.fluegelanzahl==="2" && !!S.verkleidung && S.verkleidung!=="vario";
+  return !!varioZusatzTyp();
 }
 function verkleidungAnzeige(){
   if(!S.verkleidung) return "–";
   var txt = LM.verkleidung[S.verkleidung];
-  if(varioZusatzPflicht()) txt += " + VARIO (zweiflüglig, Pflichtzusatz)";
+  var typ = varioZusatzTyp();
+  if(typ) txt += " + "+LM.verkleidung[typ]+" (zweiflüglig, Pflichtzusatz)";
   return txt;
 }
 
@@ -1134,7 +1141,7 @@ function buildDormakaba(){
     radio('Montageart','Bezogen auf Ansicht von der Öffnungsseite','montageart',[
       {value:'bg-gleit',label:'BGS drückend',sub:'Gleitschiene'},{value:'bg-gestänge',label:'BGS drückend',sub:'Normalgestänge'},{value:'bs-gleit',label:'BS ziehend',sub:'Gleitschiene'}],true)+
     radio('Öffnungswinkel',null,'oeffnungswinkel',[{value:'80',label:'80°'},{value:'90',label:'90°'},{value:'110',label:'110°',sub:'max.'}])+
-    radio('Verkleidung',(varioZusatzPflicht()?'Zweiflüglige dormakaba-Anlagen benötigen zusätzlich VARIO-Verkleidung – wird automatisch in Artikelliste &amp; Zusammenfassung ergänzt':null),'verkleidung',[{value:'basic',label:'BASIC'},{value:'basic_rm',label:'BASIC RM'},{value:'vario',label:'VARIO'},{value:'vario_rm',label:'VARIO RM'},{value:'professionell',label:'PROFESSIONAL'}])+
+    radio('Verkleidung',(varioZusatzPflicht()?'Zweiflüglige dormakaba-Anlagen benötigen zusätzlich '+LM.verkleidung[varioZusatzTyp()]+'-Verkleidung – wird automatisch in Artikelliste &amp; Zusammenfassung ergänzt':null),'verkleidung',[{value:'basic',label:'BASIC'},{value:'basic_rm',label:'BASIC RM'},{value:'vario',label:'VARIO'},{value:'vario_rm',label:'VARIO RM'},{value:'professionell',label:'PROFESSIONAL'}])+
     radio('Farbgebung',null,'farbgebung',[{value:'silber',label:'Silber'},{value:'weiss',label:'Weiß',sub:'RAL 9016'},{value:'bronze',label:'Bronze'},{value:'individuell',label:'RAL indiv.'}])
   );
   html+=sec('Verriegelung &amp; Schließtechnik','🔐',buildVerriegelung());
