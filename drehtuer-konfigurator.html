@@ -805,7 +805,7 @@ function buildArtikelliste(){
     if(S.g_notfunktion==="notstrom") add("Notstrom-Backup", getArtNr("gz.notfunktion.notstrom"), 1);
   }
   getMontageArtikel(montLabel, montPrefix).forEach(function(o){
-    add(o.bez+": "+montLabel, o.nr, 1);
+    add(o.bez+": "+montLabel, o.nr, (isD()&&S.fluegelanzahl==="2")?2:1);
   });
   if(S.sensorik) add(SENSORIK_LM[S.sensorik], getArtNr("dk.sensorik."+S.sensorik), 1);
   (S.zubehoer||[]).forEach(function(z){
