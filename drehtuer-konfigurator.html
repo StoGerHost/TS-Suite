@@ -260,20 +260,6 @@
   .vbox-save-btn{padding:10px 16px;border:none;border-radius:8px;background:var(--accent);color:#fff;font-weight:700;font-size:13px;cursor:pointer;font-family:inherit;white-space:nowrap}
   .vbox-reset-btn{padding:10px 14px;border:1.5px solid var(--border);border-radius:8px;background:#161a22;color:#e05a4e;font-weight:600;font-size:12px;cursor:pointer;font-family:inherit}
 
-  /* ─── Artikel-Upload Modal & Override-Banner ────────────────── */
-  #artikel-upload-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:9998;align-items:flex-end;justify-content:center;padding:0}
-  #artikel-upload-overlay.visible{display:flex}
-  #artikel-upload-box{background:var(--panel);border-radius:20px 20px 0 0;width:100%;max-width:540px;max-height:82vh;overflow:hidden;display:flex;flex-direction:column;box-shadow:0 -4px 32px rgba(0,0,0,.6)}
-  #artikel-override-banner{background:#8a5a1f;padding:12px 16px;display:flex;align-items:center;gap:10px}
-  #artikel-override-banner.hidden{display:none}
-  #artikel-update-banner{background:#1a5f8a;padding:12px 16px;display:flex;align-items:center;gap:10px}
-  #artikel-update-banner.hidden{display:none}
-  #artikel-upload-status{display:block;font-size:12.5px;line-height:1.5;padding:10px 12px;border:1.5px dashed var(--border);border-radius:8px;margin-bottom:14px}
-  .artikel-upload-row{display:flex;flex-direction:column;gap:10px}
-  .artikel-upload-label{display:flex;align-items:center;justify-content:center;gap:8px;padding:14px;border:2px dashed var(--border);border-radius:10px;color:var(--muted);font-size:13px;font-weight:600;cursor:pointer;text-align:center}
-  .artikel-upload-label:active{border-color:var(--glow)}
-  .artikel-upload-hint{font-size:11.5px;color:var(--muted);line-height:1.5}
-
   /* ─── Admin Panel ────────────────────────────────────────── */
 
   /* ─── Header Buttons ─────────────────────────────────────── */
@@ -316,28 +302,6 @@
   </div>
 </div>
 
-
-<!-- Artikel-Upload Modal -->
-<div id="artikel-upload-overlay">
-  <div id="artikel-upload-box">
-    <div class="vbox-hdr">
-      <h3>📥 Artikelnummern</h3>
-      <span></span>
-      <button class="vbox-close" onclick="closeArtikelUploadModal()">✕</button>
-    </div>
-    <div class="vbox-body">
-      <span id="artikel-upload-status">Lade Status …</span>
-      <div class="artikel-upload-row">
-        <label class="artikel-upload-label" for="artikel-file-input">📄 artikel.json auswählen &amp; hochladen</label>
-        <input type="file" id="artikel-file-input" accept="application/json,.json" style="display:none" onchange="handleArtikelUpload(event)">
-        <div class="artikel-upload-hint">Erwartet wird eine JSON-Datei im Format von <span class="mono">artikel.json</span> (Schlüssel/Wert-Paare). Die Übernahme gilt nur auf diesem Gerät und übersteuert die zentrale Datei aus dem Repository, bis sie zurückgesetzt wird.</div>
-      </div>
-    </div>
-    <div class="vbox-save-row">
-      <button class="vbox-reset-btn" style="flex:1" onclick="resetArtikelOverride()">🗑 Lokale Überschreibung zurücksetzen</button>
-    </div>
-  </div>
-</div>
 
 <!-- Vorlagen Modal -->
 <div id="vorlagen-overlay">
@@ -428,7 +392,7 @@
       <div style="display:flex;align-items:center;gap:8px"><span style="background:#577496;color:#fff;font-weight:900;font-size:11px;padding:2px 7px;border-radius:3px;letter-spacing:.04em">STOBER</span><span id="hdr-title" style="color:#fff;font-weight:800;font-size:16px;letter-spacing:-.02em">Drehtür Konfigurator</span></div>
       <div id="hdr-sub">Drehtürantrieb &middot; Konfiguration</div>
     </div>
-    <a href="index.html" id="back-btn">← Übersicht</a><button class="hdr-icon-btn" onclick="showVorlagenModal()" style="margin-left:6px">📋</button><button class="hdr-icon-btn" onclick="showArtikelUploadModal()" style="margin-left:6px">📥</button>
+    <a href="index.html" id="back-btn">← Übersicht</a><button class="hdr-icon-btn" onclick="showVorlagenModal()" style="margin-left:6px">📋</button>
   </div>
   <div id="prog-ring"><div id="prog-inner"><span id="prog-pct">0%</span></div></div>
 </div>
@@ -438,15 +402,6 @@
   <div style="flex:1"><div style="color:#fff;font-weight:700;font-size:13px">Als App installieren</div>
   <div style="color:rgba(255,255,255,.85);font-size:12px">Tippe auf <b>Teilen ⬆</b> &rarr; „Zum Home-Bildschirm"</div></div>
   <button id="install-close">✕</button>
-</div>
-
-<div id="artikel-override-banner" class="hidden"></div>
-<div id="artikel-update-banner" class="hidden">
-  <span style="font-size:18px;flex-shrink:0">🔄</span>
-  <div style="flex:1"><div style="color:#fff;font-weight:700;font-size:13px">Neue Artikelnummern verfügbar</div>
-  <div style="color:rgba(255,255,255,.85);font-size:12px">Auf dem Server liegt eine aktuellere <span class="mono">artikel.json</span></div></div>
-  <button class="hdr-icon-btn" onclick="applyArtikelUpdate()">Übernehmen</button>
-  <button class="hdr-icon-btn" onclick="dismissArtikelUpdateBanner()" style="margin-left:6px">✕</button>
 </div>
 
 <div id="prog-bar"><div id="prog-fill" style="width:0%"></div></div>
@@ -460,11 +415,11 @@ const LM = {
   modell:        { ed100:"ED 100", ed250:"ED 250", ed250pa:"ED 250 PA" },
   fluegelanzahl: { "1":"Einflügelig","2":"Zweiflügelig" },
   schliessfolge: { ja:"Aktiviert (ESR)", nein:"Deaktiviert" },
-  tuerart:       { standard:"Standardtür",brandschutz:"Brand- & Rauchschutztür (T30/T90 + RS)",rauchschutz:"Brand- & Rauchschutztür (T30/T90 + RS)" },
+  tuerart:       { standard:"Standardtür",brandschutz:"Brandschutztür (T30/T90)",rauchschutz:"Rauchschutztür (RS)" },
   betriebsart:   { low:"Low-Energy (Niedrigenergie)",full:"Full-Energy (Vollautomatik)" },
   betriebsmodus: { auto:"Vollautomatik",assist:"Power-Assist (Öffnungsunterstützung)",manuell:"Manuell mit Rückhalt" },
   montageart:    { "bg-gleit":"Bandgegenseite drückend · Gleitschiene","bg-gestänge":"Bandgegenseite drückend · Normalgestänge","bs-gleit":"Bandseite ziehend · Gleitschiene" },
-  verkleidung:   { basic:"BASIC",basic_rm:"BASIC RM",vario:"VARIO",professionell:"PROFESSIONAL" },
+  verkleidung:   { basic:"BASIC",basic_rm:"BASIC RM",vario:"VARIO",vario_rm:"VARIO RM",professionell:"PROFESSIONAL" },
   oeffnungswinkel:{ "80":"80°","90":"90°","110":"110° (max.)" },
   windlast:      { ja:"Aktiviert",nein:"Deaktiviert" },
   notfunktion:   { notstrom:"Notstromversorgung (24V)",keine:"Keine" },
@@ -542,11 +497,11 @@ var ARTIKEL_DEFAULTS = {
   // ── dormakaba – Funktionen (Platzhalter → echte Nr. in artikel.json) ──
   'dk.notfunktion.notstrom':'Akkupack','dk.motioniq.ja':'DK_M_A01','dk.schliessfolge.ja':'10529214',
   // ── dormakaba – Verkleidung ──
-  'dk.verkleidung.basic':'','dk.verkleidung.basic_rm':'','dk.verkleidung.vario':'','dk.verkleidung.professionell':'',
+  'dk.verkleidung.basic':'','dk.verkleidung.basic_rm':'','dk.verkleidung.vario':'','dk.verkleidung.vario_rm':'','dk.verkleidung.professionell':'',
   // ── dormakaba – Montage ──
   'dk.montage.bgs':'10176432','dk.montage.bs':'10513893','dk.montage.gestaenge':'10176432',
   // ── Sensorik (BEA, markenübergreifend) ──
-  'dk.sensorik.irs4':'10282489','dk.sensorik.flatscan':'10805080','dk.sensorik.flatscan3d':'BEA Flatscan 3D',
+  'dk.sensorik.irs4':'10282489','dk.sensorik.flatscan':'10805080','dk.sensorik.flatscan3d':'BEA Flatscan 3D','dk.sensorik.flatscan_brandschutzadapter':'',
   // ── dormakaba – Zubehör (alle 10 Optionen pflegbar) ──
   'dk.zubehoer.radar':'BEA Eagle Artec','dk.zubehoer.taster':'Flächentaster AP','dk.zubehoer.schluessel':'Schlüsselschalter AP',
   'dk.zubehoer.nottaster':'','dk.zubehoer.profil':'','dk.zubehoer.zutrittskontrolle':'',
@@ -573,146 +528,6 @@ function getArtNr(key){
   // 3) hardcodierte Defaults
   return ARTIKEL_DEFAULTS[key]||'';
 }
-
-// ─── Artikel-Upload: manuelles Einspielen einer artikel.json auf diesem Gerät ───
-// Schreibt in denselben ARTIKEL_STORAGE_KEY wie admin.html (Layer 1, höchste Priorität).
-// Zusätzlich Meta-Eintrag (Zeitpunkt/Dateiname/Anzahl) für die sichtbare Status-Anzeige,
-// damit ein aktiver Override nie unbemerkt bleibt.
-var ARTIKEL_META_KEY='stober_artikel_meta';
-
-function getArtikelMeta(){
-  try{ return JSON.parse(localStorage.getItem(ARTIKEL_META_KEY)||'null'); }catch(e){ return null; }
-}
-
-function fmtArtikelDatum(iso){
-  var d=new Date(iso);
-  return d.toLocaleDateString('de-DE')+', '+d.toLocaleTimeString('de-DE',{hour:'2-digit',minute:'2-digit'})+' Uhr';
-}
-
-function renderArtikelStatus(){
-  var meta=getArtikelMeta();
-  var banner=document.getElementById('artikel-override-banner');
-  var statusEl=document.getElementById('artikel-upload-status');
-  if(meta && meta.count){
-    var dStr=fmtArtikelDatum(meta.uploadedAt);
-    if(banner){
-      banner.innerHTML='<span style="font-size:18px;flex-shrink:0">⚠️</span>'
-        +'<div style="flex:1"><div style="color:#fff;font-weight:700;font-size:13px">Lokale Artikelnummern aktiv</div>'
-        +'<div style="color:rgba(255,255,255,.85);font-size:12px">seit '+dStr+' · '+meta.count+' Einträge auf diesem Gerät'+(meta.filename?' · '+meta.filename:'')+'</div></div>'
-        +'<button class="hdr-icon-btn" onclick="showArtikelUploadModal()">Verwalten</button>';
-      banner.classList.remove('hidden');
-    }
-    if(statusEl){
-      statusEl.innerHTML='⚠️ <b>Lokale Überschreibung aktiv</b><br>Hochgeladen am '+dStr+' · '+meta.count+' Einträge'+(meta.filename?' · Datei: '+meta.filename:'')+'<br>Es gilt diese Datei statt der zentralen <span class="mono">artikel.json</span> aus dem Repository – nur auf diesem Gerät.';
-      statusEl.style.borderColor='#8a5a1f'; statusEl.style.color='#f0c987';
-    }
-  }else{
-    if(banner) banner.classList.add('hidden');
-    if(statusEl){
-      statusEl.innerHTML='Keine lokale Überschreibung aktiv – die zentrale <span class="mono">artikel.json</span> aus dem Repository wird verwendet.';
-      statusEl.style.borderColor='var(--border)'; statusEl.style.color='var(--muted)';
-    }
-  }
-}
-
-function showArtikelUploadModal(){ document.getElementById('artikel-upload-overlay').classList.add('visible'); renderArtikelStatus(); }
-function closeArtikelUploadModal(){ document.getElementById('artikel-upload-overlay').classList.remove('visible'); }
-
-function handleArtikelUpload(evt){
-  var file=evt.target.files && evt.target.files[0];
-  if(!file) return;
-  if(!/\.json$/i.test(file.name)){
-    if(!confirm('Die Datei heißt nicht auf ".json" – trotzdem versuchen zu lesen?')){ evt.target.value=''; return; }
-  }
-  var reader=new FileReader();
-  reader.onload=function(e){
-    var data;
-    try{ data=JSON.parse(e.target.result); }
-    catch(err){ alert('Datei ist kein gültiges JSON.'); evt.target.value=''; return; }
-    if(!data || typeof data!=='object' || Array.isArray(data)){
-      alert('Erwartet wird ein JSON-Objekt mit Schlüssel/Wert-Paaren (wie artikel.json).'); evt.target.value=''; return;
-    }
-    var keys=Object.keys(data);
-    if(!keys.length){ alert('Die Datei enthält keine Einträge.'); evt.target.value=''; return; }
-    var relevant=keys.filter(function(k){ return k.indexOf('drehtuer.')===0; }).length;
-    if(relevant===0 && !confirm('Keine Schlüssel mit Prefix "drehtuer." gefunden ('+keys.length+' Einträge insgesamt). Trotzdem übernehmen?')){
-      evt.target.value=''; return;
-    }
-    localStorage.setItem(ARTIKEL_STORAGE_KEY, JSON.stringify(data));
-    localStorage.setItem(ARTIKEL_META_KEY, JSON.stringify({uploadedAt:new Date().toISOString(), filename:file.name, count:keys.length}));
-    renderArtikelStatus();
-    evt.target.value='';
-    if(typeof render==='function') render();
-    alert('Artikelnummern übernommen: '+keys.length+' Einträge. Aktiv auf diesem Gerät, bis zurückgesetzt.');
-  };
-  reader.onerror=function(){ alert('Datei konnte nicht gelesen werden.'); };
-  reader.readAsText(file,'utf-8');
-}
-
-function resetArtikelOverride(){
-  var meta=getArtikelMeta();
-  if(!meta){ alert('Es ist aktuell keine lokale Überschreibung aktiv.'); return; }
-  if(!confirm('Lokale Artikelnummer-Überschreibung auf diesem Gerät löschen? Danach gilt wieder die zentrale artikel.json.')) return;
-  localStorage.removeItem(ARTIKEL_STORAGE_KEY);
-  localStorage.removeItem(ARTIKEL_META_KEY);
-  renderArtikelStatus();
-  if(typeof render==='function') render();
-}
-
-// ─── Update-Erkennung: erkennt per ETag/Last-Modified, ob auf dem Server eine neuere
-// artikel.json liegt, und prüft das beim (Wieder-)Aktivwerden des Tabs, statt dauerhaft
-// im Hintergrund zu pollen. Zeigt bei Unterschied einen Hinweis-Banner; Übernahme erst
-// nach Klick des Nutzers ("automatisch NACH Hinweis", nicht automatisch ohne Rückfrage).
-var ARTIKEL_ETAG_KEY='stober_artikel_etag';
-
-function _artikelVersionTag(headers){
-  return headers.get('etag') || headers.get('last-modified') || null;
-}
-
-function checkArtikelUpdate(){
-  return fetch('artikel.json',{method:'HEAD',cache:'no-store'})
-    .then(function(r){
-      if(!r.ok) return;
-      var tag=_artikelVersionTag(r.headers);
-      if(!tag) return; // Server liefert keine Versions-Info -> kein Vergleich möglich
-      var known=localStorage.getItem(ARTIKEL_ETAG_KEY);
-      if(known && known!==tag){
-        var banner=document.getElementById('artikel-update-banner');
-        if(banner){ banner.dataset.newTag=tag; banner.classList.remove('hidden'); }
-      }else if(!known){
-        localStorage.setItem(ARTIKEL_ETAG_KEY, tag);
-      }
-    })
-    .catch(function(){}); // z.B. offline -> einfach ignorieren, kein Fehler-UI nötig
-}
-
-function applyArtikelUpdate(){
-  var banner=document.getElementById('artikel-update-banner');
-  var newTag=banner ? banner.dataset.newTag : null;
-  fetch('artikel.json',{cache:'no-store'})
-    .then(function(r){ if(!r.ok) throw new Error('fetch failed'); return r.json(); })
-    .then(function(json){
-      window._artikelCentral=json||{};
-      if(newTag) localStorage.setItem(ARTIKEL_ETAG_KEY, newTag);
-      if(banner) banner.classList.add('hidden');
-      renderArtikelStatus();
-      if(typeof render==='function') render();
-      alert('Aktuelle Artikelnummern übernommen.');
-    })
-    .catch(function(){ alert('Aktualisierung fehlgeschlagen – bitte Seite manuell neu laden.'); });
-}
-
-function dismissArtikelUpdateBanner(){
-  var banner=document.getElementById('artikel-update-banner');
-  if(banner) banner.classList.add('hidden');
-}
-
-// Prüfen, wenn der Tab wieder sichtbar wird (z.B. nach App-Wechsel auf dem Tablet)
-// und beim Zurückkehren aus dem bfcache (iOS Safari feuert visibilitychange nicht immer zuverlässig).
-document.addEventListener('visibilitychange', function(){
-  if(document.visibilityState==='visible') checkArtikelUpdate();
-});
-window.addEventListener('pageshow', function(){ checkArtikelUpdate(); });
 
 // ─── Hersteller-Sichtbarkeit: zentrale hersteller-sichtbar.json + localStorage (Admin) + Defaults ───
 // Gleiches Drei-Stufen-Prinzip wie bei den Artikelnummern. Steuert, welche Hersteller-Tabs
@@ -765,30 +580,18 @@ function getMontageArtikel(label, prefix){
 function buildArtikelliste(){
   var rows=[];
   function add(bez,nr,menge){ if(nr) rows.push([bez,nr,menge||1]); }
-  // Bei ED 250 PA müssen immer beide Antriebe in der Stückliste stehen (Gangflügel + Standflügel),
-  // auch wenn für einen davon gerade keine Artikelnummer gepflegt ist – deshalb ohne den nr-Check von add().
-  function addForce(bez,nr,menge){ rows.push([bez,nr||'– (Artikelnr. fehlt)',menge||1]); }
   var montLabel, montPrefix='dk';
   if(isD()){
     var modellLabel=LM.modell[S.modell]||S.modell;
     var basis=modellBasis(S.modell);
-    var antriebAnzahl=(S.modell==="ed250pa")?2:((S.fluegelanzahl==="2")?2:1); // Anzahl physischer Antriebe
-    if(S.modell==="ed250pa"){
-      addForce("ED 250 (Gangflügel)", getArtNr("dk.modell.ed250"), 1);
-      addForce("ED 250 (Standflügel, ohne Power-Assist)", getArtNr("dk.modell.ed250pa"), 1);
-    }else{
-      add(modellLabel, getArtNr("dk.modell."+S.modell), antriebAnzahl);
-    }
+    add(modellLabel, getArtNr("dk.modell."+S.modell), 1);
+    if(S.modell==="ed250pa") add("ED 250 (Basisantrieb, automatisch mit ausgewählt)", getArtNr("dk.modell.ed250"), 1);
     montLabel=LM.montageart[S.montageart]||""; montPrefix='dk';
-    // Upgradecards werden je Antrieb benötigt – außer bei ED 250 PA (dort nur 1 Card für den Gangflügel).
-    var upgradeMenge=(S.modell==="ed250pa")?1:antriebAnzahl;
-    if(S.betriebsart==="full"&&!fullEnergyEntfaellt()) add("Upgradecard Full Energy ("+modellLabel+")", getArtNr("dk.betriebsart.full."+basis), upgradeMenge);
+    if(S.betriebsart==="full") add("Upgradecard Full Energy ("+modellLabel+")", getArtNr("dk.betriebsart.full."+basis), 1);
     if(S.tuerart==="brandschutz"||S.tuerart==="rauchschutz"){
-      add("Upgradecard "+LM.tuerart[S.tuerart]+" ("+modellLabel+")", getArtNr("dk.tuerart."+S.tuerart+"."+basis), upgradeMenge);
+      add("Upgradecard "+LM.tuerart[S.tuerart]+" ("+modellLabel+")", getArtNr("dk.tuerart."+S.tuerart+"."+basis), 1);
     }
-    // Verkleidung BASIC wird je Antrieb immer benötigt (unabhängig von einer zusätzlich gewählten Verkleidung).
-    add("Verkleidung BASIC", getArtNr("dk.verkleidung.basic"), antriebAnzahl);
-    if(S.verkleidung && S.verkleidung!=="basic") add("Verkleidung "+LM.verkleidung[S.verkleidung], getArtNr("dk.verkleidung."+S.verkleidung), 1);
+    if(S.verkleidung) add("Verkleidung "+LM.verkleidung[S.verkleidung], getArtNr("dk.verkleidung."+S.verkleidung), 1);
     if(varioZusatzPflicht()) add("Verkleidung VARIO (Pflichtzusatz bei zweiflügligen Anlagen)", getArtNr("dk.verkleidung.vario"), 1);
     if(S.notfunktion==="notstrom") add("Notstrom-Backup", getArtNr("dk.notfunktion.notstrom"), 1);
     if(S.motioniq==="ja") add("MotionIQ aktiv", getArtNr("dk.motioniq.ja"), 1);
@@ -810,9 +613,10 @@ function buildArtikelliste(){
     if(S.g_notfunktion==="notstrom") add("Notstrom-Backup", getArtNr("gz.notfunktion.notstrom"), 1);
   }
   getMontageArtikel(montLabel, montPrefix).forEach(function(o){
-    add(o.bez+": "+montLabel, o.nr, (isD()&&S.fluegelanzahl==="2")?2:1);
+    add(o.bez+": "+montLabel, o.nr, 1);
   });
   if(S.sensorik) add(SENSORIK_LM[S.sensorik], getArtNr("dk.sensorik."+S.sensorik), 1);
+  if(S.sensorFlatscanBrandschutz==="ja") add("FLATSCAN Brandschutzadapter", getArtNr("dk.sensorik.flatscan_brandschutzadapter"), 1);
   (S.zubehoer||[]).forEach(function(z){
     add(ZL[z]||z, getArtNr("dk.zubehoer."+z), S['qty_'+z]||1);
   });
@@ -853,7 +657,7 @@ let S={
   ag_firma:"",ag_ansprechpartner:"",ag_telefon:"",ag_email:"",
   bs_strasse:"",bs_plzort:"",bs_objekt:"",bs_bauteil:"",
   gpsLoading:false,gpsError:"",
-  sensorik:"",sensorFarbe:"",sensorAbsicherungSeite:"",
+  sensorik:"",sensorFarbe:"",sensorAbsicherungSeite:"",sensorFlatscanBrandschutz:"",
   // verriegelung
   eoeffner:"",eoeffnerSpannung:"",eoeffnerEinschaltdauer:"",
   motorschloss:"",motorschlossHersteller:"",motorschlossModell:"",
@@ -863,9 +667,6 @@ let S={
 function set(k,v){
   var patch={};patch[k]=v;
   if(k==='fluegelanzahl') patch.schliessfolge=(v==='2')?'ja':'';
-  // ED 250 PA gibt es nur zweiflüglig (1x ED 250 PA + 1x ED 250 als Standflügel-Antrieb) —
-  // Flügelanzahl wird deshalb automatisch mitgesetzt, sobald ED 250 PA gewählt wird.
-  if(k==='modell'&&v==='ed250pa'){ patch.fluegelanzahl='2'; patch.schliessfolge='ja'; }
   S=Object.assign({},S,patch);autosave();render();
 }
 function handleAufgenommenCode(code){
@@ -891,17 +692,6 @@ function verkleidungAnzeige(){
   if(!S.verkleidung) return "–";
   var txt = LM.verkleidung[S.verkleidung];
   if(varioZusatzPflicht()) txt += " + VARIO (zweiflüglig, Pflichtzusatz)";
-  return txt;
-}
-
-// ─── Ausnahme: dormakaba + Upgradecard Brandschutz → Upgradecard Full Energy entfällt ───
-function fullEnergyEntfaellt(){
-  return isD() && S.tuerart==="brandschutz" && S.betriebsart==="full";
-}
-function betriebsartAnzeige(){
-  if(!S.betriebsart) return "–";
-  var txt = LM.betriebsart[S.betriebsart];
-  if(fullEnergyEntfaellt()) txt += " (Upgradecard entfällt bei Brandschutz)";
   return txt;
 }
 
@@ -1050,6 +840,13 @@ function alertBox(type,icon,head,body){
     '</div></div>';
 }
 
+// ─── FLATSCAN Brandschutzadapter (nur bei LZR-FLATSCAN SW / 3D SW) ─────────────
+function flatscanBrandschutzFeld(){
+  if(S.sensorik!=='flatscan'&&S.sensorik!=='flatscan3d') return '';
+  return radio('Brandschutzadapter','Erforderlich bei Montage in Brand- oder Rauchschutztüren','sensorFlatscanBrandschutz',[
+    {value:'ja',label:'Ja',icon:'🧯'},{value:'nein',label:'Nein'}]);
+}
+
 // ─── BEA Sensor Cards (Drehtür) ────────────────────────────────────────────────
 function sensorCards(){
   var sensors=[
@@ -1107,16 +904,15 @@ function buildDormakaba(){
     '<div class="two-col">'+numInput('Türblattbreite','','tuerbreite','mm','z. B. 900')+numInput('Türblattgewicht','','tuergewicht','kg','z. B. 80')+'</div>'+
     '<div class="two-col">'+numInput('Lichte Höhe','Lichte Durchgangshöhe','lichteHoehe','mm','z. B. 2100')+numInput('Lichte Weite','Lichte Durchgangsbreite','lichteWeite','mm','z. B. 900')+'</div>'+
     '<div class="two-col">'+numInput('Antriebsbreite','Breite des Antriebs','antriebsbreite','mm','z. B. 1200')+'</div>'+
-    radio('Flügelanzahl',S.modell==='ed250pa'?'ED 250 PA gibt es nur zweiflüglig (1× ED 250 PA + 1× ED 250)':null,'fluegelanzahl',
-      S.modell==='ed250pa'?[{value:'2',label:'Zweiflügelig'}]:[{value:'1',label:'Einflügelig'},{value:'2',label:'Zweiflügelig'}],true)+
+    radio('Flügelanzahl',null,'fluegelanzahl',[{value:'1',label:'Einflügelig'},{value:'2',label:'Zweiflügelig'}],true)+
     (S.fluegelanzahl==='2'?radio('Schließfolgeregelung','Bei Zweiflügelanlagen erforderlich, damit Standflügel vor Gangflügel schließt','schliessfolge',[
       {value:'ja',label:'Aktiviert',icon:'🔒'},{value:'nein',label:'Deaktiviert'}]):'')+
-    radio('Türart','Beeinflusst zulässige Montagearten &middot; Upgradecard deckt bei dormakaba automatisch beide Schutzklassen ab','tuerart',[
-      {value:'standard',label:'Standard',icon:'🏢'},{value:'brandschutz',label:'Brand- & Rauchschutz',sub:'T30/T90 + RS'}],true)+
+    radio('Türart','Beeinflusst zulässige Montagearten','tuerart',[
+      {value:'standard',label:'Standard',icon:'🏢'},{value:'brandschutz',label:'Brandschutz',sub:'T30/T90'},{value:'rauchschutz',label:'Rauchschutz',sub:'RS'}],true)+
     (isBrand?alertBox('warn','⚠️','Brandschutz aktiv','Nur <b>drückende Montage</b> zulässig. Selbstschließfunktion muss aktiv sein.'):'')
   );
   html+=sec('Betrieb &amp; Energie','⚡',
-    radio('Betriebsart',(fullEnergyEntfaellt()?'Bei Brandschutz-Türen entfällt die zusätzliche Upgradecard Full Energy':'Low-Energy: bewusstes Aktivieren &nbsp;·&nbsp; Full-Energy: automatisch'),'betriebsart',[
+    radio('Betriebsart','Low-Energy: bewusstes Aktivieren &nbsp;·&nbsp; Full-Energy: automatisch','betriebsart',[
       {value:'low',label:'Low-Energy',sub:'EN 1154'},{value:'full',label:'Full-Energy',sub:'Vollautomatik'}],true)+
     radio('Betriebsmodus',null,'betriebsmodus',[
       {value:'auto',label:'Vollautomatik',icon:'🤖'},{value:'assist',label:'Power-Assist'},{value:'manuell',label:'Manuell + Rückhalt'}],true)+
@@ -1126,7 +922,7 @@ function buildDormakaba(){
     radio('Montageart','Bezogen auf Ansicht von der Öffnungsseite','montageart',[
       {value:'bg-gleit',label:'BGS drückend',sub:'Gleitschiene'},{value:'bg-gestänge',label:'BGS drückend',sub:'Normalgestänge'},{value:'bs-gleit',label:'BS ziehend',sub:'Gleitschiene'}],true)+
     radio('Öffnungswinkel',null,'oeffnungswinkel',[{value:'80',label:'80°'},{value:'90',label:'90°'},{value:'110',label:'110°',sub:'max.'}])+
-    radio('Verkleidung',(varioZusatzPflicht()?'Zweiflüglige dormakaba-Anlagen benötigen zusätzlich VARIO-Verkleidung – wird automatisch in Artikelliste &amp; Zusammenfassung ergänzt':null),'verkleidung',[{value:'basic',label:'BASIC'},{value:'basic_rm',label:'BASIC RM'},{value:'vario',label:'VARIO'},{value:'professionell',label:'PROFESSIONAL'}])+
+    radio('Verkleidung',(varioZusatzPflicht()?'Zweiflüglige dormakaba-Anlagen benötigen zusätzlich VARIO-Verkleidung – wird automatisch in Artikelliste &amp; Zusammenfassung ergänzt':null),'verkleidung',[{value:'basic',label:'BASIC'},{value:'basic_rm',label:'BASIC RM'},{value:'vario',label:'VARIO'},{value:'vario_rm',label:'VARIO RM'},{value:'professionell',label:'PROFESSIONAL'}])+
     radio('Farbgebung',null,'farbgebung',[{value:'silber',label:'Silber'},{value:'weiss',label:'Weiß',sub:'RAL 9016'},{value:'bronze',label:'Bronze'},{value:'individuell',label:'RAL indiv.'}])
   );
   html+=sec('Verriegelung &amp; Schließtechnik','🔐',buildVerriegelung());
@@ -1137,6 +933,7 @@ function buildDormakaba(){
         {value:'einseitig',label:'Einseitig'},{value:'beidseitig',label:'Beidseitig'},
       ])+
       radio('Gehäusefarbe Sensor',null,'sensorFarbe',[{value:'alu',label:'Aluminium'},{value:'weiss',label:'Weiß'},{value:'schwarz',label:'Schwarz'}])+
+      flatscanBrandschutzFeld()+
       (S.sensorik==='irs4'?alertBox('ok','ℹ️','IRS4 (4SAFE)','Master-Slave-kompatibel mit LZR-FLATSCAN SW. Reihenschaltung bis 6 Module möglich.'):'') +
       (S.sensorik==='flatscan3d'?alertBox('ok','ℹ️','FLATSCAN 3D SW','Dritter Ausgang für hygienische berührungslose Aktivierung konfigurierbar (bis 2 virtuelle Taster).'):'')
     :'')
@@ -1219,6 +1016,7 @@ function buildGeze(){
         {value:'einseitig',label:'Einseitig'},{value:'beidseitig',label:'Beidseitig'},
       ])+
       radio('Gehäusefarbe Sensor',null,'sensorFarbe',[{value:'alu',label:'Aluminium'},{value:'weiss',label:'Weiß'},{value:'schwarz',label:'Schwarz'}])
+      +flatscanBrandschutzFeld()
     :'')
   );
   html+=sec('Aktivierung &amp; Zubehör','🔌',
@@ -1273,6 +1071,7 @@ function buildRecord(){
         {value:'einseitig',label:'Einseitig'},{value:'beidseitig',label:'Beidseitig'},
       ])+
       radio('Gehäusefarbe Sensor',null,'sensorFarbe',[{value:'alu',label:'Aluminium'},{value:'weiss',label:'Weiß'},{value:'schwarz',label:'Schwarz'}])
+      +flatscanBrandschutzFeld()
     :'')
   );
   html+=sec('Aktivierung &amp; Zubehör','🔌',
@@ -1327,6 +1126,7 @@ function buildGilgen(){
         {value:'einseitig',label:'Einseitig'},{value:'beidseitig',label:'Beidseitig'},
       ])+
       radio('Gehäusefarbe Sensor',null,'sensorFarbe',[{value:'alu',label:'Aluminium'},{value:'weiss',label:'Weiß'},{value:'schwarz',label:'Schwarz'}])
+      +flatscanBrandschutzFeld()
     :'')
   );
   html+=sec('Aktivierung &amp; Zubehör','🔌',
@@ -1362,7 +1162,7 @@ function buildSummary(){
       ["Flügelanzahl",LM.fluegelanzahl[S.fluegelanzahl]||"–"],
       ["Schließfolgeregelung",S.fluegelanzahl==='2'?(LM.schliessfolge[S.schliessfolge]||"–"):"–"],
       ["Türart",LM.tuerart[S.tuerart]||"–"],
-      ["Betriebsart",betriebsartAnzeige()],["Betriebsmodus",LM.betriebsmodus[S.betriebsmodus]||"–"],
+      ["Betriebsart",LM.betriebsart[S.betriebsart]||"–"],["Betriebsmodus",LM.betriebsmodus[S.betriebsmodus]||"–"],
       ["MotionIQ",S.motioniq==="ja"?"Aktiv – Radarsensor M A01 + Anschlussplatine CAN":S.motioniq==="nein"?"Nicht verbaut":"–"],
       ["Montageart",LM.montageart[S.montageart]||"–"],["Öffnungswinkel",S.oeffnungswinkel?LM.oeffnungswinkel[S.oeffnungswinkel]:"–"],
       ["Verkleidung",verkleidungAnzeige()],["Farbgebung",S.farbgebung?LM.farbgebung[S.farbgebung]:"–"],
@@ -1412,6 +1212,7 @@ function buildSummary(){
   }
   rows.push(
     ["Sensorik",S.sensorik?SENSORIK_LM[S.sensorik]:"–"],
+    ["Brandschutzadapter",(S.sensorik==='flatscan'||S.sensorik==='flatscan3d')?(S.sensorFlatscanBrandschutz==='ja'?'Ja':'Nein'):"–"],
     ["Absicherung",S.sensorAbsicherungSeite?LM.sensorAbsicherungSeite[S.sensorAbsicherungSeite]:"–"],
     ["Sensor-Farbe",S.sensorFarbe?LM.sensorFarbe[S.sensorFarbe]:"–"],
     ["Stückzahlen Zubehör",zubehoerQtyText()],
@@ -1489,17 +1290,11 @@ function onMACodesLoaded(){
   if(msg && msg.textContent==='Lade Codes …') msg.textContent='';
 }
 loadMAcodes();
-renderArtikelStatus();
 
 // ─── Zentrale Artikelnummern laden (artikel.json) + Abdeckungs-Check ────────────
 function loadArtikel(){
   return fetch('artikel.json',{cache:'no-store'})
-    .then(function(r){
-      if(!r.ok) throw new Error('fetch failed');
-      var tag=_artikelVersionTag(r.headers);
-      if(tag && !localStorage.getItem(ARTIKEL_ETAG_KEY)) localStorage.setItem(ARTIKEL_ETAG_KEY, tag);
-      return r.json();
-    })
+    .then(function(r){ if(!r.ok) throw new Error('fetch failed'); return r.json(); })
     .then(function(json){ window._artikelCentral = json || {}; })
     .catch(function(){ window._artikelCentral = {}; })   // Defaults greifen weiterhin
     .then(function(){
@@ -1527,6 +1322,7 @@ function pruefeArtikelAbdeckung(){
   Object.keys(LM.verkleidung).forEach(function(v){ chk('dk.verkleidung.'+v,'dk Verkleidung '+LM.verkleidung[v]); });
   ['bgs','bs','gestaenge'].forEach(function(x){ chk('dk.montage.'+x,'dk Montage '+x); });
   Object.keys(SENSORIK_LM).filter(function(s){return s!=='keine';}).forEach(function(s){ chk('dk.sensorik.'+s,'Sensorik '+s); });
+  chk('dk.sensorik.flatscan_brandschutzadapter','FLATSCAN Brandschutzadapter');
   Object.keys(ZL).forEach(function(z){ chk('dk.zubehoer.'+z,'Zubehör '+ZL[z]); });
   // record
   Object.keys(LM_R.modell).forEach(function(m){ chk('rc.modell.'+m,'record '+LM_R.modell[m]); });
@@ -1682,7 +1478,7 @@ function exportPDF(){
       ['Türblattgewicht',S.tuergewicht?S.tuergewicht+' kg':'–'],
       ['Lichte Höhe',S.lichteHoehe?S.lichteHoehe+' mm':'–'],['Lichte Weite',S.lichteWeite?S.lichteWeite+' mm':'–'],['Antriebsbreite',S.antriebsbreite?S.antriebsbreite+' mm':'–'],['Flügelanzahl',LM.fluegelanzahl[S.fluegelanzahl]||'–'],
       ['Schließfolgeregelung',S.fluegelanzahl==='2'?(LM.schliessfolge[S.schliessfolge]||'–'):'–'],
-      ['Türart',LM.tuerart[S.tuerart]||'–'],['Betriebsart',betriebsartAnzeige()],
+      ['Türart',LM.tuerart[S.tuerart]||'–'],['Betriebsart',LM.betriebsart[S.betriebsart]||'–'],
       ['Betriebsmodus',LM.betriebsmodus[S.betriebsmodus]||'–'],
       ['MotionIQ',S.motioniq==='ja'?'Aktiv – Radarsensor M A01 + Anschlussplatine CAN':S.motioniq==='nein'?'Nicht verbaut':'–'],
       ['Montageart',LM.montageart[S.montageart]||'–'],
@@ -1730,6 +1526,7 @@ function exportPDF(){
   }
   rows.push(
     ['Absicherungssensorik',S.sensorik?SENSORIK_LM[S.sensorik]:'–'],
+    ['Brandschutzadapter',(S.sensorik==='flatscan'||S.sensorik==='flatscan3d')?(S.sensorFlatscanBrandschutz==='ja'?'Ja':'Nein'):'–'],
     ['Absicherung',S.sensorAbsicherungSeite?LM.sensorAbsicherungSeite[S.sensorAbsicherungSeite]:'–'],
     ['Sensor-Farbe',S.sensorFarbe?LM.sensorFarbe[S.sensorFarbe]:'–'],
     ['Stückzahlen Zubehör',zubehoerQtyText()],
@@ -1870,23 +1667,6 @@ function render(){
 
 // ─── Autosave ──────────────────────────────────────────────────────────────────
 var AUTOSAVE_KEY = 'stober_drehtuer_autosave';
-// Migration: bis vor Kurzem waren "Brandschutz" und "Rauchschutz" bei dormakaba zwei
-// getrennte Türart-Optionen. Da beide dieselbe Upgradecard voraussetzen, wurden sie zu
-// einer Option zusammengelegt. Alte gespeicherte Configs/Vorlagen mit dem Wert
-// "rauchschutz" auf "brandschutz" migrieren, sonst ist im UI kein Radiobutton markiert.
-function _migrateTuerart(state){
-  if(state && state.tuerart==='rauchschutz') state.tuerart='brandschutz';
-  return state;
-}
-// Migration: ED 250 PA gibt es nur zweiflüglig. Alte Configs/Vorlagen mit
-// modell:"ed250pa" und fluegelanzahl:"1" auf "2" korrigieren.
-function _migrateEd250pa(state){
-  if(state && state.modell==='ed250pa' && state.fluegelanzahl!=='2'){
-    state.fluegelanzahl='2';
-    if(!state.schliessfolge) state.schliessfolge='ja';
-  }
-  return state;
-}
 function autosave(){
   try{
     var toSave=Object.assign({},S);
@@ -1897,7 +1677,7 @@ function autosave(){
 function autoload(){
   try{
     var saved=localStorage.getItem(AUTOSAVE_KEY);
-    if(saved){ var p=JSON.parse(saved); _migrateTuerart(p); _migrateEd250pa(p); S=Object.assign({},S,p); S.gpsLoading=false; S.gpsError=''; }
+    if(saved){ var p=JSON.parse(saved); S=Object.assign({},S,p); S.gpsLoading=false; S.gpsError=''; }
   }catch(e){}
 }
 function resetKonfig(){
@@ -1943,8 +1723,6 @@ function saveNewVorlage(){
 function loadVorlage(idx){
   var vl=getVorlagen();
   if(!vl[idx]) return;
-  _migrateTuerart(vl[idx].state);
-  _migrateEd250pa(vl[idx].state);
   Object.assign(S,vl[idx].state);
   S.gpsLoading=false; S.gpsError=''; S.showSummary=false;
   autosave(); render(); closeVorlagenModal();
