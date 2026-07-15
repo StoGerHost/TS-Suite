@@ -780,9 +780,11 @@ function buildArtikelliste(){
       add(modellLabel, getArtNr("dk.modell."+S.modell), antriebAnzahl);
     }
     montLabel=LM.montageart[S.montageart]||""; montPrefix='dk';
-    if(S.betriebsart==="full"&&!fullEnergyEntfaellt()) add("Upgradecard Full Energy ("+modellLabel+")", getArtNr("dk.betriebsart.full."+basis), 1);
+    // Upgradecards werden je Antrieb benötigt – außer bei ED 250 PA (dort nur 1 Card für den Gangflügel).
+    var upgradeMenge=(S.modell==="ed250pa")?1:antriebAnzahl;
+    if(S.betriebsart==="full"&&!fullEnergyEntfaellt()) add("Upgradecard Full Energy ("+modellLabel+")", getArtNr("dk.betriebsart.full."+basis), upgradeMenge);
     if(S.tuerart==="brandschutz"||S.tuerart==="rauchschutz"){
-      add("Upgradecard "+LM.tuerart[S.tuerart]+" ("+modellLabel+")", getArtNr("dk.tuerart."+S.tuerart+"."+basis), 1);
+      add("Upgradecard "+LM.tuerart[S.tuerart]+" ("+modellLabel+")", getArtNr("dk.tuerart."+S.tuerart+"."+basis), upgradeMenge);
     }
     // Verkleidung BASIC wird je Antrieb immer benötigt (unabhängig von einer zusätzlich gewählten Verkleidung).
     add("Verkleidung BASIC", getArtNr("dk.verkleidung.basic"), antriebAnzahl);
