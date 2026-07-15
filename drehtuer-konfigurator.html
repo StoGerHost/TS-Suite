@@ -260,6 +260,18 @@
   .vbox-save-btn{padding:10px 16px;border:none;border-radius:8px;background:var(--accent);color:#fff;font-weight:700;font-size:13px;cursor:pointer;font-family:inherit;white-space:nowrap}
   .vbox-reset-btn{padding:10px 14px;border:1.5px solid var(--border);border-radius:8px;background:#161a22;color:#e05a4e;font-weight:600;font-size:12px;cursor:pointer;font-family:inherit}
 
+  /* ─── Artikel-Upload Modal & Override-Banner ────────────────── */
+  #artikel-upload-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:9998;align-items:flex-end;justify-content:center;padding:0}
+  #artikel-upload-overlay.visible{display:flex}
+  #artikel-upload-box{background:var(--panel);border-radius:20px 20px 0 0;width:100%;max-width:540px;max-height:82vh;overflow:hidden;display:flex;flex-direction:column;box-shadow:0 -4px 32px rgba(0,0,0,.6)}
+  #artikel-override-banner{background:#8a5a1f;padding:12px 16px;display:flex;align-items:center;gap:10px}
+  #artikel-override-banner.hidden{display:none}
+  #artikel-upload-status{display:block;font-size:12.5px;line-height:1.5;padding:10px 12px;border:1.5px dashed var(--border);border-radius:8px;margin-bottom:14px}
+  .artikel-upload-row{display:flex;flex-direction:column;gap:10px}
+  .artikel-upload-label{display:flex;align-items:center;justify-content:center;gap:8px;padding:14px;border:2px dashed var(--border);border-radius:10px;color:var(--muted);font-size:13px;font-weight:600;cursor:pointer;text-align:center}
+  .artikel-upload-label:active{border-color:var(--glow)}
+  .artikel-upload-hint{font-size:11.5px;color:var(--muted);line-height:1.5}
+
   /* ─── Admin Panel ────────────────────────────────────────── */
 
   /* ─── Header Buttons ─────────────────────────────────────── */
@@ -302,6 +314,28 @@
   </div>
 </div>
 
+
+<!-- Artikel-Upload Modal -->
+<div id="artikel-upload-overlay">
+  <div id="artikel-upload-box">
+    <div class="vbox-hdr">
+      <h3>📥 Artikelnummern</h3>
+      <span></span>
+      <button class="vbox-close" onclick="closeArtikelUploadModal()">✕</button>
+    </div>
+    <div class="vbox-body">
+      <span id="artikel-upload-status">Lade Status …</span>
+      <div class="artikel-upload-row">
+        <label class="artikel-upload-label" for="artikel-file-input">📄 artikel.json auswählen &amp; hochladen</label>
+        <input type="file" id="artikel-file-input" accept="application/json,.json" style="display:none" onchange="handleArtikelUpload(event)">
+        <div class="artikel-upload-hint">Erwartet wird eine JSON-Datei im Format von <span class="mono">artikel.json</span> (Schlüssel/Wert-Paare). Die Übernahme gilt nur auf diesem Gerät und übersteuert die zentrale Datei aus dem Repository, bis sie zurückgesetzt wird.</div>
+      </div>
+    </div>
+    <div class="vbox-save-row">
+      <button class="vbox-reset-btn" style="flex:1" onclick="resetArtikelOverride()">🗑 Lokale Überschreibung zurücksetzen</button>
+    </div>
+  </div>
+</div>
 
 <!-- Vorlagen Modal -->
 <div id="vorlagen-overlay">
@@ -392,7 +426,7 @@
       <div style="display:flex;align-items:center;gap:8px"><span style="background:#577496;color:#fff;font-weight:900;font-size:11px;padding:2px 7px;border-radius:3px;letter-spacing:.04em">STOBER</span><span id="hdr-title" style="color:#fff;font-weight:800;font-size:16px;letter-spacing:-.02em">Drehtür Konfigurator</span></div>
       <div id="hdr-sub">Drehtürantrieb &middot; Konfiguration</div>
     </div>
-    <a href="index.html" id="back-btn">← Übersicht</a><button class="hdr-icon-btn" onclick="showVorlagenModal()" style="margin-left:6px">📋</button>
+    <a href="index.html" id="back-btn">← Übersicht</a><button class="hdr-icon-btn" onclick="showVorlagenModal()" style="margin-left:6px">📋</button><button class="hdr-icon-btn" onclick="showArtikelUploadModal()" style="margin-left:6px">📥</button>
   </div>
   <div id="prog-ring"><div id="prog-inner"><span id="prog-pct">0%</span></div></div>
 </div>
@@ -403,6 +437,8 @@
   <div style="color:rgba(255,255,255,.85);font-size:12px">Tippe auf <b>Teilen ⬆</b> &rarr; „Zum Home-Bildschirm"</div></div>
   <button id="install-close">✕</button>
 </div>
+
+<div id="artikel-override-banner" class="hidden"></div>
 
 <div id="prog-bar"><div id="prog-fill" style="width:0%"></div></div>
 <div id="proj-data"></div>
@@ -529,6 +565,91 @@ function getArtNr(key){
   return ARTIKEL_DEFAULTS[key]||'';
 }
 
+// ─── Artikel-Upload: manuelles Einspielen einer artikel.json auf diesem Gerät ───
+// Schreibt in denselben ARTIKEL_STORAGE_KEY wie admin.html (Layer 1, höchste Priorität).
+// Zusätzlich Meta-Eintrag (Zeitpunkt/Dateiname/Anzahl) für die sichtbare Status-Anzeige,
+// damit ein aktiver Override nie unbemerkt bleibt.
+var ARTIKEL_META_KEY='stober_artikel_meta';
+
+function getArtikelMeta(){
+  try{ return JSON.parse(localStorage.getItem(ARTIKEL_META_KEY)||'null'); }catch(e){ return null; }
+}
+
+function fmtArtikelDatum(iso){
+  var d=new Date(iso);
+  return d.toLocaleDateString('de-DE')+', '+d.toLocaleTimeString('de-DE',{hour:'2-digit',minute:'2-digit'})+' Uhr';
+}
+
+function renderArtikelStatus(){
+  var meta=getArtikelMeta();
+  var banner=document.getElementById('artikel-override-banner');
+  var statusEl=document.getElementById('artikel-upload-status');
+  if(meta && meta.count){
+    var dStr=fmtArtikelDatum(meta.uploadedAt);
+    if(banner){
+      banner.innerHTML='<span style="font-size:18px;flex-shrink:0">⚠️</span>'
+        +'<div style="flex:1"><div style="color:#fff;font-weight:700;font-size:13px">Lokale Artikelnummern aktiv</div>'
+        +'<div style="color:rgba(255,255,255,.85);font-size:12px">seit '+dStr+' · '+meta.count+' Einträge auf diesem Gerät'+(meta.filename?' · '+meta.filename:'')+'</div></div>'
+        +'<button class="hdr-icon-btn" onclick="showArtikelUploadModal()">Verwalten</button>';
+      banner.classList.remove('hidden');
+    }
+    if(statusEl){
+      statusEl.innerHTML='⚠️ <b>Lokale Überschreibung aktiv</b><br>Hochgeladen am '+dStr+' · '+meta.count+' Einträge'+(meta.filename?' · Datei: '+meta.filename:'')+'<br>Es gilt diese Datei statt der zentralen <span class="mono">artikel.json</span> aus dem Repository – nur auf diesem Gerät.';
+      statusEl.style.borderColor='#8a5a1f'; statusEl.style.color='#f0c987';
+    }
+  }else{
+    if(banner) banner.classList.add('hidden');
+    if(statusEl){
+      statusEl.innerHTML='Keine lokale Überschreibung aktiv – die zentrale <span class="mono">artikel.json</span> aus dem Repository wird verwendet.';
+      statusEl.style.borderColor='var(--border)'; statusEl.style.color='var(--muted)';
+    }
+  }
+}
+
+function showArtikelUploadModal(){ document.getElementById('artikel-upload-overlay').classList.add('visible'); renderArtikelStatus(); }
+function closeArtikelUploadModal(){ document.getElementById('artikel-upload-overlay').classList.remove('visible'); }
+
+function handleArtikelUpload(evt){
+  var file=evt.target.files && evt.target.files[0];
+  if(!file) return;
+  if(!/\.json$/i.test(file.name)){
+    if(!confirm('Die Datei heißt nicht auf ".json" – trotzdem versuchen zu lesen?')){ evt.target.value=''; return; }
+  }
+  var reader=new FileReader();
+  reader.onload=function(e){
+    var data;
+    try{ data=JSON.parse(e.target.result); }
+    catch(err){ alert('Datei ist kein gültiges JSON.'); evt.target.value=''; return; }
+    if(!data || typeof data!=='object' || Array.isArray(data)){
+      alert('Erwartet wird ein JSON-Objekt mit Schlüssel/Wert-Paaren (wie artikel.json).'); evt.target.value=''; return;
+    }
+    var keys=Object.keys(data);
+    if(!keys.length){ alert('Die Datei enthält keine Einträge.'); evt.target.value=''; return; }
+    var relevant=keys.filter(function(k){ return k.indexOf('drehtuer.')===0; }).length;
+    if(relevant===0 && !confirm('Keine Schlüssel mit Prefix "drehtuer." gefunden ('+keys.length+' Einträge insgesamt). Trotzdem übernehmen?')){
+      evt.target.value=''; return;
+    }
+    localStorage.setItem(ARTIKEL_STORAGE_KEY, JSON.stringify(data));
+    localStorage.setItem(ARTIKEL_META_KEY, JSON.stringify({uploadedAt:new Date().toISOString(), filename:file.name, count:keys.length}));
+    renderArtikelStatus();
+    evt.target.value='';
+    if(typeof render==='function') render();
+    alert('Artikelnummern übernommen: '+keys.length+' Einträge. Aktiv auf diesem Gerät, bis zurückgesetzt.');
+  };
+  reader.onerror=function(){ alert('Datei konnte nicht gelesen werden.'); };
+  reader.readAsText(file,'utf-8');
+}
+
+function resetArtikelOverride(){
+  var meta=getArtikelMeta();
+  if(!meta){ alert('Es ist aktuell keine lokale Überschreibung aktiv.'); return; }
+  if(!confirm('Lokale Artikelnummer-Überschreibung auf diesem Gerät löschen? Danach gilt wieder die zentrale artikel.json.')) return;
+  localStorage.removeItem(ARTIKEL_STORAGE_KEY);
+  localStorage.removeItem(ARTIKEL_META_KEY);
+  renderArtikelStatus();
+  if(typeof render==='function') render();
+}
+
 // ─── Hersteller-Sichtbarkeit: zentrale hersteller-sichtbar.json + localStorage (Admin) + Defaults ───
 // Gleiches Drei-Stufen-Prinzip wie bei den Artikelnummern. Steuert, welche Hersteller-Tabs
 // im Drehtür-Konfigurator angezeigt werden (Pflege im Admin-Bereich, Tab "Sichtbarkeit").
@@ -587,7 +708,7 @@ function buildArtikelliste(){
     add(modellLabel, getArtNr("dk.modell."+S.modell), 1);
     if(S.modell==="ed250pa") add("ED 250 (Basisantrieb, automatisch mit ausgewählt)", getArtNr("dk.modell.ed250"), 1);
     montLabel=LM.montageart[S.montageart]||""; montPrefix='dk';
-    if(S.betriebsart==="full") add("Upgradecard Full Energy ("+modellLabel+")", getArtNr("dk.betriebsart.full."+basis), 1);
+    if(S.betriebsart==="full"&&!fullEnergyEntfaellt()) add("Upgradecard Full Energy ("+modellLabel+")", getArtNr("dk.betriebsart.full."+basis), 1);
     if(S.tuerart==="brandschutz"||S.tuerart==="rauchschutz"){
       add("Upgradecard "+LM.tuerart[S.tuerart]+" ("+modellLabel+")", getArtNr("dk.tuerart."+S.tuerart+"."+basis), 1);
     }
@@ -691,6 +812,17 @@ function verkleidungAnzeige(){
   if(!S.verkleidung) return "–";
   var txt = LM.verkleidung[S.verkleidung];
   if(varioZusatzPflicht()) txt += " + VARIO (zweiflüglig, Pflichtzusatz)";
+  return txt;
+}
+
+// ─── Ausnahme: dormakaba + Upgradecard Brandschutz → Upgradecard Full Energy entfällt ───
+function fullEnergyEntfaellt(){
+  return isD() && S.tuerart==="brandschutz" && S.betriebsart==="full";
+}
+function betriebsartAnzeige(){
+  if(!S.betriebsart) return "–";
+  var txt = LM.betriebsart[S.betriebsart];
+  if(fullEnergyEntfaellt()) txt += " (Upgradecard entfällt bei Brandschutz)";
   return txt;
 }
 
@@ -904,7 +1036,7 @@ function buildDormakaba(){
     (isBrand?alertBox('warn','⚠️','Brandschutz aktiv','Nur <b>drückende Montage</b> zulässig. Selbstschließfunktion muss aktiv sein.'):'')
   );
   html+=sec('Betrieb &amp; Energie','⚡',
-    radio('Betriebsart','Low-Energy: bewusstes Aktivieren &nbsp;·&nbsp; Full-Energy: automatisch','betriebsart',[
+    radio('Betriebsart',(fullEnergyEntfaellt()?'Bei Brandschutz-Türen entfällt die zusätzliche Upgradecard Full Energy':'Low-Energy: bewusstes Aktivieren &nbsp;·&nbsp; Full-Energy: automatisch'),'betriebsart',[
       {value:'low',label:'Low-Energy',sub:'EN 1154'},{value:'full',label:'Full-Energy',sub:'Vollautomatik'}],true)+
     radio('Betriebsmodus',null,'betriebsmodus',[
       {value:'auto',label:'Vollautomatik',icon:'🤖'},{value:'assist',label:'Power-Assist'},{value:'manuell',label:'Manuell + Rückhalt'}],true)+
@@ -1150,7 +1282,7 @@ function buildSummary(){
       ["Flügelanzahl",LM.fluegelanzahl[S.fluegelanzahl]||"–"],
       ["Schließfolgeregelung",S.fluegelanzahl==='2'?(LM.schliessfolge[S.schliessfolge]||"–"):"–"],
       ["Türart",LM.tuerart[S.tuerart]||"–"],
-      ["Betriebsart",LM.betriebsart[S.betriebsart]||"–"],["Betriebsmodus",LM.betriebsmodus[S.betriebsmodus]||"–"],
+      ["Betriebsart",betriebsartAnzeige()],["Betriebsmodus",LM.betriebsmodus[S.betriebsmodus]||"–"],
       ["MotionIQ",S.motioniq==="ja"?"Aktiv – Radarsensor M A01 + Anschlussplatine CAN":S.motioniq==="nein"?"Nicht verbaut":"–"],
       ["Montageart",LM.montageart[S.montageart]||"–"],["Öffnungswinkel",S.oeffnungswinkel?LM.oeffnungswinkel[S.oeffnungswinkel]:"–"],
       ["Verkleidung",verkleidungAnzeige()],["Farbgebung",S.farbgebung?LM.farbgebung[S.farbgebung]:"–"],
@@ -1277,6 +1409,7 @@ function onMACodesLoaded(){
   if(msg && msg.textContent==='Lade Codes …') msg.textContent='';
 }
 loadMAcodes();
+renderArtikelStatus();
 
 // ─── Zentrale Artikelnummern laden (artikel.json) + Abdeckungs-Check ────────────
 function loadArtikel(){
@@ -1464,7 +1597,7 @@ function exportPDF(){
       ['Türblattgewicht',S.tuergewicht?S.tuergewicht+' kg':'–'],
       ['Lichte Höhe',S.lichteHoehe?S.lichteHoehe+' mm':'–'],['Lichte Weite',S.lichteWeite?S.lichteWeite+' mm':'–'],['Antriebsbreite',S.antriebsbreite?S.antriebsbreite+' mm':'–'],['Flügelanzahl',LM.fluegelanzahl[S.fluegelanzahl]||'–'],
       ['Schließfolgeregelung',S.fluegelanzahl==='2'?(LM.schliessfolge[S.schliessfolge]||'–'):'–'],
-      ['Türart',LM.tuerart[S.tuerart]||'–'],['Betriebsart',LM.betriebsart[S.betriebsart]||'–'],
+      ['Türart',LM.tuerart[S.tuerart]||'–'],['Betriebsart',betriebsartAnzeige()],
       ['Betriebsmodus',LM.betriebsmodus[S.betriebsmodus]||'–'],
       ['MotionIQ',S.motioniq==='ja'?'Aktiv – Radarsensor M A01 + Anschlussplatine CAN':S.motioniq==='nein'?'Nicht verbaut':'–'],
       ['Montageart',LM.montageart[S.montageart]||'–'],
