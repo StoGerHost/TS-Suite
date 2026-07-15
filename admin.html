@@ -399,7 +399,10 @@ function renderArtikel(){
       toolHtml += '<div class="subgroup-head">'+esc(MARKEN_LABEL[marke]||marke)+'</div>';
       toolHtml += '<table class="art-row"><tbody>';
       visibleRows.forEach(function(r){
-        var rest=r[0], fullKey=r[1], centralVal=r[2];
+        var rest=r[0], fullKey=r[1], hardcodedVal=r[2];
+        // Live geladene artikel.json hat Vorrang vor dem hartcodierten Snapshot (r[2]),
+        // der nur greift, falls der fetch fehlschlägt (z.B. offline).
+        var centralVal = (ART_CENTRAL[fullKey]!==undefined && ART_CENTRAL[fullKey]!=='') ? ART_CENTRAL[fullKey] : hardcodedVal;
         var eff = effectiveValue(fullKey, centralVal);
         var srcClass = eff.src==='lokal' ? 'src-lokal' : (eff.src==='zentral' ? 'src-zentral' : 'src-leer');
         var srcLabel = eff.src==='lokal' ? 'Lokal' : (eff.src==='zentral' ? 'Zentral' : 'Leer');
