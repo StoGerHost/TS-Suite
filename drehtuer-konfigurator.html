@@ -460,7 +460,7 @@ const LM = {
   modell:        { ed100:"ED 100", ed250:"ED 250", ed250pa:"ED 250 PA" },
   fluegelanzahl: { "1":"Einflügelig","2":"Zweiflügelig" },
   schliessfolge: { ja:"Aktiviert (ESR)", nein:"Deaktiviert" },
-  tuerart:       { standard:"Standardtür",brandschutz:"Brandschutztür (T30/T90)",rauchschutz:"Rauchschutztür (RS)" },
+  tuerart:       { standard:"Standardtür",brandschutz:"Brand- & Rauchschutztür (T30/T90 + RS)",rauchschutz:"Brand- & Rauchschutztür (T30/T90 + RS)" },
   betriebsart:   { low:"Low-Energy (Niedrigenergie)",full:"Full-Energy (Vollautomatik)" },
   betriebsmodus: { auto:"Vollautomatik",assist:"Power-Assist (Öffnungsunterstützung)",manuell:"Manuell mit Rückhalt" },
   montageart:    { "bg-gleit":"Bandgegenseite drückend · Gleitschiene","bg-gestänge":"Bandgegenseite drückend · Normalgestänge","bs-gleit":"Bandseite ziehend · Gleitschiene" },
@@ -765,12 +765,19 @@ function getMontageArtikel(label, prefix){
 function buildArtikelliste(){
   var rows=[];
   function add(bez,nr,menge){ if(nr) rows.push([bez,nr,menge||1]); }
+  // Bei ED 250 PA müssen immer beide Antriebe in der Stückliste stehen (Gangflügel + Standflügel),
+  // auch wenn für einen davon gerade keine Artikelnummer gepflegt ist – deshalb ohne den nr-Check von add().
+  function addForce(bez,nr,menge){ rows.push([bez,nr||'– (Artikelnr. fehlt)',menge||1]); }
   var montLabel, montPrefix='dk';
   if(isD()){
     var modellLabel=LM.modell[S.modell]||S.modell;
     var basis=modellBasis(S.modell);
-    add(modellLabel, getArtNr("dk.modell."+S.modell), 1);
-    if(S.modell==="ed250pa") add("ED 250 (Basisantrieb, automatisch mit ausgewählt)", getArtNr("dk.modell.ed250"), 1);
+    if(S.modell==="ed250pa"){
+      addForce("ED 250 (Gangflügel)", getArtNr("dk.modell.ed250"), 1);
+      addForce("ED 250 (Standflügel, ohne Power-Assist)", getArtNr("dk.modell.ed250pa"), 1);
+    }else{
+      add(modellLabel, getArtNr("dk.modell."+S.modell), (S.fluegelanzahl==="2")?2:1);
+    }
     montLabel=LM.montageart[S.montageart]||""; montPrefix='dk';
     if(S.betriebsart==="full"&&!fullEnergyEntfaellt()) add("Upgradecard Full Energy ("+modellLabel+")", getArtNr("dk.betriebsart.full."+basis), 1);
     if(S.tuerart==="brandschutz"||S.tuerart==="rauchschutz"){
@@ -851,6 +858,9 @@ let S={
 function set(k,v){
   var patch={};patch[k]=v;
   if(k==='fluegelanzahl') patch.schliessfolge=(v==='2')?'ja':'';
+  // ED 250 PA gibt es nur zweiflüglig (1x ED 250 PA + 1x ED 250 als Standflügel-Antrieb) —
+  // Flügelanzahl wird deshalb automatisch mitgesetzt, sobald ED 250 PA gewählt wird.
+  if(k==='modell'&&v==='ed250pa'){ patch.fluegelanzahl='2'; patch.schliessfolge='ja'; }
   S=Object.assign({},S,patch);autosave();render();
 }
 function handleAufgenommenCode(code){
@@ -1092,11 +1102,12 @@ function buildDormakaba(){
     '<div class="two-col">'+numInput('Türblattbreite','','tuerbreite','mm','z. B. 900')+numInput('Türblattgewicht','','tuergewicht','kg','z. B. 80')+'</div>'+
     '<div class="two-col">'+numInput('Lichte Höhe','Lichte Durchgangshöhe','lichteHoehe','mm','z. B. 2100')+numInput('Lichte Weite','Lichte Durchgangsbreite','lichteWeite','mm','z. B. 900')+'</div>'+
     '<div class="two-col">'+numInput('Antriebsbreite','Breite des Antriebs','antriebsbreite','mm','z. B. 1200')+'</div>'+
-    radio('Flügelanzahl',null,'fluegelanzahl',[{value:'1',label:'Einflügelig'},{value:'2',label:'Zweiflügelig'}],true)+
+    radio('Flügelanzahl',S.modell==='ed250pa'?'ED 250 PA gibt es nur zweiflüglig (1× ED 250 PA + 1× ED 250)':null,'fluegelanzahl',
+      S.modell==='ed250pa'?[{value:'2',label:'Zweiflügelig'}]:[{value:'1',label:'Einflügelig'},{value:'2',label:'Zweiflügelig'}],true)+
     (S.fluegelanzahl==='2'?radio('Schließfolgeregelung','Bei Zweiflügelanlagen erforderlich, damit Standflügel vor Gangflügel schließt','schliessfolge',[
       {value:'ja',label:'Aktiviert',icon:'🔒'},{value:'nein',label:'Deaktiviert'}]):'')+
-    radio('Türart','Beeinflusst zulässige Montagearten','tuerart',[
-      {value:'standard',label:'Standard',icon:'🏢'},{value:'brandschutz',label:'Brandschutz',sub:'T30/T90'},{value:'rauchschutz',label:'Rauchschutz',sub:'RS'}],true)+
+    radio('Türart','Beeinflusst zulässige Montagearten &middot; Upgradecard deckt bei dormakaba automatisch beide Schutzklassen ab','tuerart',[
+      {value:'standard',label:'Standard',icon:'🏢'},{value:'brandschutz',label:'Brand- & Rauchschutz',sub:'T30/T90 + RS'}],true)+
     (isBrand?alertBox('warn','⚠️','Brandschutz aktiv','Nur <b>drückende Montage</b> zulässig. Selbstschließfunktion muss aktiv sein.'):'')
   );
   html+=sec('Betrieb &amp; Energie','⚡',
@@ -1854,6 +1865,23 @@ function render(){
 
 // ─── Autosave ──────────────────────────────────────────────────────────────────
 var AUTOSAVE_KEY = 'stober_drehtuer_autosave';
+// Migration: bis vor Kurzem waren "Brandschutz" und "Rauchschutz" bei dormakaba zwei
+// getrennte Türart-Optionen. Da beide dieselbe Upgradecard voraussetzen, wurden sie zu
+// einer Option zusammengelegt. Alte gespeicherte Configs/Vorlagen mit dem Wert
+// "rauchschutz" auf "brandschutz" migrieren, sonst ist im UI kein Radiobutton markiert.
+function _migrateTuerart(state){
+  if(state && state.tuerart==='rauchschutz') state.tuerart='brandschutz';
+  return state;
+}
+// Migration: ED 250 PA gibt es nur zweiflüglig. Alte Configs/Vorlagen mit
+// modell:"ed250pa" und fluegelanzahl:"1" auf "2" korrigieren.
+function _migrateEd250pa(state){
+  if(state && state.modell==='ed250pa' && state.fluegelanzahl!=='2'){
+    state.fluegelanzahl='2';
+    if(!state.schliessfolge) state.schliessfolge='ja';
+  }
+  return state;
+}
 function autosave(){
   try{
     var toSave=Object.assign({},S);
@@ -1864,7 +1892,7 @@ function autosave(){
 function autoload(){
   try{
     var saved=localStorage.getItem(AUTOSAVE_KEY);
-    if(saved){ var p=JSON.parse(saved); S=Object.assign({},S,p); S.gpsLoading=false; S.gpsError=''; }
+    if(saved){ var p=JSON.parse(saved); _migrateTuerart(p); _migrateEd250pa(p); S=Object.assign({},S,p); S.gpsLoading=false; S.gpsError=''; }
   }catch(e){}
 }
 function resetKonfig(){
@@ -1910,6 +1938,8 @@ function saveNewVorlage(){
 function loadVorlage(idx){
   var vl=getVorlagen();
   if(!vl[idx]) return;
+  _migrateTuerart(vl[idx].state);
+  _migrateEd250pa(vl[idx].state);
   Object.assign(S,vl[idx].state);
   S.gpsLoading=false; S.gpsError=''; S.showSummary=false;
   autosave(); render(); closeVorlagenModal();
