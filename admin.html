@@ -121,6 +121,14 @@
   .key-label{font-weight:600;font-size:12.5px;color:var(--ink);}
 
   .export-row{display:flex;gap:8px;margin-top:16px;flex-wrap:wrap;}
+
+  #artikel-update-banner{background:#1a5f8a;padding:12px 16px;display:flex;align-items:center;gap:10px;
+    border-bottom:1px solid var(--line-35);}
+  #artikel-update-banner.hidden{display:none}
+  #artikel-update-banner .btn{background:rgba(255,255,255,.15);border:none;color:#fff;padding:6px 12px;
+    border-radius:2px;font:700 11.5px var(--font-mono);cursor:pointer;white-space:nowrap;}
+  #artikel-update-banner .btn:active{background:rgba(255,255,255,.28)}
+
   .toast{position:fixed;bottom:18px;left:50%;transform:translateX(-50%);background:var(--surface);color:var(--ink);
     border:1px solid var(--accent);padding:11px 20px;border-radius:2px;font:600 12.5px var(--font-mono);
     opacity:0;pointer-events:none;transition:opacity .25s,transform .25s;z-index:99999;}
@@ -180,6 +188,14 @@
     <h1>Admin-Bereich</h1>
     <p>Mitarbeitercodes, Artikelnummern &amp; Sichtbarkeit &middot; lokal auf diesem Gerät</p>
   </div>
+</div>
+
+<div id="artikel-update-banner" class="hidden">
+  <span style="font-size:18px;flex-shrink:0">🔄</span>
+  <div style="flex:1"><div style="color:#fff;font-weight:700;font-size:13px">Neue Artikelnummern verfügbar</div>
+  <div style="color:rgba(255,255,255,.85);font-size:12px">Auf dem Server liegt eine aktuellere <span class="mono">artikel.json</span></div></div>
+  <button class="btn" onclick="applyArtikelUpdate()">Übernehmen</button>
+  <button class="btn" onclick="dismissArtikelUpdateBanner()" style="margin-left:0">✕</button>
 </div>
 
 <div class="wrap">
@@ -456,8 +472,64 @@ function exportArtikel(){
   downloadJSON(merged, 'artikel.json');
 }
 
+// ─── Update-Erkennung: gleiche Logik wie im Drehtür-Konfigurator ───
+// Vergleicht ETag/Last-Modified der zentralen artikel.json, geprüft bei Tab-Aktivierung
+// statt Dauer-Polling. Übernahme erst nach Klick auf "Übernehmen" im Banner.
+var ARTIKEL_ETAG_KEY='stober_artikel_etag';
+
+function _artikelVersionTag(headers){
+  return headers.get('etag') || headers.get('last-modified') || null;
+}
+
+function checkArtikelUpdate(){
+  return fetch('artikel.json',{method:'HEAD',cache:'no-store'})
+    .then(function(r){
+      if(!r.ok) return;
+      var tag=_artikelVersionTag(r.headers);
+      if(!tag) return; // Server liefert keine Versions-Info -> kein Vergleich möglich
+      var known=localStorage.getItem(ARTIKEL_ETAG_KEY);
+      if(known && known!==tag){
+        var banner=document.getElementById('artikel-update-banner');
+        if(banner){ banner.dataset.newTag=tag; banner.classList.remove('hidden'); }
+      }else if(!known){
+        localStorage.setItem(ARTIKEL_ETAG_KEY, tag);
+      }
+    })
+    .catch(function(){});
+}
+
+function applyArtikelUpdate(){
+  var banner=document.getElementById('artikel-update-banner');
+  var newTag=banner ? banner.dataset.newTag : null;
+  fetch('artikel.json',{cache:'no-store'})
+    .then(function(r){ if(!r.ok) throw new Error('fetch failed'); return r.json(); })
+    .then(function(json){
+      ART_CENTRAL=json||{};
+      if(newTag) localStorage.setItem(ARTIKEL_ETAG_KEY, newTag);
+      if(banner) banner.classList.add('hidden');
+      renderArtikel();
+      toast('Aktuelle Artikelnummern übernommen');
+    })
+    .catch(function(){ toast('Aktualisierung fehlgeschlagen'); });
+}
+
+function dismissArtikelUpdateBanner(){
+  var banner=document.getElementById('artikel-update-banner');
+  if(banner) banner.classList.add('hidden');
+}
+
+document.addEventListener('visibilitychange', function(){
+  if(document.visibilityState==='visible') checkArtikelUpdate();
+});
+window.addEventListener('pageshow', function(){ checkArtikelUpdate(); });
+
 fetch('artikel.json',{cache:'no-store'})
-  .then(function(r){ if(!r.ok) throw new Error('fetch failed'); return r.json(); })
+  .then(function(r){
+    if(!r.ok) throw new Error('fetch failed');
+    var tag=_artikelVersionTag(r.headers);
+    if(tag && !localStorage.getItem(ARTIKEL_ETAG_KEY)) localStorage.setItem(ARTIKEL_ETAG_KEY, tag);
+    return r.json();
+  })
   .then(function(json){ ART_CENTRAL=json; renderArtikel(); })
   .catch(function(){ renderArtikel(); });
 

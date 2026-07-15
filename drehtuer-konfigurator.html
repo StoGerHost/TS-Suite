@@ -266,6 +266,8 @@
   #artikel-upload-box{background:var(--panel);border-radius:20px 20px 0 0;width:100%;max-width:540px;max-height:82vh;overflow:hidden;display:flex;flex-direction:column;box-shadow:0 -4px 32px rgba(0,0,0,.6)}
   #artikel-override-banner{background:#8a5a1f;padding:12px 16px;display:flex;align-items:center;gap:10px}
   #artikel-override-banner.hidden{display:none}
+  #artikel-update-banner{background:#1a5f8a;padding:12px 16px;display:flex;align-items:center;gap:10px}
+  #artikel-update-banner.hidden{display:none}
   #artikel-upload-status{display:block;font-size:12.5px;line-height:1.5;padding:10px 12px;border:1.5px dashed var(--border);border-radius:8px;margin-bottom:14px}
   .artikel-upload-row{display:flex;flex-direction:column;gap:10px}
   .artikel-upload-label{display:flex;align-items:center;justify-content:center;gap:8px;padding:14px;border:2px dashed var(--border);border-radius:10px;color:var(--muted);font-size:13px;font-weight:600;cursor:pointer;text-align:center}
@@ -439,6 +441,13 @@
 </div>
 
 <div id="artikel-override-banner" class="hidden"></div>
+<div id="artikel-update-banner" class="hidden">
+  <span style="font-size:18px;flex-shrink:0">🔄</span>
+  <div style="flex:1"><div style="color:#fff;font-weight:700;font-size:13px">Neue Artikelnummern verfügbar</div>
+  <div style="color:rgba(255,255,255,.85);font-size:12px">Auf dem Server liegt eine aktuellere <span class="mono">artikel.json</span></div></div>
+  <button class="hdr-icon-btn" onclick="applyArtikelUpdate()">Übernehmen</button>
+  <button class="hdr-icon-btn" onclick="dismissArtikelUpdateBanner()" style="margin-left:6px">✕</button>
+</div>
 
 <div id="prog-bar"><div id="prog-fill" style="width:0%"></div></div>
 <div id="proj-data"></div>
@@ -649,6 +658,61 @@ function resetArtikelOverride(){
   renderArtikelStatus();
   if(typeof render==='function') render();
 }
+
+// ─── Update-Erkennung: erkennt per ETag/Last-Modified, ob auf dem Server eine neuere
+// artikel.json liegt, und prüft das beim (Wieder-)Aktivwerden des Tabs, statt dauerhaft
+// im Hintergrund zu pollen. Zeigt bei Unterschied einen Hinweis-Banner; Übernahme erst
+// nach Klick des Nutzers ("automatisch NACH Hinweis", nicht automatisch ohne Rückfrage).
+var ARTIKEL_ETAG_KEY='stober_artikel_etag';
+
+function _artikelVersionTag(headers){
+  return headers.get('etag') || headers.get('last-modified') || null;
+}
+
+function checkArtikelUpdate(){
+  return fetch('artikel.json',{method:'HEAD',cache:'no-store'})
+    .then(function(r){
+      if(!r.ok) return;
+      var tag=_artikelVersionTag(r.headers);
+      if(!tag) return; // Server liefert keine Versions-Info -> kein Vergleich möglich
+      var known=localStorage.getItem(ARTIKEL_ETAG_KEY);
+      if(known && known!==tag){
+        var banner=document.getElementById('artikel-update-banner');
+        if(banner){ banner.dataset.newTag=tag; banner.classList.remove('hidden'); }
+      }else if(!known){
+        localStorage.setItem(ARTIKEL_ETAG_KEY, tag);
+      }
+    })
+    .catch(function(){}); // z.B. offline -> einfach ignorieren, kein Fehler-UI nötig
+}
+
+function applyArtikelUpdate(){
+  var banner=document.getElementById('artikel-update-banner');
+  var newTag=banner ? banner.dataset.newTag : null;
+  fetch('artikel.json',{cache:'no-store'})
+    .then(function(r){ if(!r.ok) throw new Error('fetch failed'); return r.json(); })
+    .then(function(json){
+      window._artikelCentral=json||{};
+      if(newTag) localStorage.setItem(ARTIKEL_ETAG_KEY, newTag);
+      if(banner) banner.classList.add('hidden');
+      renderArtikelStatus();
+      if(typeof render==='function') render();
+      alert('Aktuelle Artikelnummern übernommen.');
+    })
+    .catch(function(){ alert('Aktualisierung fehlgeschlagen – bitte Seite manuell neu laden.'); });
+}
+
+function dismissArtikelUpdateBanner(){
+  var banner=document.getElementById('artikel-update-banner');
+  if(banner) banner.classList.add('hidden');
+}
+
+// Prüfen, wenn der Tab wieder sichtbar wird (z.B. nach App-Wechsel auf dem Tablet)
+// und beim Zurückkehren aus dem bfcache (iOS Safari feuert visibilitychange nicht immer zuverlässig).
+document.addEventListener('visibilitychange', function(){
+  if(document.visibilityState==='visible') checkArtikelUpdate();
+});
+window.addEventListener('pageshow', function(){ checkArtikelUpdate(); });
 
 // ─── Hersteller-Sichtbarkeit: zentrale hersteller-sichtbar.json + localStorage (Admin) + Defaults ───
 // Gleiches Drei-Stufen-Prinzip wie bei den Artikelnummern. Steuert, welche Hersteller-Tabs
@@ -1414,7 +1478,12 @@ renderArtikelStatus();
 // ─── Zentrale Artikelnummern laden (artikel.json) + Abdeckungs-Check ────────────
 function loadArtikel(){
   return fetch('artikel.json',{cache:'no-store'})
-    .then(function(r){ if(!r.ok) throw new Error('fetch failed'); return r.json(); })
+    .then(function(r){
+      if(!r.ok) throw new Error('fetch failed');
+      var tag=_artikelVersionTag(r.headers);
+      if(tag && !localStorage.getItem(ARTIKEL_ETAG_KEY)) localStorage.setItem(ARTIKEL_ETAG_KEY, tag);
+      return r.json();
+    })
     .then(function(json){ window._artikelCentral = json || {}; })
     .catch(function(){ window._artikelCentral = {}; })   // Defaults greifen weiterhin
     .then(function(){
