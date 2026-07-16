@@ -1,0 +1,771 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#0a0a0c">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="CRM">
+<title>Blueprint · CRM</title>
+<style>
+:root{
+  --bg:#0a0a0c; --panel:#131318; --panel2:#191921; --border:#26262e;
+  --blau:#3a7bd5; --tuerkis:#5eead4; --text:#e8e8ec; --dim:#8b8b96;
+  --rot:#e05d5d; --gelb:#e0b45d; --gruen:#5dc98a;
+  --mono:ui-monospace,'SF Mono','Cascadia Mono',Consolas,monospace;
+  --nav-h:62px;
+}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+html{font-size:16px}
+body{
+  background:var(--bg);color:var(--text);
+  font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;
+  min-height:100dvh;padding-bottom:calc(var(--nav-h) + env(safe-area-inset-bottom));
+}
+button{font:inherit;color:inherit;background:none;border:none;cursor:pointer}
+input,select,textarea{
+  font:inherit;color:var(--text);background:var(--panel2);
+  border:1px solid var(--border);border-radius:10px;
+  padding:12px 14px;width:100%;min-height:48px;
+}
+input:focus,select:focus,textarea:focus{outline:none;border-color:var(--blau)}
+textarea{min-height:96px;resize:vertical}
+label{display:block;font-size:.78rem;color:var(--dim);margin:14px 0 6px;
+  font-family:var(--mono);text-transform:uppercase;letter-spacing:.06em}
+
+/* Kopfzeile */
+header{
+  position:sticky;top:0;z-index:20;background:rgba(10,10,12,.92);
+  backdrop-filter:blur(8px);border-bottom:1px solid var(--border);
+  padding:calc(10px + env(safe-area-inset-top)) 16px 10px;
+  display:flex;align-items:center;gap:10px;
+}
+header .logo{font-family:var(--mono);font-size:.95rem;letter-spacing:.04em}
+header .logo b{color:var(--tuerkis);font-weight:600}
+header .status{margin-left:auto;font-family:var(--mono);font-size:.7rem;color:var(--dim);
+  display:flex;align-items:center;gap:6px}
+header .dot{width:8px;height:8px;border-radius:50%;background:var(--dim)}
+header .dot.ok{background:var(--gruen)}
+header .dot.err{background:var(--rot)}
+
+main{max-width:760px;margin:0 auto;padding:14px 14px 24px}
+
+/* Suchfeld */
+.suchzeile{position:sticky;top:calc(49px + env(safe-area-inset-top));z-index:15;
+  padding:6px 0 10px;background:linear-gradient(var(--bg) 75%,transparent)}
+.suchzeile input{background:var(--panel)}
+
+/* Kundenkarte — Karteikarten-Look mit Blueprint-Raster im Kopf */
+.karte{
+  background:var(--panel);border:1px solid var(--border);border-radius:14px;
+  margin-bottom:10px;overflow:hidden;display:block;width:100%;text-align:left;
+}
+.karte:active{border-color:var(--blau)}
+.karte .kopf{
+  padding:10px 14px 8px;border-bottom:1px solid var(--border);
+  background:
+    repeating-linear-gradient(0deg,transparent 0 11px,rgba(58,123,213,.07) 11px 12px),
+    repeating-linear-gradient(90deg,transparent 0 11px,rgba(58,123,213,.07) 11px 12px);
+  display:flex;align-items:baseline;gap:10px;
+}
+.karte .knr{font-family:var(--mono);font-size:.72rem;color:var(--tuerkis)}
+.karte .ort{margin-left:auto;font-size:.75rem;color:var(--dim);white-space:nowrap;
+  overflow:hidden;text-overflow:ellipsis}
+.karte .rumpf{padding:10px 14px 12px}
+.karte h3{font-size:1rem;font-weight:600;margin-bottom:2px}
+.karte .sub{font-size:.8rem;color:var(--dim)}
+
+/* Abschnitte / Panels */
+.panel{background:var(--panel);border:1px solid var(--border);border-radius:14px;
+  padding:14px;margin-bottom:12px}
+.eyebrow{font-family:var(--mono);font-size:.7rem;color:var(--dim);
+  text-transform:uppercase;letter-spacing:.08em;margin-bottom:10px;
+  display:flex;align-items:center;gap:8px}
+.eyebrow .plus{margin-left:auto;color:var(--tuerkis);font-size:1rem;padding:4px 8px}
+
+/* Aktions-Buttons (anrufen / mail / karte) */
+.aktionen{display:flex;gap:8px;margin:12px 0}
+.aktionen a,.aktionen button{
+  flex:1;min-height:48px;display:flex;align-items:center;justify-content:center;gap:6px;
+  background:var(--panel);border:1px solid var(--border);border-radius:12px;
+  color:var(--text);text-decoration:none;font-size:.85rem;
+}
+.aktionen a:active{border-color:var(--tuerkis)}
+
+/* Timeline */
+.tl{list-style:none}
+.tl li{position:relative;padding:0 0 14px 22px;border-left:1px solid var(--border);
+  margin-left:6px}
+.tl li:last-child{padding-bottom:2px}
+.tl li::before{content:'';position:absolute;left:-5px;top:4px;width:9px;height:9px;
+  border-radius:50%;background:var(--bg);border:2px solid var(--blau)}
+.tl li.t-wartung::before{border-color:var(--tuerkis)}
+.tl li.t-reklamation::before{border-color:var(--rot)}
+.tl .tlkopf{display:flex;gap:8px;align-items:baseline;font-size:.72rem;
+  font-family:var(--mono);color:var(--dim);margin-bottom:3px}
+.tl .tltyp{color:var(--blau);text-transform:uppercase;letter-spacing:.05em}
+.tl li.t-wartung .tltyp{color:var(--tuerkis)}
+.tl li.t-reklamation .tltyp{color:var(--rot)}
+.tl p{font-size:.9rem;white-space:pre-wrap}
+.tl .artchips{margin-top:6px;display:flex;flex-wrap:wrap;gap:6px}
+
+/* Chips */
+.chip{font-family:var(--mono);font-size:.72rem;color:var(--tuerkis);
+  border:1px solid rgba(94,234,212,.35);border-radius:99px;padding:3px 10px}
+.chip.blau{color:var(--blau);border-color:rgba(58,123,213,.4)}
+.chip button{color:var(--rot);margin-left:6px;padding:0}
+
+/* Wiedervorlagen */
+.wv{display:flex;align-items:flex-start;gap:12px;padding:12px 4px;
+  border-bottom:1px solid var(--border)}
+.wv:last-child{border-bottom:none}
+.wv .box{width:26px;height:26px;min-width:26px;border:2px solid var(--dim);
+  border-radius:8px;margin-top:2px;display:flex;align-items:center;justify-content:center;
+  color:transparent;font-size:.9rem}
+.wv.erledigt .box{border-color:var(--gruen);color:var(--gruen)}
+.wv.erledigt .txt{text-decoration:line-through;color:var(--dim)}
+.wv .datum{font-family:var(--mono);font-size:.72rem;color:var(--dim)}
+.wv .datum.faellig{color:var(--rot)}
+.wv .datum.heute{color:var(--gelb)}
+.wv .kunde{font-size:.75rem;color:var(--blau)}
+
+/* Artikel-Liste */
+.artzeile{display:flex;align-items:center;gap:12px;padding:12px 4px;
+  border-bottom:1px solid var(--border);width:100%;text-align:left}
+.artzeile:last-child{border-bottom:none}
+.artzeile .nr{font-family:var(--mono);color:var(--tuerkis);font-size:.85rem;
+  min-width:110px}
+.artzeile .bez{font-size:.85rem;color:var(--text);flex:1;word-break:break-word}
+
+/* Formulare / Modal */
+.modalbg{position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:40;
+  display:flex;align-items:flex-end;justify-content:center}
+.modal{background:var(--panel);border:1px solid var(--border);
+  border-radius:18px 18px 0 0;width:100%;max-width:760px;max-height:88dvh;
+  overflow-y:auto;padding:18px 16px calc(18px + env(safe-area-inset-bottom))}
+.modal h2{font-size:1.05rem;margin-bottom:4px}
+.modal .griff{width:44px;height:4px;border-radius:2px;background:var(--border);
+  margin:0 auto 14px}
+.typwahl{display:flex;flex-wrap:wrap;gap:8px;margin-top:6px}
+.typwahl button{border:1px solid var(--border);border-radius:99px;
+  padding:9px 16px;font-size:.85rem;min-height:44px;background:var(--panel2)}
+.typwahl button.aktiv{border-color:var(--tuerkis);color:var(--tuerkis)}
+
+.btnzeile{display:flex;gap:10px;margin-top:18px}
+.btn{flex:1;min-height:52px;border-radius:12px;font-size:.95rem;font-weight:600;
+  display:flex;align-items:center;justify-content:center;gap:8px}
+.btn.primaer{background:var(--blau);color:#fff}
+.btn.primaer:active{background:#2f66b3}
+.btn.sekundaer{background:var(--panel2);border:1px solid var(--border)}
+.btn.gefahr{color:var(--rot);border:1px solid rgba(224,93,93,.4)}
+.btn[disabled]{opacity:.5}
+
+/* Bottom-Navigation */
+nav{
+  position:fixed;left:0;right:0;bottom:0;z-index:30;
+  background:rgba(15,15,19,.95);backdrop-filter:blur(10px);
+  border-top:1px solid var(--border);
+  display:flex;height:calc(var(--nav-h) + env(safe-area-inset-bottom));
+  padding-bottom:env(safe-area-inset-bottom);
+}
+nav button{flex:1;display:flex;flex-direction:column;align-items:center;
+  justify-content:center;gap:3px;color:var(--dim);font-size:.68rem;
+  font-family:var(--mono);letter-spacing:.03em}
+nav button svg{width:22px;height:22px;stroke:currentColor;fill:none;
+  stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+nav button.aktiv{color:var(--tuerkis)}
+nav .badge{position:absolute;transform:translate(14px,-26px);background:var(--rot);
+  color:#fff;font-size:.62rem;border-radius:99px;min-width:16px;height:16px;
+  display:flex;align-items:center;justify-content:center;padding:0 4px}
+
+/* Leerzustand, Hinweise */
+.leer{text-align:center;color:var(--dim);padding:36px 20px;font-size:.9rem}
+.leer .gross{font-size:1.6rem;margin-bottom:8px;color:var(--border)}
+.hinweis{background:rgba(224,180,93,.08);border:1px solid rgba(224,180,93,.3);
+  border-radius:12px;padding:12px 14px;font-size:.83rem;color:var(--gelb);
+  margin-bottom:12px}
+.fehler{background:rgba(224,93,93,.08);border-color:rgba(224,93,93,.35);color:var(--rot)}
+
+/* Toast */
+#toast{position:fixed;left:50%;bottom:calc(var(--nav-h) + 20px + env(safe-area-inset-bottom));
+  transform:translateX(-50%) translateY(20px);background:var(--panel2);
+  border:1px solid var(--tuerkis);color:var(--text);padding:12px 20px;
+  border-radius:12px;font-size:.85rem;opacity:0;pointer-events:none;
+  transition:all .25s;z-index:60;white-space:nowrap}
+#toast.zeig{opacity:1;transform:translateX(-50%) translateY(0)}
+
+.zurueck{font-family:var(--mono);font-size:.8rem;color:var(--blau);
+  padding:8px 0;margin-bottom:6px;display:inline-flex;align-items:center;gap:6px}
+.fab{position:fixed;right:18px;bottom:calc(var(--nav-h) + 18px + env(safe-area-inset-bottom));
+  width:58px;height:58px;border-radius:50%;background:var(--blau);color:#fff;
+  font-size:1.7rem;display:flex;align-items:center;justify-content:center;
+  box-shadow:0 6px 20px rgba(58,123,213,.4);z-index:25}
+.fab:active{background:#2f66b3}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+@media (min-width:700px){ /* Tablet: etwas Luft */
+  main{padding:20px}
+  .modalbg{align-items:center}
+  .modal{border-radius:18px;max-height:80dvh}
+}
+</style>
+</head>
+<body>
+
+<header>
+  <span class="logo">Blueprint · <b>CRM</b></span>
+  <span class="status"><span class="dot" id="statusDot"></span><span id="statusTxt">–</span></span>
+</header>
+
+<main id="view"></main>
+
+<nav id="nav"></nav>
+<div id="modalRoot"></div>
+<div id="toast"></div>
+
+<script>
+/* ================= KONFIGURATION =================
+   Nur hier anpassen — der Rest der App liest daraus. */
+const KONFIG = {
+  SUPABASE_URL : 'https://guuywhrzygcnpzrnnlsw.supabase.co',
+  SUPABASE_KEY : 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imd1dXl3aHJ6eWdjbnB6cm5ubHN3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODM3MjcyOTIsImV4cCI6MjA5OTMwMzI5Mn0.tvPfk5j6mXNG2YcYl4cUR-rF-T3QWdTGuOZ8SHRSv2U',
+
+  TAB_KONTAKTE : 'kontakte',                   // bestehende TS-Suite-Tabelle
+  TAB_AKT      : 'crm_aktivitaeten',
+  TAB_WV       : 'crm_wiedervorlagen',
+  TAB_AP       : 'crm_ansprechpartner',
+
+  // Feld-Zuordnung für die kontakte-Tabelle der TS-Suite.
+  // Aufbau dort: bauvorhaben (Schlüssel), kunde (Name + Adresse), ansprechpartner.
+  FELD: {
+    name    : ['bauvorhaben'],
+    kunde   : ['kunde'],
+    ap      : ['ansprechpartner'],
+    telefon : ['telefon','tel','telefonnummer'],
+    email   : ['email','mail','e_mail'],
+    knr     : []
+  },
+
+  // Artikel: gleiches Drei-Schichten-Muster wie in der TS-Suite
+  ARTIKEL_LS_KEY : 'artikelnummern',           // localStorage-Key ggf. anpassen
+  ARTIKEL_URL    : 'artikel.json',             // relativ, liegt im selben Repo
+
+  KUERZEL_LS_KEY : 'crm_kuerzel'               // eigenes Kürzel (z.B. GER)
+};
+</script>
+<script>
+/* ================= HELFER ================= */
+const $ = s => document.querySelector(s);
+const esc = s => String(s ?? '').replace(/[&<>"']/g, c =>
+  ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const heute = () => new Date().toISOString().slice(0,10);
+
+function toast(msg){
+  const t = $('#toast'); t.textContent = msg; t.classList.add('zeig');
+  clearTimeout(t._h); t._h = setTimeout(()=>t.classList.remove('zeig'), 2200);
+}
+function datumFmt(iso){
+  if(!iso) return '';
+  const d = new Date(iso);
+  return d.toLocaleDateString('de-DE',{day:'2-digit',month:'2-digit',year:'2-digit'}) +
+    (iso.length > 10 ? ' ' + d.toLocaleTimeString('de-DE',{hour:'2-digit',minute:'2-digit'}) : '');
+}
+/* Feld-Mapping: erster vorhandener Kandidat gewinnt */
+function feld(obj, key){
+  for(const k of KONFIG.FELD[key] || []){
+    if(obj && obj[k] != null && obj[k] !== '') return obj[k];
+  }
+  return '';
+}
+function feldName(key){ // in welcher Spalte wird geschrieben (für Neuanlage)
+  return (KONFIG.FELD[key] || [])[0];
+}
+
+/* ================= SUPABASE (REST) ================= */
+async function sb(pfad, opts = {}){
+  const r = await fetch(`${KONFIG.SUPABASE_URL}/rest/v1/${pfad}`, {
+    ...opts,
+    headers: {
+      'apikey': KONFIG.SUPABASE_KEY,
+      'Authorization': `Bearer ${KONFIG.SUPABASE_KEY}`,
+      'Content-Type': 'application/json',
+      'Prefer': opts.method === 'POST' || opts.method === 'PATCH' ? 'return=representation' : '',
+      ...(opts.headers || {})
+    }
+  });
+  if(!r.ok){
+    const txt = await r.text().catch(()=> '');
+    throw new Error(`${r.status}: ${txt.slice(0,200)}`);
+  }
+  return r.status === 204 ? null : r.json();
+}
+function setStatus(ok, txt){
+  $('#statusDot').className = 'dot ' + (ok === null ? '' : ok ? 'ok' : 'err');
+  $('#statusTxt').textContent = txt;
+}
+
+/* ================= ARTIKEL (3 Schichten) ================= */
+let ARTIKEL = {};   // { key: nummer } — wie artikel.json der TS-Suite
+async function ladeArtikel(){
+  try{ // 1. localStorage (Admin-Panel-Overrides)
+    const ls = localStorage.getItem(KONFIG.ARTIKEL_LS_KEY);
+    if(ls){ ARTIKEL = {...ARTIKEL, ...JSON.parse(ls)}; }
+  }catch(e){}
+  try{ // 2. zentrale artikel.json
+    const r = await fetch(KONFIG.ARTIKEL_URL, {cache:'no-store'});
+    if(r.ok){
+      const json = await r.json();
+      ARTIKEL = {...json, ...ARTIKEL}; // localStorage behält Vorrang
+    }
+  }catch(e){}
+  // 3. Fallback: leer — App funktioniert auch ohne Artikel
+}
+function artikelSuche(q){
+  q = q.toLowerCase().trim();
+  if(!q) return Object.entries(ARTIKEL).slice(0,30);
+  return Object.entries(ARTIKEL)
+    .filter(([key,nr]) => key.toLowerCase().includes(q) || String(nr).toLowerCase().includes(q))
+    .slice(0,50);
+}
+
+/* ================= DATEN-CACHE ================= */
+const cache = { kontakte:null, wv:null };
+
+async function holeKontakte(neu = false){
+  if(cache.kontakte && !neu) return cache.kontakte;
+  cache.kontakte = await sb(`${KONFIG.TAB_KONTAKTE}?select=*&limit=1000`);
+  return cache.kontakte;
+}
+async function holeOffeneWV(neu = false){
+  if(cache.wv && !neu) return cache.wv;
+  cache.wv = await sb(`${KONFIG.TAB_WV}?erledigt=eq.false&select=*&order=faellig_am.asc&limit=500`);
+  return cache.wv;
+}
+
+/* ================= ROUTING ================= */
+const routen = {
+  kunden : () => zeigKunden(),
+  kunde  : id => zeigKunde(id),
+  wv     : () => zeigWV(),
+  artikel: () => zeigArtikel()
+};
+function navigiere(hash){ location.hash = hash; }
+async function route(){
+  const [ , seite = 'kunden', param ] = location.hash.split('/');
+  const fn = routen[seite] || routen.kunden;
+  document.querySelectorAll('nav button').forEach(b =>
+    b.classList.toggle('aktiv', b.dataset.ziel === seite ||
+      (seite === 'kunde' && b.dataset.ziel === 'kunden')));
+  try{ await fn(param); }
+  catch(e){
+    $('#view').innerHTML = `<div class="hinweis fehler">Verbindung fehlgeschlagen:<br>
+      <span style="font-family:var(--mono);font-size:.75rem">${esc(e.message)}</span><br><br>
+      Ist der Supabase-Key in der KONFIG eingetragen und das SQL-Setup ausgeführt?</div>`;
+    setStatus(false, 'offline');
+  }
+}
+window.addEventListener('hashchange', route);
+
+/* ================= ANSICHT: KUNDENLISTE ================= */
+let suchbegriff = '';
+async function zeigKunden(){
+  const v = $('#view');
+  v.innerHTML = `<div class="suchzeile">
+      <input id="suche" type="search" placeholder="Suchen … (Bauvorhaben, Kunde, Ansprechpartner)"
+        value="${esc(suchbegriff)}" autocomplete="off">
+    </div><div id="liste"><div class="leer">Lade Kunden …</div></div>
+    <button class="fab" id="fabNeu" title="Neuer Kunde">+</button>`;
+  $('#suche').addEventListener('input', e => {
+    suchbegriff = e.target.value; renderKundenListe();
+  });
+  $('#fabNeu').onclick = () => modalNeuerKunde();
+  await holeKontakte();
+  setStatus(true, cache.kontakte.length + ' Kunden');
+  renderKundenListe();
+}
+function renderKundenListe(){
+  const liste = $('#liste'); if(!liste || !cache.kontakte) return;
+  const q = suchbegriff.toLowerCase().trim();
+  const gefiltert = !q ? cache.kontakte : cache.kontakte.filter(k =>
+    Object.values(k).some(w => String(w ?? '').toLowerCase().includes(q)));
+  if(!gefiltert.length){
+    liste.innerHTML = `<div class="leer"><div class="gross">⌀</div>Kein Kunde gefunden.<br>
+      Mit dem <b style="color:var(--blau)">+</b> unten rechts legst du einen neuen an.</div>`;
+    return;
+  }
+  const sortiert = [...gefiltert].sort((a,b) =>
+    String(feld(a,'name')).localeCompare(String(feld(b,'name')),'de'));
+  liste.innerHTML = sortiert.map(k => `
+    <button class="karte" onclick="navigiere('#/kunde/${k.id}')">
+      <div class="kopf">
+        <span class="knr">#${k.id}</span>
+        <span class="ort">${esc(feld(k,'ap'))}</span>
+      </div>
+      <div class="rumpf">
+        <h3>${esc(feld(k,'name') || '(ohne Bauvorhaben)')}</h3>
+        <div class="sub">${esc(feld(k,'kunde'))}</div>
+      </div>
+    </button>`).join('');
+}
+</script>
+<script>
+/* ================= ANSICHT: KUNDENDETAIL ================= */
+const TYPEN = {
+  notiz:'Notiz', anruf:'Anruf', besuch:'Besuch',
+  wartung:'Wartung', angebot:'Angebot', reklamation:'Reklamation'
+};
+async function zeigKunde(id){
+  const v = $('#view');
+  v.innerHTML = `<div class="leer">Lade Kunde …</div>`;
+  const kontakte = await holeKontakte();
+  const k = kontakte.find(x => String(x.id) === String(id));
+  if(!k){ v.innerHTML = `<div class="leer">Kunde nicht gefunden.</div>`; return; }
+
+  const [akt, wv, ap] = await Promise.all([
+    sb(`${KONFIG.TAB_AKT}?kontakt_id=eq.${id}&select=*&order=erstellt_am.desc&limit=100`),
+    sb(`${KONFIG.TAB_WV}?kontakt_id=eq.${id}&select=*&order=faellig_am.asc&limit=100`),
+    sb(`${KONFIG.TAB_AP}?kontakt_id=eq.${id}&select=*&order=name.asc`)
+  ]);
+  setStatus(true, 'verbunden');
+
+  const tel   = feld(k,'telefon');
+  const mail  = feld(k,'email');
+  const navQ  = encodeURIComponent(feld(k,'kunde'));
+  const offen = wv.filter(w => !w.erledigt);
+
+  v.innerHTML = `
+    <button class="zurueck" onclick="history.back()">← Kundenliste</button>
+
+    <div class="karte"><div class="kopf">
+        <span class="knr">#${k.id}</span>
+        <span class="ort">${esc(feld(k,'ap'))}</span>
+      </div>
+      <div class="rumpf">
+        <h3>${esc(feld(k,'name') || '(ohne Bauvorhaben)')}</h3>
+        <div class="sub">${esc(feld(k,'kunde'))}</div>
+      </div>
+    </div>
+
+    <div class="aktionen">
+      ${tel  ? `<a href="tel:${esc(tel)}">📞 Anrufen</a>` : ''}
+      ${mail ? `<a href="mailto:${esc(mail)}">✉️ E-Mail</a>` : ''}
+      ${navQ ? `<a href="https://maps.apple.com/?q=${navQ}" target="_blank" rel="noopener">🧭 Route</a>` : ''}
+    </div>
+
+    <div class="panel">
+      <div class="eyebrow">Wiedervorlagen
+        <button class="plus" onclick="modalWV('${id}')">＋</button></div>
+      ${wv.length ? wv.map(w => wvZeile(w, false)).join('')
+        : `<div class="leer" style="padding:12px">Keine Wiedervorlage — mit ＋ eine anlegen.</div>`}
+    </div>
+
+    <div class="panel">
+      <div class="eyebrow">Ansprechpartner
+        <button class="plus" onclick="modalAP('${id}')">＋</button></div>
+      ${feld(k,'ap') ? `<div class="wv"><div style="flex:1">
+          <div class="txt"><b>${esc(feld(k,'ap'))}</b> <span style="color:var(--dim);font-size:.78rem">· aus Arbeitsbericht</span></div>
+        </div></div>` : ''}
+      ${ap.length ? ap.map(p => `
+        <div class="wv"><div style="flex:1">
+          <div class="txt"><b>${esc(p.name)}</b>${p.funktion ? ` <span class="sub" style="color:var(--dim);font-size:.78rem">· ${esc(p.funktion)}</span>`:''}</div>
+          <div class="datum">${esc([p.telefon,p.email].filter(Boolean).join(' · '))}</div>
+        </div>
+        ${p.telefon ? `<a href="tel:${esc(p.telefon)}" style="align-self:center;font-size:1.2rem;text-decoration:none">📞</a>`:''}
+        </div>`).join('')
+        : (feld(k,'ap') ? '' : `<div class="leer" style="padding:12px">Noch niemand hinterlegt.</div>`)}
+    </div>
+
+    <div class="panel">
+      <div class="eyebrow">Verlauf</div>
+      ${akt.length ? `<ul class="tl">${akt.map(a => `
+        <li class="t-${esc(a.typ)}">
+          <div class="tlkopf"><span class="tltyp">${esc(TYPEN[a.typ] || a.typ)}</span>
+            <span>${datumFmt(a.erstellt_am)}</span>
+            ${a.erstellt_von ? `<span>· ${esc(a.erstellt_von)}</span>` : ''}</div>
+          <p>${esc(a.text)}</p>
+          ${Array.isArray(a.artikel) && a.artikel.length ? `<div class="artchips">
+            ${a.artikel.map(x => `<span class="chip">${esc(x.nr)}${x.key ? ' · ' + esc(x.key) : ''}</span>`).join('')}
+          </div>` : ''}
+        </li>`).join('')}</ul>`
+        : `<div class="leer" style="padding:12px">Noch keine Einträge.</div>`}
+    </div>
+
+    <button class="fab" onclick="modalAktivitaet('${id}')" title="Neue Aktivität">+</button>`;
+}
+function wvZeile(w, mitKunde){
+  const h = heute();
+  const cls = w.erledigt ? '' : w.faellig_am < h ? 'faellig' : w.faellig_am === h ? 'heute' : '';
+  const kunde = mitKunde && cache.kontakte
+    ? cache.kontakte.find(k => String(k.id) === String(w.kontakt_id)) : null;
+  return `<div class="wv ${w.erledigt ? 'erledigt' : ''}">
+    <button class="box" onclick="wvToggle('${w.id}', ${!w.erledigt})">✓</button>
+    <div style="flex:1">
+      <div class="txt">${esc(w.titel)}</div>
+      ${w.notiz ? `<div class="datum" style="color:var(--dim)">${esc(w.notiz)}</div>` : ''}
+      <div class="datum ${cls}">fällig ${datumFmt(w.faellig_am)}
+        ${cls === 'faellig' ? '· überfällig' : cls === 'heute' ? '· heute' : ''}</div>
+      ${kunde ? `<button class="kunde" onclick="navigiere('#/kunde/${kunde.id}')">${esc(feld(kunde,'name'))} →</button>` : ''}
+    </div></div>`;
+}
+async function wvToggle(id, erledigt){
+  await sb(`${KONFIG.TAB_WV}?id=eq.${id}`, { method:'PATCH',
+    body: JSON.stringify({ erledigt, erledigt_am: erledigt ? new Date().toISOString() : null })});
+  cache.wv = null; toast(erledigt ? 'Erledigt ✓' : 'Wieder offen'); route();
+}
+
+/* ================= ANSICHT: WIEDERVORLAGEN ================= */
+async function zeigWV(){
+  const v = $('#view');
+  v.innerHTML = `<div class="leer">Lade Wiedervorlagen …</div>`;
+  const [wv] = await Promise.all([holeOffeneWV(true), holeKontakte()]);
+  setStatus(true, wv.length + ' offen');
+  aktualisiereBadge(wv);
+  const h = heute();
+  const gruppen = [
+    ['Überfällig', wv.filter(w => w.faellig_am <  h)],
+    ['Heute',      wv.filter(w => w.faellig_am === h)],
+    ['Demnächst',  wv.filter(w => w.faellig_am >  h)]
+  ];
+  v.innerHTML = wv.length
+    ? gruppen.filter(([,l]) => l.length).map(([titel, liste]) => `
+        <div class="panel"><div class="eyebrow">${titel} · ${liste.length}</div>
+        ${liste.map(w => wvZeile(w, true)).join('')}</div>`).join('')
+    : `<div class="leer"><div class="gross">✓</div>Alles erledigt — keine offene Wiedervorlage.</div>`;
+}
+function aktualisiereBadge(wv){
+  const h = heute();
+  const n = (wv || []).filter(w => w.faellig_am <= h).length;
+  const el = $('#wvBadge');
+  if(el) el.style.display = n ? 'flex' : 'none', el.textContent = n;
+}
+
+/* ================= ANSICHT: ARTIKEL ================= */
+async function zeigArtikel(){
+  const v = $('#view');
+  const n = Object.keys(ARTIKEL).length;
+  v.innerHTML = `<div class="suchzeile">
+      <input id="artSuche" type="search" placeholder="Artikel suchen … (Bezeichnung oder Nummer)" autocomplete="off">
+    </div>
+    ${n ? '' : `<div class="hinweis">Keine Artikel geladen. Liegt <b>artikel.json</b> im selben
+      Ordner wie diese Datei? Pfad in der KONFIG prüfen (ARTIKEL_URL).</div>`}
+    <div class="panel" id="artListe"></div>`;
+  setStatus(true, n + ' Artikel');
+  const render = q => {
+    const treffer = artikelSuche(q || '');
+    $('#artListe').innerHTML = treffer.length
+      ? treffer.map(([key, nr]) => `
+        <button class="artzeile" onclick="artikelKopieren('${esc(nr)}')">
+          <span class="nr">${esc(nr)}</span><span class="bez">${esc(key)}</span>
+        </button>`).join('')
+      : `<div class="leer" style="padding:12px">Nichts gefunden.</div>`;
+  };
+  $('#artSuche').addEventListener('input', e => render(e.target.value));
+  render('');
+}
+function artikelKopieren(nr){
+  navigator.clipboard?.writeText(nr).then(
+    () => toast('Artikelnummer kopiert: ' + nr),
+    () => toast(nr));
+}
+</script>
+<script>
+/* ================= MODALS ================= */
+function modal(html){
+  $('#modalRoot').innerHTML = `<div class="modalbg" onclick="if(event.target===this)modalZu()">
+    <div class="modal"><div class="griff"></div>${html}</div></div>`;
+}
+function modalZu(){ $('#modalRoot').innerHTML = ''; }
+
+/* --- Neue Aktivität (mit Artikel-Verknüpfung) --- */
+let aktArtikel = [];
+function modalAktivitaet(kontaktId){
+  aktArtikel = [];
+  const kuerzel = localStorage.getItem(KONFIG.KUERZEL_LS_KEY) || '';
+  modal(`
+    <h2>Neue Aktivität</h2>
+    <label>Art</label>
+    <div class="typwahl" id="typWahl">
+      ${Object.entries(TYPEN).map(([k,v],i) =>
+        `<button data-typ="${k}" class="${i===0?'aktiv':''}">${v}</button>`).join('')}
+    </div>
+    <label>Was war los?</label>
+    <textarea id="aktText" placeholder="z.B. Schiebetür EG klemmt, Kunde bittet um Termin nächste Woche …"></textarea>
+    <label>Artikel verknüpfen (optional)</label>
+    <input id="aktArtSuche" type="search" placeholder="Artikel suchen …" autocomplete="off">
+    <div id="aktArtVorschlaege"></div>
+    <div class="artchips" id="aktArtChips" style="margin-top:8px"></div>
+    <label>Dein Kürzel</label>
+    <input id="aktKuerzel" value="${esc(kuerzel)}" placeholder="z.B. GER" maxlength="6"
+      style="max-width:140px;text-transform:uppercase">
+    <label style="display:flex;align-items:center;gap:10px;text-transform:none;font-family:inherit;font-size:.88rem;color:var(--text)">
+      <input type="checkbox" id="aktMitWV" style="width:22px;height:22px;min-height:0">
+      Wiedervorlage dazu anlegen
+    </label>
+    <div id="aktWVBlock" style="display:none">
+      <label>Fällig am</label>
+      <input type="date" id="aktWVDatum" value="${heute()}">
+    </div>
+    <div class="btnzeile">
+      <button class="btn sekundaer" onclick="modalZu()">Abbrechen</button>
+      <button class="btn primaer" onclick="speichereAktivitaet('${kontaktId}')">Speichern</button>
+    </div>`);
+  $('#typWahl').addEventListener('click', e => {
+    const b = e.target.closest('button'); if(!b) return;
+    document.querySelectorAll('#typWahl button').forEach(x => x.classList.remove('aktiv'));
+    b.classList.add('aktiv');
+  });
+  $('#aktMitWV').addEventListener('change', e =>
+    $('#aktWVBlock').style.display = e.target.checked ? 'block' : 'none');
+  $('#aktArtSuche').addEventListener('input', e => {
+    const q = e.target.value.trim();
+    const box = $('#aktArtVorschlaege');
+    if(!q){ box.innerHTML = ''; return; }
+    box.innerHTML = artikelSuche(q).slice(0,6).map(([key,nr]) => `
+      <button class="artzeile" onclick="aktArtikelDazu('${esc(nr)}','${esc(key)}')">
+        <span class="nr">${esc(nr)}</span><span class="bez">${esc(key)}</span>
+      </button>`).join('');
+  });
+}
+function aktArtikelDazu(nr, key){
+  if(!aktArtikel.some(a => a.nr === nr)) aktArtikel.push({nr, key});
+  $('#aktArtSuche').value = ''; $('#aktArtVorschlaege').innerHTML = '';
+  renderAktChips();
+}
+function renderAktChips(){
+  $('#aktArtChips').innerHTML = aktArtikel.map((a,i) =>
+    `<span class="chip">${esc(a.nr)}<button onclick="aktArtikel.splice(${i},1);renderAktChips()">×</button></span>`).join('');
+}
+async function speichereAktivitaet(kontaktId){
+  const text = $('#aktText').value.trim();
+  if(!text){ toast('Bitte kurz beschreiben, was war.'); return; }
+  const typ = $('#typWahl .aktiv')?.dataset.typ || 'notiz';
+  const kuerzel = $('#aktKuerzel').value.trim().toUpperCase();
+  if(kuerzel) localStorage.setItem(KONFIG.KUERZEL_LS_KEY, kuerzel);
+  try{
+    await sb(KONFIG.TAB_AKT, { method:'POST', body: JSON.stringify({
+      kontakt_id: kontaktId, typ, text,
+      artikel: aktArtikel.length ? aktArtikel : null,
+      erstellt_von: kuerzel || null
+    })});
+    if($('#aktMitWV').checked){
+      await sb(KONFIG.TAB_WV, { method:'POST', body: JSON.stringify({
+        kontakt_id: kontaktId,
+        titel: TYPEN[typ] + ': ' + text.slice(0,60),
+        faellig_am: $('#aktWVDatum').value || heute(),
+        erstellt_von: kuerzel || null
+      })});
+      cache.wv = null;
+    }
+    modalZu(); toast('Gespeichert ✓'); route();
+  }catch(e){ toast('Fehler: ' + e.message.slice(0,80)); }
+}
+
+/* --- Neue Wiedervorlage --- */
+function modalWV(kontaktId){
+  modal(`
+    <h2>Neue Wiedervorlage</h2>
+    <label>Worum geht's?</label>
+    <input id="wvTitel" placeholder="z.B. Wartungsangebot nachfassen">
+    <label>Fällig am</label>
+    <input type="date" id="wvDatum" value="${heute()}">
+    <label>Notiz (optional)</label>
+    <textarea id="wvNotiz" style="min-height:64px"></textarea>
+    <div class="btnzeile">
+      <button class="btn sekundaer" onclick="modalZu()">Abbrechen</button>
+      <button class="btn primaer" onclick="speichereWV('${kontaktId}')">Speichern</button>
+    </div>`);
+}
+async function speichereWV(kontaktId){
+  const titel = $('#wvTitel').value.trim();
+  if(!titel){ toast('Titel fehlt noch.'); return; }
+  try{
+    await sb(KONFIG.TAB_WV, { method:'POST', body: JSON.stringify({
+      kontakt_id: kontaktId, titel,
+      faellig_am: $('#wvDatum').value || heute(),
+      notiz: $('#wvNotiz').value.trim() || null,
+      erstellt_von: localStorage.getItem(KONFIG.KUERZEL_LS_KEY) || null
+    })});
+    cache.wv = null; modalZu(); toast('Wiedervorlage angelegt ✓'); route();
+  }catch(e){ toast('Fehler: ' + e.message.slice(0,80)); }
+}
+
+/* --- Neuer Ansprechpartner --- */
+function modalAP(kontaktId){
+  modal(`
+    <h2>Neuer Ansprechpartner</h2>
+    <label>Name</label><input id="apName" placeholder="Vor- und Nachname">
+    <label>Funktion</label><input id="apFunktion" placeholder="z.B. Hausmeister, Einkauf">
+    <label>Telefon</label><input id="apTel" type="tel" inputmode="tel">
+    <label>E-Mail</label><input id="apMail" type="email" inputmode="email">
+    <div class="btnzeile">
+      <button class="btn sekundaer" onclick="modalZu()">Abbrechen</button>
+      <button class="btn primaer" onclick="speichereAP('${kontaktId}')">Speichern</button>
+    </div>`);
+}
+async function speichereAP(kontaktId){
+  const name = $('#apName').value.trim();
+  if(!name){ toast('Name fehlt noch.'); return; }
+  try{
+    await sb(KONFIG.TAB_AP, { method:'POST', body: JSON.stringify({
+      kontakt_id: kontaktId, name,
+      funktion: $('#apFunktion').value.trim() || null,
+      telefon:  $('#apTel').value.trim() || null,
+      email:    $('#apMail').value.trim() || null
+    })});
+    modalZu(); toast('Ansprechpartner gespeichert ✓'); route();
+  }catch(e){ toast('Fehler: ' + e.message.slice(0,80)); }
+}
+
+/* --- Neuer Kunde (schreibt in die bestehende kontakte-Tabelle) --- */
+function modalNeuerKunde(){
+  modal(`
+    <h2>Neues Bauvorhaben</h2>
+    <p style="font-size:.8rem;color:var(--dim);margin-top:4px">Wird in der bestehenden
+      Kontakte-Tabelle der TS-Suite angelegt und steht dort sofort zur Verfügung.</p>
+    <label>Bauvorhaben</label><input id="nkName" placeholder="z.B. Eingang Bücherei KUZ">
+    <label>Kunde (Name + Adresse)</label>
+    <textarea id="nkKunde" style="min-height:72px"
+      placeholder="z.B. Stadt Karlsruhe, Gebäudewirtschaft, Zähringerstr. 61, 76133 Karlsruhe"></textarea>
+    <label>Ansprechpartner</label><input id="nkAp">
+    <div class="btnzeile">
+      <button class="btn sekundaer" onclick="modalZu()">Abbrechen</button>
+      <button class="btn primaer" onclick="speichereNeuerKunde()">Anlegen</button>
+    </div>`);
+}
+async function speichereNeuerKunde(){
+  const name = $('#nkName').value.trim();
+  if(!name){ toast('Bauvorhaben fehlt noch.'); return; }
+  const zeile = { bauvorhaben: name };
+  const kunde = $('#nkKunde').value.trim(); if(kunde) zeile.kunde = kunde;
+  const ap    = $('#nkAp').value.trim();    if(ap)    zeile.ansprechpartner = ap;
+  try{
+    const [neu] = await sb(KONFIG.TAB_KONTAKTE, { method:'POST', body: JSON.stringify(zeile) });
+    cache.kontakte = null; modalZu(); toast('Bauvorhaben angelegt ✓');
+    navigiere('#/kunde/' + neu.id);
+  }catch(e){
+    toast('Fehler — gibt es dieses Bauvorhaben schon?');
+    console.error(e);
+  }
+}
+
+/* ================= NAVIGATION + START ================= */
+const NAV = [
+  ['kunden',  'Kunden',        '<circle cx="12" cy="8" r="4"/><path d="M4 21v-1a8 8 0 0 1 16 0v1"/>'],
+  ['wv',      'Wiedervorlagen','<rect x="4" y="5" width="16" height="16" rx="2"/><path d="M8 3v4M16 3v4M4 11h16"/>'],
+  ['artikel', 'Artikel',       '<path d="M21 8l-9-5-9 5 9 5 9-5zM3 8v8l9 5 9-5V8"/><path d="M12 13v8"/>']
+];
+$('#nav').innerHTML = NAV.map(([ziel, txt, icon]) => `
+  <button data-ziel="${ziel}" onclick="navigiere('#/${ziel}')">
+    <svg viewBox="0 0 24 24">${icon}</svg>${txt}
+    ${ziel === 'wv' ? '<span class="badge" id="wvBadge" style="display:none"></span>' : ''}
+  </button>`).join('');
+
+(async function start(){
+  setStatus(null, 'verbinde …');
+  await ladeArtikel();
+  route();
+  holeOffeneWV().then(aktualisiereBadge).catch(()=>{});
+})();
+</script>
+</body>
+</html>
