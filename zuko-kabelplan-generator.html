@@ -2,7 +2,9 @@
 <html lang="de">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <title>ZuKo Kabelplan-Generator</title>
 <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600;700&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
 <style>
@@ -31,7 +33,9 @@
   }
   *{box-sizing:border-box;}
   html,body{margin:0;padding:0;}
-  body{
+  html{-webkit-text-size-adjust:100%;}
+  input,select,textarea,label{touch-action:manipulation;}
+  body{padding-left:env(safe-area-inset-left,0px);padding-right:env(safe-area-inset-right,0px);padding-bottom:env(safe-area-inset-bottom,0px);
     background: var(--bp-bg);
     color: var(--bp-line);
     font-family:'IBM Plex Sans', sans-serif;
@@ -60,7 +64,7 @@
   label{display:block;font-family:'IBM Plex Mono',monospace;font-size:10.5px;letter-spacing:.04em;color:var(--bp-signal);margin:0 0 4px;text-transform:uppercase;}
   input[type=text], input[type=date], select, textarea{
     width:100%;background:var(--bp-panel2);border:1px solid var(--bp-line-dim);color:var(--bp-line);
-    padding:8px 9px;border-radius:3px;font-family:'IBM Plex Sans',sans-serif;font-size:13.5px;margin-bottom:10px;
+    padding:10px 11px;border-radius:3px;font-family:'IBM Plex Sans',sans-serif;font-size:16px;margin-bottom:10px;min-height:42px;
   }
   input:focus, select:focus, textarea:focus{outline:2px solid var(--glow);outline-offset:1px;box-shadow:0 0 0 3px rgba(94,234,212,.15);}
   .row{display:flex;gap:10px;flex-wrap:wrap;}
@@ -68,7 +72,7 @@
 
   button{
     font-family:'IBM Plex Mono',monospace;font-size:12px;cursor:pointer;border-radius:3px;
-    border:1px solid var(--bp-line-dim);background:var(--bp-panel2);color:var(--bp-line);padding:8px 13px;
+    border:1px solid var(--bp-line-dim);background:var(--bp-panel2);color:var(--bp-line);padding:10px 14px;min-height:42px;touch-action:manipulation;
   }
   button.primary{border-color:var(--bp-power);color:var(--accent-dark);background:rgba(58,123,213,.12);}
   button.danger{border-color:var(--bp-safety);color:var(--bp-safety);background:var(--warn-bg);}
@@ -85,18 +89,23 @@
   .bauteil-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;gap:10px;flex-wrap:wrap;}
   .bauteil-name-wrap{display:flex;align-items:center;gap:8px;flex-wrap:wrap;}
   .bauteil-head .name-input{
-    width:auto;max-width:220px;margin:0;padding:4px 7px;font-size:13px;
+    width:auto;max-width:220px;margin:0;padding:8px 9px;font-size:16px;
     font-family:'IBM Plex Mono',monospace;color:var(--bp-line);background:var(--bp-panel);
   }
   .bauteil-head .typ{font-size:10px;color:var(--bp-signal);text-transform:uppercase;letter-spacing:.05em;}
 
   table{width:100%;border-collapse:collapse;font-size:12.5px;}
+  /* ── iPhone: breite Klemmen-Tabellen horizontal wischbar statt gequetscht ── */
+  @media(max-width:700px){
+    table{display:block;overflow-x:auto;-webkit-overflow-scrolling:touch;}
+    table thead,table tbody{display:table;width:100%;min-width:560px;}
+  }
   th{font-family:'IBM Plex Mono',monospace;font-size:10px;text-transform:uppercase;letter-spacing:.04em;color:var(--bp-signal);text-align:left;padding:6px 6px;border-bottom:1px solid var(--bp-line-dim);}
   td{padding:5px 6px;border-bottom:1px solid rgba(77,110,140,.3);vertical-align:middle;}
-  td input, td select{margin-bottom:0;padding:5px 6px;font-size:12.5px;}
+  td input, td select{margin-bottom:0;padding:8px 8px;font-size:16px;min-height:40px;}
 
   .quickadd{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px;}
-  .quickadd button{font-size:11px;padding:6px 10px;}
+  .quickadd button{font-size:11px;padding:8px 12px;min-height:38px;}
 
   .status{font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--bp-signal);margin-left:8px;}
   .status.ok{color:var(--bp-data);}
@@ -170,12 +179,12 @@
 </div>
 <style>
   .stober-backbar{position:sticky;top:0;z-index:99999;display:flex;align-items:center;gap:10px;
-    background:#0a0a0c;color:#e9edf2;padding:10px 16px;
+    background:#0a0a0c;color:#e9edf2;padding:10px 16px;padding-top:calc(10px + env(safe-area-inset-top,0px));
     font:600 12px/1.4 ui-monospace,'JetBrains Mono','SFMono-Regular',Consolas,monospace;
     letter-spacing:.03em;border-bottom:1px solid rgba(58,123,213,.35);}
   .stober-backbar__link{color:#e9edf2;text-decoration:none;display:inline-flex;align-items:center;gap:6px;
     transition:color .15s ease;white-space:nowrap;}
-  .stober-backbar__link:hover{color:#3a7bd5;}
+  @media(hover:hover){ .stober-backbar__link:hover{color:#3a7bd5;} }
   .stober-backbar__slash{color:rgba(233,237,242,.35);}
   .stober-backbar__current{color:#3a7bd5;font-weight:700;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
   @media(max-width:480px){.stober-backbar{font-size:10.5px;padding:8px 12px;gap:8px;}}
