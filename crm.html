@@ -1329,8 +1329,11 @@ async function wvAnTrelloAusfuehren(wvId, gewaehlteBauvorhabenId){
   if(email) berichtParams.set('email', email);
   if(hinweisText) berichtParams.set('hinweis', hinweisText);
   if(ku?.id) berichtParams.set('kunde_id', ku.id);
-  const berichtLink = `https://stogerhost.github.io/TS-Suite/arbeitsbericht.html?${berichtParams.toString()}`;
-  const desc = [hinweisText, kontaktZeile, 'Arbeitsbericht ausgefüllt öffnen: ' + berichtLink].filter(Boolean).join('\n\n');
+  // Klammern werden von encodeURIComponent nicht escaped, könnten aber ein
+  // Markdown-Link vorzeitig beenden — zur Sicherheit selbst kodieren.
+  const berichtQuery = berichtParams.toString().replace(/\(/g, '%28').replace(/\)/g, '%29');
+  const berichtLink = `https://stogerhost.github.io/TS-Suite/arbeitsbericht.html?${berichtQuery}`;
+  const desc = [hinweisText, kontaktZeile, `[Arbeitsbericht ausgefüllt öffnen](${berichtLink})`].filter(Boolean).join('\n\n');
   // Monatsanfang/-ende aus dem Fälligkeitsdatum für Start-/Fälligkeitsfeld der Trello-Karte
   let start = null, due = null;
   if(w.faellig_am){
