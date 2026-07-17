@@ -85,9 +85,9 @@ main{max-width:760px;margin:0 auto;padding:14px 14px 24px}
 .eyebrow .plus{margin-left:auto;color:var(--tuerkis);font-size:1rem;padding:4px 8px}
 
 /* Aktions-Buttons (anrufen / mail / karte) */
-.aktionen{display:flex;gap:8px;margin:12px 0}
+.aktionen{display:flex;flex-wrap:wrap;gap:8px;margin:12px 0}
 .aktionen a,.aktionen button{
-  flex:1;min-height:48px;display:flex;align-items:center;justify-content:center;gap:6px;
+  flex:1 1 auto;min-width:80px;min-height:48px;display:flex;align-items:center;justify-content:center;gap:6px;
   background:var(--panel);border:1px solid var(--border);border-radius:12px;
   color:var(--text);text-decoration:none;font-size:.85rem;
 }
@@ -230,13 +230,15 @@ const KONFIG = {
   SUPABASE_URL : 'https://guuywhrzygcnpzrnnlsw.supabase.co',
   SUPABASE_KEY : 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imd1dXl3aHJ6eWdjbnB6cm5ubHN3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODM3MjcyOTIsImV4cCI6MjA5OTMwMzI5Mn0.tvPfk5j6mXNG2YcYl4cUR-rF-T3QWdTGuOZ8SHRSv2U',
 
-  TAB_KONTAKTE : 'kontakte',                   // bestehende TS-Suite-Tabelle
+  TAB_KONTAKTE : 'kontakte',                   // Bauvorhaben — bestehende TS-Suite-Tabelle
+  TAB_KUNDEN   : 'kunden',                      // Kunden-Stammdaten (neu, Phase 1)
   TAB_AKT      : 'crm_aktivitaeten',
   TAB_WV       : 'crm_wiedervorlagen',
   TAB_AP       : 'crm_ansprechpartner',
+  TAB_WARTUNG  : 'crm_wartungsplan',
 
-  // Feld-Zuordnung für die kontakte-Tabelle der TS-Suite.
-  // Aufbau dort: bauvorhaben (Schlüssel), kunde (Name + Adresse), ansprechpartner.
+  // Feld-Zuordnung für die kontakte-Tabelle (= Bauvorhaben).
+  // kunde bleibt als Text-Fallback für Zeilen ohne kunde_id.
   FELD: {
     name    : ['bauvorhaben'],
     kunde   : ['kunde'],
@@ -329,33 +331,51 @@ function artikelSuche(q){
 }
 
 /* ================= DATEN-CACHE ================= */
-const cache = { kontakte:null, wv:null };
+const cache = { kontakte:null, kunden:null, wv:null };
 
 async function holeKontakte(neu = false){
   if(cache.kontakte && !neu) return cache.kontakte;
   cache.kontakte = await sb(`${KONFIG.TAB_KONTAKTE}?select=*&limit=1000`);
   return cache.kontakte;
 }
+async function holeKunden(neu = false){
+  if(cache.kunden && !neu) return cache.kunden;
+  cache.kunden = await sb(`${KONFIG.TAB_KUNDEN}?select=*&order=name.asc&limit=1000`);
+  return cache.kunden;
+}
 async function holeOffeneWV(neu = false){
   if(cache.wv && !neu) return cache.wv;
   cache.wv = await sb(`${KONFIG.TAB_WV}?erledigt=eq.false&select=*&order=faellig_am.asc&limit=500`);
   return cache.wv;
 }
+/* Hilfsfunktionen für die verknüpfte Anzeige */
+function kundeVon(kundeId){
+  return kundeId && cache.kunden ? cache.kunden.find(ku => String(ku.id) === String(kundeId)) : null;
+}
+function bauvorhabenVon(kontaktId){
+  return cache.kontakte ? cache.kontakte.find(k => String(k.id) === String(kontaktId)) : null;
+}
+function bauvorhabenAnzahl(kundeId){
+  return cache.kontakte ? cache.kontakte.filter(k => String(k.kunde_id) === String(kundeId)).length : 0;
+}
 
 /* ================= ROUTING ================= */
 const routen = {
-  kunden : () => zeigKunden(),
-  kunde  : id => zeigKunde(id),
-  wv     : () => zeigWV(),
-  artikel: () => zeigArtikel()
+  kunden      : () => zeigKunden(),
+  kunde       : id => zeigKundeMaster(id),
+  bauvorhaben : id => zeigBauvorhaben(id),
+  unzugeordnet: () => zeigUnzugeordnet(),
+  wv          : () => zeigWV(),
+  artikel     : () => zeigArtikel()
 };
 function navigiere(hash){ location.hash = hash; }
 async function route(){
   const [ , seite = 'kunden', param ] = location.hash.split('/');
   const fn = routen[seite] || routen.kunden;
+  const kundenTab = ['kunden','kunde','bauvorhaben','unzugeordnet'].includes(seite);
   document.querySelectorAll('nav button').forEach(b =>
     b.classList.toggle('aktiv', b.dataset.ziel === seite ||
-      (seite === 'kunde' && b.dataset.ziel === 'kunden')));
+      (kundenTab && b.dataset.ziel === 'kunden')));
   try{ await fn(param); }
   catch(e){
     $('#view').innerHTML = `<div class="hinweis fehler">Verbindung fehlgeschlagen:<br>
@@ -371,55 +391,244 @@ let suchbegriff = '';
 async function zeigKunden(){
   const v = $('#view');
   v.innerHTML = `<div class="suchzeile">
-      <input id="suche" type="search" placeholder="Suchen … (Bauvorhaben, Kunde, Ansprechpartner)"
+      <input id="suche" type="search" placeholder="Kunde suchen …"
         value="${esc(suchbegriff)}" autocomplete="off">
-    </div><div id="liste"><div class="leer">Lade Kunden …</div></div>
+    </div><div id="unzugBanner"></div><div id="liste"><div class="leer">Lade Kunden …</div></div>
     <button class="fab" id="fabNeu" title="Neuer Kunde">+</button>`;
   $('#suche').addEventListener('input', e => {
     suchbegriff = e.target.value; renderKundenListe();
   });
   $('#fabNeu').onclick = () => modalNeuerKunde();
-  await holeKontakte();
-  setStatus(true, cache.kontakte.length + ' Kunden');
+  await Promise.all([holeKunden(), holeKontakte()]);
+  setStatus(true, cache.kunden.length + ' Kunden');
+  const offen = cache.kontakte.filter(k => !k.kunde_id).length;
+  $('#unzugBanner').innerHTML = offen
+    ? `<button class="hinweis" style="width:100%;text-align:left;display:flex;align-items:center;gap:10px"
+         onclick="navigiere('#/unzugeordnet')">
+         ⚠ ${offen} Bauvorhaben ohne Kunde — jetzt zuordnen →</button>`
+    : '';
   renderKundenListe();
 }
 function renderKundenListe(){
-  const liste = $('#liste'); if(!liste || !cache.kontakte) return;
+  const liste = $('#liste'); if(!liste || !cache.kunden) return;
   const q = suchbegriff.toLowerCase().trim();
-  const gefiltert = !q ? cache.kontakte : cache.kontakte.filter(k =>
-    Object.values(k).some(w => String(w ?? '').toLowerCase().includes(q)));
+  const gefiltert = !q ? cache.kunden : cache.kunden.filter(ku =>
+    [ku.name, ku.telefon, ku.email, ku.notiz].some(w => String(w ?? '').toLowerCase().includes(q)));
   if(!gefiltert.length){
     liste.innerHTML = `<div class="leer"><div class="gross">⌀</div>Kein Kunde gefunden.<br>
       Mit dem <b style="color:var(--blau)">+</b> unten rechts legst du einen neuen an.</div>`;
     return;
   }
-  const sortiert = [...gefiltert].sort((a,b) =>
-    String(feld(a,'name')).localeCompare(String(feld(b,'name')),'de'));
-  liste.innerHTML = sortiert.map(k => `
-    <button class="karte" onclick="navigiere('#/kunde/${k.id}')">
+  liste.innerHTML = gefiltert.map(ku => {
+    const n = bauvorhabenAnzahl(ku.id);
+    return `
+    <button class="karte" onclick="navigiere('#/kunde/${ku.id}')">
       <div class="kopf">
-        <span class="knr">#${k.id}</span>
-        <span class="ort">${esc(feld(k,'ap'))}</span>
+        <span class="knr">#${ku.id}</span>
+        <span class="ort">${n} Bauvorhaben</span>
       </div>
       <div class="rumpf">
-        <h3>${esc(feld(k,'name') || '(ohne Bauvorhaben)')}</h3>
-        <div class="sub">${esc(feld(k,'kunde'))}</div>
+        <h3>${esc(ku.name)}</h3>
+        <div class="sub">${esc([ku.telefon, ku.email].filter(Boolean).join(' · '))}</div>
       </div>
-    </button>`).join('');
+    </button>`;
+  }).join('');
+}
+
+/* ================= ANSICHT: NICHT ZUGEORDNETE BAUVORHABEN ================= */
+async function zeigUnzugeordnet(){
+  const v = $('#view');
+  v.innerHTML = `<div class="leer">Lade …</div>`;
+  await Promise.all([holeKontakte(), holeKunden()]);
+  const offen = cache.kontakte.filter(k => !k.kunde_id);
+  setStatus(true, offen.length + ' offen');
+  v.innerHTML = `<button class="zurueck" onclick="navigiere('#/kunden')">← Kunden</button>
+    <div class="panel"><div class="eyebrow">Ohne Kunde · ${offen.length}</div>
+    ${offen.length ? offen.map(k => `
+      <div class="wv"><div style="flex:1">
+        <div class="txt"><b>${esc(feld(k,'name') || '(ohne Bauvorhaben)')}</b></div>
+        ${feld(k,'kunde') ? `<div class="datum">${esc(feld(k,'kunde'))}</div>` : ''}
+      </div>
+      <button class="btn primaer" style="flex:0 0 auto;min-height:40px;padding:0 16px"
+        onclick="modalZuordnen('${k.id}','${esc(feld(k,'kunde')).replace(/'/g,"\\'")}')">Zuordnen</button>
+      </div>`).join('')
+      : `<div class="leer" style="padding:12px">Alles zugeordnet ✓</div>`}
+    </div>`;
 }
 </script>
 <script>
-/* ================= ANSICHT: KUNDENDETAIL ================= */
+/* ================= ANSICHT: KUNDEN-STAMMSEITE ================= */
+async function zeigKundeMaster(id){
+  const v = $('#view');
+  v.innerHTML = `<div class="leer">Lade Kunde …</div>`;
+  await Promise.all([holeKunden(), holeKontakte()]);
+  const ku = cache.kunden.find(x => String(x.id) === String(id));
+  if(!ku){ v.innerHTML = `<div class="leer">Kunde nicht gefunden.</div>`; return; }
+
+  const bauvorhaben = cache.kontakte.filter(k => String(k.kunde_id) === String(id));
+  const ids = bauvorhaben.map(k => k.id);
+  const idList = ids.length ? ids.join(',') : '0';
+  const [akt, wvBv, wvKu, wartung] = await Promise.all([
+    sb(`${KONFIG.TAB_AKT}?kontakt_id=in.(${idList})&select=*&order=erstellt_am.desc&limit=100`),
+    sb(`${KONFIG.TAB_WV}?kontakt_id=in.(${idList})&erledigt=eq.false&select=*&order=faellig_am.asc&limit=100`),
+    sb(`${KONFIG.TAB_WV}?kunde_id=eq.${id}&kontakt_id=is.null&erledigt=eq.false&select=*&order=faellig_am.asc&limit=100`),
+    sb(`${KONFIG.TAB_WARTUNG}?kunde_id=eq.${id}&select=*&order=bezeichnung.asc`)
+  ]);
+  const wv = [...wvKu, ...wvBv].sort((a,b) => (a.faellig_am||'').localeCompare(b.faellig_am||''));
+  kundeWartungsDaten = wartung;
+  setStatus(true, 'verbunden');
+
+  v.innerHTML = `
+    <button class="zurueck" onclick="navigiere('#/kunden')">← Kunden</button>
+
+    <div class="karte"><div class="kopf">
+        <span class="knr">#${ku.id}</span>
+        <button class="ort" style="color:var(--blau)" onclick="modalKundeBearbeiten('${ku.id}')">✎ bearbeiten</button>
+      </div>
+      <div class="rumpf">
+        <h3>${esc(ku.name)}</h3>
+        ${ku.notiz ? `<div class="sub">${esc(ku.notiz)}</div>` : ''}
+      </div>
+    </div>
+
+    <div class="aktionen">
+      ${ku.telefon ? `<a href="tel:${esc(ku.telefon)}">📞 Anrufen</a>` : ''}
+      ${ku.email   ? `<a href="mailto:${esc(ku.email)}">✉️ E-Mail</a>` : ''}
+    </div>
+
+    <div class="panel">
+      <div class="eyebrow">Bauvorhaben · ${bauvorhaben.length}
+        <button class="plus" onclick="modalNeuesBauvorhaben('${ku.id}')">＋</button></div>
+      ${bauvorhaben.length ? bauvorhaben.map(b => `
+        <button class="karte" style="margin-bottom:8px" onclick="navigiere('#/bauvorhaben/${b.id}')">
+          <div class="rumpf" style="padding:10px 12px">
+            <h3 style="font-size:.92rem">${esc(feld(b,'name') || '(ohne Namen)')}</h3>
+            ${feld(b,'ap') ? `<div class="sub">${esc(feld(b,'ap'))}</div>` : ''}
+          </div>
+        </button>`).join('')
+        : `<div class="leer" style="padding:12px">Noch kein Bauvorhaben — mit ＋ eins anlegen.</div>`}
+    </div>
+
+    <div class="panel">
+      <div class="eyebrow">Wartungsplan
+        <button class="plus" onclick="modalNeueWartung('${ku.id}')">＋</button></div>
+      ${wartung.length ? wartung.map(p => {
+          const f = wartungsFaelligkeit(p);
+          return `<div class="wv" style="flex-direction:column;align-items:stretch;gap:8px">
+            <div>
+              <div class="txt">${esc(p.bezeichnung)}</div>
+              <div class="datum" style="color:var(--dim)">alle ${p.intervall_monate} Monate ·
+                zuletzt ${p.letzte_wartung ? datumFmt(p.letzte_wartung) : 'noch nie'}</div>
+              <div class="datum ${f.status}">fällig ${f.datum ? datumFmt(f.datum) : 'sofort'}
+                ${f.status === 'faellig' ? '· überfällig' : f.status === 'heute' ? '· heute' : ''}</div>
+            </div>
+            <div style="display:flex;gap:8px">
+              <button style="flex:1;min-height:40px;border:1px solid var(--border);border-radius:10px;
+                background:var(--panel2);font-size:.8rem;color:var(--tuerkis)"
+                onclick="wartungWiedervorlageAnlegen('${p.id}')">+ Wiedervorlage</button>
+              <button style="flex:1;min-height:40px;border:1px solid var(--border);border-radius:10px;
+                background:var(--panel2);font-size:.8rem;color:var(--gruen)"
+                onclick="wartungErledigt('${p.id}')">✓ Erledigt</button>
+            </div>
+          </div>`;
+        }).join('')
+        : `<div class="leer" style="padding:12px">Noch kein Wartungsplan — mit ＋ anlegen.</div>`}
+    </div>
+
+    <div class="panel">
+      <div class="eyebrow">Offene Wiedervorlagen
+        <button class="plus" onclick="modalWV('kunde','${ku.id}')">＋</button></div>
+      ${wv.length ? wv.map(w => wvZeile(w, 'kunde')).join('')
+        : `<div class="leer" style="padding:12px">Nichts offen.</div>`}
+    </div>
+
+    <div class="panel">
+      <div class="eyebrow">Verlauf</div>
+      ${akt.length ? `<ul class="tl">${akt.map(a => aktivitaetZeile(a, true)).join('')}</ul>`
+        : `<div class="leer" style="padding:12px">Noch keine Einträge.</div>`}
+    </div>`;
+}
+
+/* ================= WARTUNGSPLAN ================= */
+let kundeWartungsDaten = [];
+function wartungsFaelligkeit(plan){
+  if(!plan.letzte_wartung) return { datum: null, status: 'faellig' };
+  const d = new Date(plan.letzte_wartung + 'T00:00:00');
+  d.setMonth(d.getMonth() + plan.intervall_monate);
+  const datum = d.toISOString().slice(0, 10);
+  const h = heute();
+  const status = datum < h ? 'faellig' : datum === h ? 'heute' : '';
+  return { datum, status };
+}
+function modalNeueWartung(kundeId){
+  modal(`
+    <h2>Neuer Wartungsplan</h2>
+    <label>Bezeichnung</label>
+    <input id="wpBez" placeholder="z.B. Schiebetür Haupteingang">
+    <label>Intervall</label>
+    <select id="wpIntervall">
+      <option value="6">Alle 6 Monate</option>
+      <option value="12" selected>Jährlich</option>
+      <option value="24">Alle 2 Jahre</option>
+    </select>
+    <label>Letzte Wartung (optional — leer = sofort fällig)</label>
+    <input type="date" id="wpLetzte">
+    <label>Notiz</label>
+    <textarea id="wpNotiz" style="min-height:64px"></textarea>
+    <div class="btnzeile">
+      <button class="btn sekundaer" onclick="modalZu()">Abbrechen</button>
+      <button class="btn primaer" onclick="speichereWartung('${kundeId}')">Anlegen</button>
+    </div>`);
+}
+async function speichereWartung(kundeId){
+  const bezeichnung = $('#wpBez').value.trim();
+  if(!bezeichnung){ toast('Bezeichnung fehlt noch.'); return; }
+  try{
+    await sb(KONFIG.TAB_WARTUNG, { method:'POST', body: JSON.stringify({
+      kunde_id: kundeId,
+      bezeichnung,
+      intervall_monate: parseInt($('#wpIntervall').value, 10),
+      letzte_wartung: $('#wpLetzte').value || null,
+      notiz: $('#wpNotiz').value.trim() || null
+    })});
+    modalZu(); toast('Wartungsplan angelegt ✓'); route();
+  }catch(e){ toast('Fehler: ' + e.message.slice(0,80)); }
+}
+async function wartungErledigt(planId){
+  try{
+    await sb(`${KONFIG.TAB_WARTUNG}?id=eq.${planId}`, { method:'PATCH',
+      body: JSON.stringify({ letzte_wartung: heute() }) });
+    toast('Als erledigt markiert ✓'); route();
+  }catch(e){ toast('Fehler: ' + e.message.slice(0,80)); }
+}
+async function wartungWiedervorlageAnlegen(planId){
+  const plan = kundeWartungsDaten.find(p => String(p.id) === String(planId));
+  if(!plan) return;
+  const f = wartungsFaelligkeit(plan);
+  try{
+    await sb(KONFIG.TAB_WV, { method:'POST', body: JSON.stringify({
+      kunde_id: plan.kunde_id,
+      titel: 'Wartung: ' + plan.bezeichnung,
+      faellig_am: f.datum || heute(),
+      notiz: plan.notiz || null,
+      erstellt_von: localStorage.getItem(KONFIG.KUERZEL_LS_KEY) || null
+    })});
+    cache.wv = null; toast('Wiedervorlage angelegt ✓'); route();
+  }catch(e){ toast('Fehler: ' + e.message.slice(0,80)); }
+}
+
+/* ================= ANSICHT: BAUVORHABEN-DETAIL ================= */
 const TYPEN = {
   notiz:'Notiz', anruf:'Anruf', besuch:'Besuch',
   wartung:'Wartung', angebot:'Angebot', reklamation:'Reklamation'
 };
-async function zeigKunde(id){
+async function zeigBauvorhaben(id){
   const v = $('#view');
-  v.innerHTML = `<div class="leer">Lade Kunde …</div>`;
-  const kontakte = await holeKontakte();
-  const k = kontakte.find(x => String(x.id) === String(id));
-  if(!k){ v.innerHTML = `<div class="leer">Kunde nicht gefunden.</div>`; return; }
+  v.innerHTML = `<div class="leer">Lade Bauvorhaben …</div>`;
+  await Promise.all([holeKontakte(), holeKunden()]);
+  const k = cache.kontakte.find(x => String(x.id) === String(id));
+  if(!k){ v.innerHTML = `<div class="leer">Bauvorhaben nicht gefunden.</div>`; return; }
+  const ku = kundeVon(k.kunde_id);
 
   const [akt, wv, ap] = await Promise.all([
     sb(`${KONFIG.TAB_AKT}?kontakt_id=eq.${id}&select=*&order=erstellt_am.desc&limit=100`),
@@ -427,14 +636,15 @@ async function zeigKunde(id){
     sb(`${KONFIG.TAB_AP}?kontakt_id=eq.${id}&select=*&order=name.asc`)
   ]);
   setStatus(true, 'verbunden');
+  bauvorhabenExportDaten = { k, ku, offeneWV: wv.filter(w => !w.erledigt) };
 
-  const tel   = feld(k,'telefon');
-  const mail  = feld(k,'email');
-  const navQ  = encodeURIComponent(feld(k,'kunde'));
-  const offen = wv.filter(w => !w.erledigt);
+  const tel   = ku?.telefon || feld(k,'telefon');
+  const mail  = ku?.email   || feld(k,'email');
+  const navQ  = encodeURIComponent(ku?.name || feld(k,'kunde'));
 
   v.innerHTML = `
-    <button class="zurueck" onclick="history.back()">← Kundenliste</button>
+    <button class="zurueck" onclick="${ku ? `navigiere('#/kunde/${ku.id}')` : `navigiere('#/kunden')`}">
+      ← ${ku ? esc(ku.name) : 'Kunden'}</button>
 
     <div class="karte"><div class="kopf">
         <span class="knr">#${k.id}</span>
@@ -442,7 +652,7 @@ async function zeigKunde(id){
       </div>
       <div class="rumpf">
         <h3>${esc(feld(k,'name') || '(ohne Bauvorhaben)')}</h3>
-        <div class="sub">${esc(feld(k,'kunde'))}</div>
+        <div class="sub">${esc(ku ? ku.name : feld(k,'kunde') || 'kein Kunde zugeordnet')}</div>
       </div>
     </div>
 
@@ -450,17 +660,18 @@ async function zeigKunde(id){
       ${tel  ? `<a href="tel:${esc(tel)}">📞 Anrufen</a>` : ''}
       ${mail ? `<a href="mailto:${esc(mail)}">✉️ E-Mail</a>` : ''}
       ${navQ ? `<a href="https://maps.apple.com/?q=${navQ}" target="_blank" rel="noopener">🧭 Route</a>` : ''}
+      <button onclick="exportAuftrag('${id}')">📤 Teilen</button>
     </div>
 
     <div class="panel">
       <div class="eyebrow">Wiedervorlagen
-        <button class="plus" onclick="modalWV('${id}')">＋</button></div>
-      ${wv.length ? wv.map(w => wvZeile(w, false)).join('')
+        <button class="plus" onclick="modalWV('kontakt','${id}')">＋</button></div>
+      ${wv.length ? wv.map(w => wvZeile(w, 'keine')).join('')
         : `<div class="leer" style="padding:12px">Keine Wiedervorlage — mit ＋ eine anlegen.</div>`}
     </div>
 
     <div class="panel">
-      <div class="eyebrow">Ansprechpartner
+      <div class="eyebrow">Ansprechpartner vor Ort
         <button class="plus" onclick="modalAP('${id}')">＋</button></div>
       ${feld(k,'ap') ? `<div class="wv"><div style="flex:1">
           <div class="txt"><b>${esc(feld(k,'ap'))}</b> <span style="color:var(--dim);font-size:.78rem">· aus Arbeitsbericht</span></div>
@@ -477,26 +688,87 @@ async function zeigKunde(id){
 
     <div class="panel">
       <div class="eyebrow">Verlauf</div>
-      ${akt.length ? `<ul class="tl">${akt.map(a => `
-        <li class="t-${esc(a.typ)}">
-          <div class="tlkopf"><span class="tltyp">${esc(TYPEN[a.typ] || a.typ)}</span>
-            <span>${datumFmt(a.erstellt_am)}</span>
-            ${a.erstellt_von ? `<span>· ${esc(a.erstellt_von)}</span>` : ''}</div>
-          <p>${esc(a.text)}</p>
-          ${Array.isArray(a.artikel) && a.artikel.length ? `<div class="artchips">
-            ${a.artikel.map(x => `<span class="chip">${esc(x.nr)}${x.key ? ' · ' + esc(x.key) : ''}</span>`).join('')}
-          </div>` : ''}
-        </li>`).join('')}</ul>`
+      ${akt.length ? `<ul class="tl">${akt.map(a => aktivitaetZeile(a, false)).join('')}</ul>`
         : `<div class="leer" style="padding:12px">Noch keine Einträge.</div>`}
     </div>
 
     <button class="fab" onclick="modalAktivitaet('${id}')" title="Neue Aktivität">+</button>`;
 }
-function wvZeile(w, mitKunde){
+
+/* ================= AUFTRAG EXPORTIEREN (für Arbeitsbericht) ================= */
+let bauvorhabenExportDaten = null;
+async function exportAuftrag(id){
+  const d = bauvorhabenExportDaten;
+  if(!d || String(d.k.id) !== String(id)){ toast('Bitte Seite neu laden und erneut versuchen.'); return; }
+
+  const hinweisTeile = d.offeneWV.slice(0,3).map(w => w.titel).filter(Boolean);
+  const daten = {
+    typ: 'ts-auftrag',
+    version: 1,
+    erstellt_am: new Date().toISOString(),
+    kunde_id: d.ku ? d.ku.id : null,
+    kunde: d.ku ? d.ku.name : (feld(d.k,'kunde') || null),
+    kontakt_id: d.k.id,
+    bauvorhaben: feld(d.k,'name') || null,
+    ansprechpartner: feld(d.k,'ap') || null,
+    telefon: (d.ku && d.ku.telefon) || feld(d.k,'telefon') || null,
+    email: (d.ku && d.ku.email) || feld(d.k,'email') || null,
+    hinweis: hinweisTeile.length ? ('Offen: ' + hinweisTeile.join(' · ')) : null
+  };
+  const dateiname = 'auftrag-' + slugify(daten.bauvorhaben || 'ohne-namen') + '.json';
+  const blob = new Blob([JSON.stringify(daten, null, 2)], { type: 'application/json' });
+
+  try{
+    const datei = new File([blob], dateiname, { type: 'application/json' });
+    if(navigator.canShare && navigator.canShare({ files: [datei] })){
+      await navigator.share({ files: [datei], title: 'Auftrag: ' + (daten.bauvorhaben || '') });
+      return;
+    }
+  }catch(e){
+    if(e.name === 'AbortError') return; // Nutzer hat den Teilen-Dialog abgebrochen
+    // sonst: unten der Download-Fallback
+  }
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = dateiname;
+  document.body.appendChild(a); a.click(); document.body.removeChild(a);
+  setTimeout(() => URL.revokeObjectURL(url), 2000);
+  toast('Auftragsdatei heruntergeladen');
+}
+function slugify(s){
+  return String(s).toLowerCase()
+    .replace(/[äöüß]/g, c => ({ä:'ae',ö:'oe',ü:'ue',ß:'ss'}[c]))
+    .replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '').slice(0, 40) || 'auftrag';
+}
+function aktivitaetZeile(a, mitBauvorhaben){
+  const b = mitBauvorhaben ? bauvorhabenVon(a.kontakt_id) : null;
+  return `<li class="t-${esc(a.typ)}">
+      <div class="tlkopf"><span class="tltyp">${esc(TYPEN[a.typ] || a.typ)}</span>
+        <span>${datumFmt(a.erstellt_am)}</span>
+        ${a.erstellt_von ? `<span>· ${esc(a.erstellt_von)}</span>` : ''}</div>
+      <p>${esc(a.text)}</p>
+      ${b ? `<button class="kunde" onclick="navigiere('#/bauvorhaben/${b.id}')">${esc(feld(b,'name'))} →</button>` : ''}
+      ${Array.isArray(a.artikel) && a.artikel.length ? `<div class="artchips">
+        ${a.artikel.map(x => `<span class="chip">${esc(x.nr)}${x.key ? ' · ' + esc(x.key) : ''}</span>`).join('')}
+      </div>` : ''}
+    </li>`;
+}
+function wvZeile(w, kontext){
   const h = heute();
   const cls = w.erledigt ? '' : w.faellig_am < h ? 'faellig' : w.faellig_am === h ? 'heute' : '';
-  const kunde = mitKunde && cache.kontakte
-    ? cache.kontakte.find(k => String(k.id) === String(w.kontakt_id)) : null;
+  const b = (kontext !== 'keine' && w.kontakt_id) ? bauvorhabenVon(w.kontakt_id) : null;
+  const kuVonB = b ? kundeVon(b.kunde_id) : null;
+  const kuDirekt = (!w.kontakt_id && w.kunde_id) ? kundeVon(w.kunde_id) : null;
+  let kontextZeile = '';
+  if(kontext === 'global'){
+    if(b) kontextZeile = `<button class="kunde" onclick="navigiere('#/bauvorhaben/${b.id}')">
+        ${kuVonB ? esc(kuVonB.name) + ' · ' : ''}${esc(feld(b,'name'))} →</button>`;
+    else if(kuDirekt) kontextZeile = `<button class="kunde" onclick="navigiere('#/kunde/${kuDirekt.id}')">
+        ${esc(kuDirekt.name)} · allgemein →</button>`;
+  } else if(kontext === 'kunde'){
+    if(b) kontextZeile = `<button class="kunde" onclick="navigiere('#/bauvorhaben/${b.id}')">${esc(feld(b,'name'))} →</button>`;
+    else if(!w.kontakt_id) kontextZeile = `<span class="datum" style="color:var(--dim)">allgemein</span>`;
+  }
   return `<div class="wv ${w.erledigt ? 'erledigt' : ''}">
     <button class="box" onclick="wvToggle('${w.id}', ${!w.erledigt})">✓</button>
     <div style="flex:1">
@@ -504,7 +776,7 @@ function wvZeile(w, mitKunde){
       ${w.notiz ? `<div class="datum" style="color:var(--dim)">${esc(w.notiz)}</div>` : ''}
       <div class="datum ${cls}">fällig ${datumFmt(w.faellig_am)}
         ${cls === 'faellig' ? '· überfällig' : cls === 'heute' ? '· heute' : ''}</div>
-      ${kunde ? `<button class="kunde" onclick="navigiere('#/kunde/${kunde.id}')">${esc(feld(kunde,'name'))} →</button>` : ''}
+      ${kontextZeile}
     </div></div>`;
 }
 async function wvToggle(id, erledigt){
@@ -517,7 +789,7 @@ async function wvToggle(id, erledigt){
 async function zeigWV(){
   const v = $('#view');
   v.innerHTML = `<div class="leer">Lade Wiedervorlagen …</div>`;
-  const [wv] = await Promise.all([holeOffeneWV(true), holeKontakte()]);
+  const [wv] = await Promise.all([holeOffeneWV(true), holeKontakte(), holeKunden()]);
   setStatus(true, wv.length + ' offen');
   aktualisiereBadge(wv);
   const h = heute();
@@ -529,7 +801,7 @@ async function zeigWV(){
   v.innerHTML = wv.length
     ? gruppen.filter(([,l]) => l.length).map(([titel, liste]) => `
         <div class="panel"><div class="eyebrow">${titel} · ${liste.length}</div>
-        ${liste.map(w => wvZeile(w, true)).join('')}</div>`).join('')
+        ${liste.map(w => wvZeile(w, 'global')).join('')}</div>`).join('')
     : `<div class="leer"><div class="gross">✓</div>Alles erledigt — keine offene Wiedervorlage.</div>`;
 }
 function aktualisiereBadge(wv){
@@ -660,8 +932,8 @@ async function speichereAktivitaet(kontaktId){
   }catch(e){ toast('Fehler: ' + e.message.slice(0,80)); }
 }
 
-/* --- Neue Wiedervorlage --- */
-function modalWV(kontaktId){
+/* --- Neue Wiedervorlage (an ein Bauvorhaben oder direkt an einen Kunden) --- */
+function modalWV(zielTyp, zielId){
   modal(`
     <h2>Neue Wiedervorlage</h2>
     <label>Worum geht's?</label>
@@ -672,19 +944,21 @@ function modalWV(kontaktId){
     <textarea id="wvNotiz" style="min-height:64px"></textarea>
     <div class="btnzeile">
       <button class="btn sekundaer" onclick="modalZu()">Abbrechen</button>
-      <button class="btn primaer" onclick="speichereWV('${kontaktId}')">Speichern</button>
+      <button class="btn primaer" onclick="speichereWV('${zielTyp}','${zielId}')">Speichern</button>
     </div>`);
 }
-async function speichereWV(kontaktId){
+async function speichereWV(zielTyp, zielId){
   const titel = $('#wvTitel').value.trim();
   if(!titel){ toast('Titel fehlt noch.'); return; }
+  const zeile = {
+    titel,
+    faellig_am: $('#wvDatum').value || heute(),
+    notiz: $('#wvNotiz').value.trim() || null,
+    erstellt_von: localStorage.getItem(KONFIG.KUERZEL_LS_KEY) || null
+  };
+  if(zielTyp === 'kunde') zeile.kunde_id = zielId; else zeile.kontakt_id = zielId;
   try{
-    await sb(KONFIG.TAB_WV, { method:'POST', body: JSON.stringify({
-      kontakt_id: kontaktId, titel,
-      faellig_am: $('#wvDatum').value || heute(),
-      notiz: $('#wvNotiz').value.trim() || null,
-      erstellt_von: localStorage.getItem(KONFIG.KUERZEL_LS_KEY) || null
-    })});
+    await sb(KONFIG.TAB_WV, { method:'POST', body: JSON.stringify(zeile) });
     cache.wv = null; modalZu(); toast('Wiedervorlage angelegt ✓'); route();
   }catch(e){ toast('Fehler: ' + e.message.slice(0,80)); }
 }
@@ -716,17 +990,14 @@ async function speichereAP(kontaktId){
   }catch(e){ toast('Fehler: ' + e.message.slice(0,80)); }
 }
 
-/* --- Neuer Kunde (schreibt in die bestehende kontakte-Tabelle) --- */
+/* --- Neuer Kunde (Stammdaten, eigene kunden-Tabelle) --- */
 function modalNeuerKunde(){
   modal(`
-    <h2>Neues Bauvorhaben</h2>
-    <p style="font-size:.8rem;color:var(--dim);margin-top:4px">Wird in der bestehenden
-      Kontakte-Tabelle der TS-Suite angelegt und steht dort sofort zur Verfügung.</p>
-    <label>Bauvorhaben</label><input id="nkName" placeholder="z.B. Eingang Bücherei KUZ">
-    <label>Kunde (Name + Adresse)</label>
-    <textarea id="nkKunde" style="min-height:72px"
-      placeholder="z.B. Stadt Karlsruhe, Gebäudewirtschaft, Zähringerstr. 61, 76133 Karlsruhe"></textarea>
-    <label>Ansprechpartner</label><input id="nkAp">
+    <h2>Neuer Kunde</h2>
+    <label>Name</label><input id="nkName" placeholder="z.B. Stadt Karlsruhe, Gebäudewirtschaft">
+    <label>Telefon</label><input id="nkTel" type="tel" inputmode="tel">
+    <label>E-Mail</label><input id="nkMail" type="email" inputmode="email">
+    <label>Notiz</label><textarea id="nkNotiz" style="min-height:64px"></textarea>
     <div class="btnzeile">
       <button class="btn sekundaer" onclick="modalZu()">Abbrechen</button>
       <button class="btn primaer" onclick="speichereNeuerKunde()">Anlegen</button>
@@ -734,18 +1005,116 @@ function modalNeuerKunde(){
 }
 async function speichereNeuerKunde(){
   const name = $('#nkName').value.trim();
+  if(!name){ toast('Name fehlt noch.'); return; }
+  try{
+    const [neu] = await sb(KONFIG.TAB_KUNDEN, { method:'POST', body: JSON.stringify({
+      name,
+      telefon: $('#nkTel').value.trim() || null,
+      email:   $('#nkMail').value.trim() || null,
+      notiz:   $('#nkNotiz').value.trim() || null
+    })});
+    cache.kunden = null; modalZu(); toast('Kunde angelegt ✓');
+    navigiere('#/kunde/' + neu.id);
+  }catch(e){ toast('Fehler: ' + e.message.slice(0,80)); }
+}
+
+/* --- Kunde bearbeiten --- */
+function modalKundeBearbeiten(kundeId){
+  const ku = kundeVon(kundeId); if(!ku) return;
+  modal(`
+    <h2>Kunde bearbeiten</h2>
+    <label>Name</label><input id="keName" value="${esc(ku.name)}">
+    <label>Telefon</label><input id="keTel" type="tel" inputmode="tel" value="${esc(ku.telefon)}">
+    <label>E-Mail</label><input id="keMail" type="email" inputmode="email" value="${esc(ku.email)}">
+    <label>Notiz</label><textarea id="keNotiz" style="min-height:64px">${esc(ku.notiz)}</textarea>
+    <div class="btnzeile">
+      <button class="btn sekundaer" onclick="modalZu()">Abbrechen</button>
+      <button class="btn primaer" onclick="speichereKundeBearbeiten('${kundeId}')">Speichern</button>
+    </div>`);
+}
+async function speichereKundeBearbeiten(kundeId){
+  const name = $('#keName').value.trim();
+  if(!name){ toast('Name fehlt noch.'); return; }
+  try{
+    await sb(`${KONFIG.TAB_KUNDEN}?id=eq.${kundeId}`, { method:'PATCH', body: JSON.stringify({
+      name,
+      telefon: $('#keTel').value.trim() || null,
+      email:   $('#keMail').value.trim() || null,
+      notiz:   $('#keNotiz').value.trim() || null
+    })});
+    cache.kunden = null; modalZu(); toast('Gespeichert ✓'); route();
+  }catch(e){ toast('Fehler: ' + e.message.slice(0,80)); }
+}
+
+/* --- Neues Bauvorhaben unter einem Kunden --- */
+function modalNeuesBauvorhaben(kundeId){
+  const ku = kundeVon(kundeId);
+  modal(`
+    <h2>Neues Bauvorhaben</h2>
+    <p style="font-size:.8rem;color:var(--dim);margin-top:4px">Für ${esc(ku ? ku.name : 'diesen Kunden')} —
+      wird in der Kontakte-Tabelle der TS-Suite angelegt.</p>
+    <label>Bauvorhaben</label><input id="nbName" placeholder="z.B. Eingang Bücherei KUZ">
+    <label>Ansprechpartner vor Ort</label><input id="nbAp" placeholder="optional">
+    <div class="btnzeile">
+      <button class="btn sekundaer" onclick="modalZu()">Abbrechen</button>
+      <button class="btn primaer" onclick="speichereNeuesBauvorhaben('${kundeId}')">Anlegen</button>
+    </div>`);
+}
+async function speichereNeuesBauvorhaben(kundeId){
+  const name = $('#nbName').value.trim();
   if(!name){ toast('Bauvorhaben fehlt noch.'); return; }
-  const zeile = { bauvorhaben: name };
-  const kunde = $('#nkKunde').value.trim(); if(kunde) zeile.kunde = kunde;
-  const ap    = $('#nkAp').value.trim();    if(ap)    zeile.ansprechpartner = ap;
+  const ku = kundeVon(kundeId);
+  const zeile = { bauvorhaben: name, kunde_id: kundeId, kunde: ku ? ku.name : null };
+  const ap = $('#nbAp').value.trim(); if(ap) zeile.ansprechpartner = ap;
   try{
     const [neu] = await sb(KONFIG.TAB_KONTAKTE, { method:'POST', body: JSON.stringify(zeile) });
     cache.kontakte = null; modalZu(); toast('Bauvorhaben angelegt ✓');
-    navigiere('#/kunde/' + neu.id);
+    navigiere('#/bauvorhaben/' + neu.id);
   }catch(e){
     toast('Fehler — gibt es dieses Bauvorhaben schon?');
     console.error(e);
   }
+}
+
+/* --- Bauvorhaben ohne Kunde zuordnen --- */
+function modalZuordnen(kontaktId, vorschlagName){
+  const treffer = (cache.kunden || []);
+  modal(`
+    <h2>Kunde zuordnen</h2>
+    <label>Kunde suchen</label>
+    <input id="zoSuche" type="search" placeholder="Namen tippen …" autocomplete="off">
+    <div id="zoTreffer" style="max-height:40vh;overflow-y:auto;margin-top:4px"></div>
+    ${vorschlagName ? `
+      <label>Oder neu anlegen</label>
+      <button class="btn sekundaer" style="width:100%" onclick="zuordnenNeuerKunde('${kontaktId}')">
+        „${esc(vorschlagName)}" als neuen Kunden anlegen</button>` : ''}
+    <div class="btnzeile"><button class="btn sekundaer" style="flex:1" onclick="modalZu()">Abbrechen</button></div>`);
+  const render = q => {
+    q = (q || '').toLowerCase().trim();
+    const liste = !q ? treffer : treffer.filter(ku => ku.name.toLowerCase().includes(q));
+    $('#zoTreffer').innerHTML = liste.slice(0,30).map(ku => `
+      <button class="artzeile" onclick="zuordnenSpeichern('${kontaktId}','${ku.id}')">
+        <span class="bez">${esc(ku.name)}</span>
+      </button>`).join('') || `<div class="leer" style="padding:12px">Keinen gefunden.</div>`;
+  };
+  $('#zoSuche').addEventListener('input', e => render(e.target.value));
+  render('');
+}
+async function zuordnenSpeichern(kontaktId, kundeId){
+  try{
+    await sb(`${KONFIG.TAB_KONTAKTE}?id=eq.${kontaktId}`, { method:'PATCH',
+      body: JSON.stringify({ kunde_id: kundeId }) });
+    cache.kontakte = null; modalZu(); toast('Zugeordnet ✓'); route();
+  }catch(e){ toast('Fehler: ' + e.message.slice(0,80)); }
+}
+async function zuordnenNeuerKunde(kontaktId){
+  const k = bauvorhabenVon(kontaktId);
+  const name = feld(k, 'kunde').trim();
+  if(!name){ toast('Kein Name vorgeschlagen.'); return; }
+  try{
+    const [neu] = await sb(KONFIG.TAB_KUNDEN, { method:'POST', body: JSON.stringify({ name }) });
+    await zuordnenSpeichern(kontaktId, neu.id);
+  }catch(e){ toast('Fehler: ' + e.message.slice(0,80)); }
 }
 
 /* ================= NAVIGATION + START ================= */
@@ -764,6 +1133,7 @@ $('#nav').innerHTML = NAV.map(([ziel, txt, icon]) => `
   setStatus(null, 'verbinde …');
   await ladeArtikel();
   route();
+  holeKunden().catch(()=>{});
   holeOffeneWV().then(aktualisiereBadge).catch(()=>{});
 })();
 </script>
