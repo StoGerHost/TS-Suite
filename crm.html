@@ -557,7 +557,7 @@ async function zeigKundeMaster(id){
             (v.vertragsende ? datumFmt(v.vertragsende) : 'unbefristet');
           const titel = v.vertragsnummer ? 'Vertrag ' + v.vertragsnummer
             : (positionen.length ? positionen.map(p => p.bezeichnung).join(', ') : 'Neuer Wartungsvertrag');
-          const gesamt = positionen.reduce((sum, p) => sum + (p.preis != null ? p.preis * (p.stueckzahl || 1) : 0), 0);
+          const gesamt = positionen.reduce((sum, p) => sum + (positionEndpreis(p) != null ? positionEndpreis(p) * (p.stueckzahl || 1) : 0), 0);
           return `<div class="wv" style="flex-direction:column;align-items:stretch;gap:8px">
             <div>
               <div style="display:flex;align-items:center;gap:10px">
@@ -574,9 +574,12 @@ async function zeigKundeMaster(id){
             <div style="border-top:1px solid var(--border);padding-top:10px;display:flex;flex-direction:column;gap:12px">
               ${positionen.length ? positionen.map(p => {
                   const f = wartungsFaelligkeit(p, v);
+                  const endpreis = positionEndpreis(p);
                   return `<div style="border-left:2px solid var(--border);padding-left:10px">
                     <div class="txt" style="font-size:.88rem">${p.stueckzahl > 1 ? p.stueckzahl + '× ' : ''}${esc(p.bezeichnung)}</div>
                     ${p.preis != null ? `<div class="datum" style="color:var(--dim)">${eur(p.preis)} je Stück${p.stueckzahl > 1 ? ' · ' + eur(p.preis * p.stueckzahl) + ' gesamt' : ''}</div>` : ''}
+                    ${p.preis != null && p.rabatt_prozent ? `<div class="datum" style="color:var(--dim)">Rabatt: -${p.rabatt_prozent}%</div>
+                    <div class="datum" style="color:var(--tuerkis)">Neuer Preis: ${eur(endpreis)} je Stück${p.stueckzahl > 1 ? ' · ' + eur(endpreis * p.stueckzahl) + ' gesamt' : ''}</div>` : ''}
                     <div class="datum" style="color:var(--dim)">${p.intervall_monate === 6 ? 'halbjährlich' : 'jährlich'} ·
                       zuletzt ${p.letzte_wartung ? datumFmt(p.letzte_wartung) : 'noch nie'}</div>
                     <div class="datum ${f.status === 'faellig' || f.status === 'heute' ? f.status : ''}">
@@ -615,7 +618,7 @@ async function zeigKundeMaster(id){
             <div class="datum" style="color:${a.status==='angenommen'?'var(--gruen)':a.status==='abgelehnt'?'var(--rot)':'var(--gelb)'}">
               ${a.status==='angenommen'?'✓ Angenommen':a.status==='abgelehnt'?'✕ Abgelehnt':'○ Offen'}
               ${angebotBetragText(a)} · ${datumFmt(a.erstellt_am)}</div>
-            ${a.rabatt_prozent ? `<div class="datum" style="color:var(--dim)">Rabatt: ${a.rabatt_prozent}%</div>` : ''}
+            ${angebotRabattZeilen(a)}
           </div>
           ${a.datei_url ? `<a href="${a.datei_url}" target="_blank" rel="noopener"
             style="align-self:center;font-size:1.2rem;text-decoration:none;padding:4px 6px">📎</a>` : ''}
@@ -644,6 +647,10 @@ async function zeigKundeMaster(id){
 let kundeWartungsDaten = [];
 let kundePositionenDaten = [];
 let kundeAngeboteDaten = [];
+function positionEndpreis(p){
+  if(p.preis == null) return null;
+  return p.rabatt_prozent ? p.preis * (1 - p.rabatt_prozent / 100) : p.preis;
+}
 function wartungsFaelligkeit(position, vertrag){
   const h = heute();
   if(vertrag.vertragsende && vertrag.vertragsende < h){
@@ -683,6 +690,8 @@ async function modalNeueWartung(kundeId){
       <div style="flex:1"><label>Stückzahl</label>
         <input id="wpStueck" type="number" inputmode="numeric" min="1" value="1"></div>
     </div>
+    <label>Rabatt (%, optional)</label>
+    <input id="wpRabatt" type="number" inputmode="decimal" step="0.1" min="0" max="100" placeholder="0">
     <label>Letzte Wartung dieser Position (optional — leer = sofort fällig)</label>
     <input type="date" id="wpLetzte">
     <p style="font-size:.75rem;color:var(--dim);margin-top:4px">Weitere Positionen — auch mit eigenem Preis und eigener Stückzahl — kannst du danach jederzeit im Vertrag ergänzen.</p>
@@ -724,6 +733,7 @@ async function speichereWartung(kundeId){
       intervall_monate: parseInt($('#wpIntervall').value, 10),
       preis: $('#wpPreis').value ? parseFloat($('#wpPreis').value.replace(',', '.')) : null,
       stueckzahl: parseInt($('#wpStueck').value, 10) || 1,
+      rabatt_prozent: $('#wpRabatt').value ? parseFloat($('#wpRabatt').value.replace(',', '.')) : null,
       letzte_wartung: $('#wpLetzte').value || null
     })});
     modalZu(); toast('Wartungsvertrag angelegt ✓'); route();
@@ -824,6 +834,8 @@ async function modalNeuePosition(vertragId){
       <div style="flex:1"><label>Stückzahl</label>
         <input id="posStueck" type="number" inputmode="numeric" min="1" value="1"></div>
     </div>
+    <label>Rabatt (%, optional)</label>
+    <input id="posRabatt" type="number" inputmode="decimal" step="0.1" min="0" max="100" placeholder="0">
     <label>Letzte Wartung (optional — leer = sofort fällig)</label>
     <input type="date" id="posLetzte">
     <div class="btnzeile">
@@ -841,6 +853,7 @@ async function speicherePosition(vertragId){
       intervall_monate: parseInt($('#posIntervall').value, 10),
       preis: $('#posPreis').value ? parseFloat($('#posPreis').value.replace(',', '.')) : null,
       stueckzahl: parseInt($('#posStueck').value, 10) || 1,
+      rabatt_prozent: $('#posRabatt').value ? parseFloat($('#posRabatt').value.replace(',', '.')) : null,
       letzte_wartung: $('#posLetzte').value || null
     })});
     modalZu(); toast('Position hinzugefügt ✓'); route();
@@ -872,6 +885,8 @@ async function modalPositionBearbeiten(positionId){
       <div style="flex:1"><label>Stückzahl</label>
         <input id="posStueck" type="number" inputmode="numeric" min="1" value="${p.stueckzahl || 1}"></div>
     </div>
+    <label>Rabatt (%, optional)</label>
+    <input id="posRabatt" type="number" inputmode="decimal" step="0.1" min="0" max="100" value="${p.rabatt_prozent != null ? p.rabatt_prozent : ''}">
     <label>Letzte Wartung</label>
     <input type="date" id="posLetzte" value="${p.letzte_wartung || ''}">
     <div class="btnzeile">
@@ -890,6 +905,7 @@ async function speicherePositionBearbeiten(positionId){
       intervall_monate: parseInt($('#posIntervall').value, 10),
       preis: $('#posPreis').value ? parseFloat($('#posPreis').value.replace(',', '.')) : null,
       stueckzahl: parseInt($('#posStueck').value, 10) || 1,
+      rabatt_prozent: $('#posRabatt').value ? parseFloat($('#posRabatt').value.replace(',', '.')) : null,
       letzte_wartung: $('#posLetzte').value || null
     })});
     modalZu(); toast('Gespeichert ✓'); route();
@@ -907,6 +923,12 @@ async function positionLoeschen(positionId){
 /* ================= ANGEBOTE ================= */
 function angebotBetragText(a){
   return a.betrag != null ? ` · ${eur(a.betrag)}` : '';
+}
+function angebotRabattZeilen(a){
+  if(a.betrag == null || !a.rabatt_prozent) return '';
+  const neuerPreis = a.betrag * (1 - a.rabatt_prozent / 100);
+  return `<div class="datum" style="color:var(--dim)">Rabatt: -${a.rabatt_prozent}%</div>
+    <div class="datum" style="color:var(--tuerkis)">Neuer Preis: ${eur(neuerPreis)}</div>`;
 }
 function modalNeuesAngebot(kundeId){
   modal(`
