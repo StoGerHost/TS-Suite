@@ -525,7 +525,7 @@ async function zeigKundeMaster(id){
     </div>
 
     <div class="panel">
-      <div class="eyebrow">Wartungsplan
+      <div class="eyebrow">Wartungsverträge
         <button class="plus" onclick="modalNeueWartung('${ku.id}')">＋</button></div>
       ${wartung.length ? wartung.map(p => {
           const f = wartungsFaelligkeit(p);
@@ -536,8 +536,13 @@ async function zeigKundeMaster(id){
               <div class="txt">${esc(p.bezeichnung)}
                 <button style="color:var(--blau);font-size:.75rem;margin-left:6px"
                   onclick="modalWartungBearbeiten('${p.id}')">✎</button></div>
+              ${p.vertragsnummer || p.preis != null ? `<div class="datum" style="color:var(--dim)">
+                ${p.vertragsnummer ? esc(p.vertragsnummer) : ''}${p.vertragsnummer && p.preis != null ? ' · ' : ''}
+                ${p.preis != null ? eur(p.preis) + ' / Termin' : ''}</div>` : ''}
               <div class="datum" style="color:var(--dim)">${p.intervall_monate === 6 ? 'halbjährlich' : 'jährlich'} ·
                 Vertrag ${zeitraum}</div>
+              <div class="datum" style="color:var(--dim)">${p.automatische_verlaengerung ? 'verlängert sich automatisch' : 'keine automatische Verlängerung'}
+                ${p.kuendigungsfrist_monate ? ` · Kündigungsfrist ${p.kuendigungsfrist_monate} Mon.` : ''}</div>
               <div class="datum" style="color:var(--dim)">zuletzt ${p.letzte_wartung ? datumFmt(p.letzte_wartung) : 'noch nie'}</div>
               <div class="datum ${f.status === 'faellig' || f.status === 'heute' ? f.status : ''}">
                 ${f.status === 'beendet' || f.status === 'kuenftig' ? f.text : 'fällig ' + f.text}</div>
@@ -553,7 +558,7 @@ async function zeigKundeMaster(id){
             </div>`}
           </div>`;
         }).join('')
-        : `<div class="leer" style="padding:12px">Noch kein Wartungsplan — mit ＋ anlegen.</div>`}
+        : `<div class="leer" style="padding:12px">Noch kein Wartungsvertrag — mit ＋ anlegen.</div>`}
     </div>
 
     <div class="panel">
@@ -588,20 +593,38 @@ function wartungsFaelligkeit(plan){
   const status = datum < h ? 'faellig' : datum === h ? 'heute' : '';
   return { datum, status, text: datumFmt(datum) + (status === 'faellig' ? ' · überfällig' : status === 'heute' ? ' · heute' : '') };
 }
-function modalNeueWartung(kundeId){
+async function modalNeueWartung(kundeId){
+  let wartungspreise = [];
+  try{ wartungspreise = await sb(`${KONFIG.TAB_PREISE}?kategorie=eq.wartung&select=*&order=bezeichnung.asc`); }catch(e){}
   modal(`
-    <h2>Neuer Wartungsplan</h2>
+    <h2>Neuer Wartungsvertrag</h2>
     <label>Bezeichnung</label>
     <input id="wpBez" placeholder="z.B. Schiebetür Haupteingang">
+    <label>Vertragsnummer (optional)</label>
+    <input id="wpVertragsnr" placeholder="z.B. WV-2026-014">
     <label>Intervall</label>
     <select id="wpIntervall">
       <option value="6">Halbjährlich</option>
       <option value="12" selected>Jährlich</option>
     </select>
+    ${wartungspreise.length ? `
+    <label>Preis aus Preisliste übernehmen (optional)</label>
+    <select id="wpPreisWahl" onchange="if(this.value) document.getElementById('wpPreis').value = this.value">
+      <option value="">— manuell eintragen —</option>
+      ${wartungspreise.map(p => `<option value="${p.preis}">${esc(p.bezeichnung)} — ${eur(p.preis)}</option>`).join('')}
+    </select>` : ''}
+    <label>Preis (€)</label>
+    <input id="wpPreis" type="number" inputmode="decimal" step="0.01" placeholder="0,00">
     <label>Vertragsbeginn</label>
     <input type="date" id="wpBeginn" value="${heute()}">
     <label>Vertragsende (leer = unbefristet)</label>
     <input type="date" id="wpEnde">
+    <label>Kündigungsfrist (Monate zum Vertragsende, optional)</label>
+    <input id="wpKuendigung" type="number" inputmode="numeric" placeholder="z.B. 3">
+    <label style="display:flex;align-items:center;gap:10px;text-transform:none;font-family:inherit;font-size:.88rem;color:var(--text)">
+      <input type="checkbox" id="wpAutoVerlaengerung" checked style="width:22px;height:22px;min-height:0">
+      Verlängert sich automatisch, wenn nicht gekündigt
+    </label>
     <label>Letzte Wartung (optional — leer = sofort fällig)</label>
     <input type="date" id="wpLetzte">
     <label>Notiz</label>
@@ -618,31 +641,53 @@ async function speichereWartung(kundeId){
     await sb(KONFIG.TAB_WARTUNG, { method:'POST', body: JSON.stringify({
       kunde_id: kundeId,
       bezeichnung,
+      vertragsnummer: $('#wpVertragsnr').value.trim() || null,
+      preis: $('#wpPreis').value ? parseFloat($('#wpPreis').value.replace(',', '.')) : null,
       intervall_monate: parseInt($('#wpIntervall').value, 10),
       vertragsbeginn: $('#wpBeginn').value || null,
       vertragsende: $('#wpEnde').value || null,
+      kuendigungsfrist_monate: $('#wpKuendigung').value ? parseInt($('#wpKuendigung').value, 10) : null,
+      automatische_verlaengerung: $('#wpAutoVerlaengerung').checked,
       letzte_wartung: $('#wpLetzte').value || null,
       notiz: $('#wpNotiz').value.trim() || null
     })});
-    modalZu(); toast('Wartungsplan angelegt ✓'); route();
+    modalZu(); toast('Wartungsvertrag angelegt ✓'); route();
   }catch(e){ toast('Fehler: ' + e.message.slice(0,80)); }
 }
-function modalWartungBearbeiten(planId){
+async function modalWartungBearbeiten(planId){
   const plan = kundeWartungsDaten.find(p => String(p.id) === String(planId));
   if(!plan) return;
+  let wartungspreise = [];
+  try{ wartungspreise = await sb(`${KONFIG.TAB_PREISE}?kategorie=eq.wartung&select=*&order=bezeichnung.asc`); }catch(e){}
   modal(`
-    <h2>Wartungsplan bearbeiten</h2>
+    <h2>Wartungsvertrag bearbeiten</h2>
     <label>Bezeichnung</label>
     <input id="wpBez" value="${esc(plan.bezeichnung)}">
+    <label>Vertragsnummer (optional)</label>
+    <input id="wpVertragsnr" value="${esc(plan.vertragsnummer)}" placeholder="z.B. WV-2026-014">
     <label>Intervall</label>
     <select id="wpIntervall">
       <option value="6" ${plan.intervall_monate===6?'selected':''}>Halbjährlich</option>
       <option value="12" ${plan.intervall_monate===12?'selected':''}>Jährlich</option>
     </select>
+    ${wartungspreise.length ? `
+    <label>Preis aus Preisliste übernehmen (optional)</label>
+    <select id="wpPreisWahl" onchange="if(this.value) document.getElementById('wpPreis').value = this.value">
+      <option value="">— manuell eintragen —</option>
+      ${wartungspreise.map(p => `<option value="${p.preis}">${esc(p.bezeichnung)} — ${eur(p.preis)}</option>`).join('')}
+    </select>` : ''}
+    <label>Preis (€)</label>
+    <input id="wpPreis" type="number" inputmode="decimal" step="0.01" value="${plan.preis != null ? plan.preis : ''}">
     <label>Vertragsbeginn</label>
     <input type="date" id="wpBeginn" value="${plan.vertragsbeginn || ''}">
     <label>Vertragsende (leer = unbefristet)</label>
     <input type="date" id="wpEnde" value="${plan.vertragsende || ''}">
+    <label>Kündigungsfrist (Monate zum Vertragsende, optional)</label>
+    <input id="wpKuendigung" type="number" inputmode="numeric" value="${plan.kuendigungsfrist_monate != null ? plan.kuendigungsfrist_monate : ''}">
+    <label style="display:flex;align-items:center;gap:10px;text-transform:none;font-family:inherit;font-size:.88rem;color:var(--text)">
+      <input type="checkbox" id="wpAutoVerlaengerung" ${plan.automatische_verlaengerung ? 'checked' : ''} style="width:22px;height:22px;min-height:0">
+      Verlängert sich automatisch, wenn nicht gekündigt
+    </label>
     <label>Letzte Wartung</label>
     <input type="date" id="wpLetzte" value="${plan.letzte_wartung || ''}">
     <label>Notiz</label>
@@ -652,7 +697,7 @@ function modalWartungBearbeiten(planId){
       <button class="btn primaer" onclick="speichereWartungBearbeiten('${planId}')">Speichern</button>
     </div>
     <button class="btn gefahr" style="width:100%;margin-top:10px" onclick="wartungLoeschen('${planId}')">
-      🗑 Wartungsplan löschen</button>`);
+      🗑 Wartungsvertrag löschen</button>`);
 }
 async function wartungLoeschen(planId){
   const plan = kundeWartungsDaten.find(p => String(p.id) === String(planId));
@@ -668,9 +713,13 @@ async function speichereWartungBearbeiten(planId){
   try{
     await sb(`${KONFIG.TAB_WARTUNG}?id=eq.${planId}`, { method:'PATCH', body: JSON.stringify({
       bezeichnung,
+      vertragsnummer: $('#wpVertragsnr').value.trim() || null,
+      preis: $('#wpPreis').value ? parseFloat($('#wpPreis').value.replace(',', '.')) : null,
       intervall_monate: parseInt($('#wpIntervall').value, 10),
       vertragsbeginn: $('#wpBeginn').value || null,
       vertragsende: $('#wpEnde').value || null,
+      kuendigungsfrist_monate: $('#wpKuendigung').value ? parseInt($('#wpKuendigung').value, 10) : null,
+      automatische_verlaengerung: $('#wpAutoVerlaengerung').checked,
       letzte_wartung: $('#wpLetzte').value || null,
       notiz: $('#wpNotiz').value.trim() || null
     })});
