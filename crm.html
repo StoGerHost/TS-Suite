@@ -1295,7 +1295,11 @@ async function wvAnTrelloAusfuehren(wvId, gewaehlteBauvorhabenId){
   const ku = b ? kundeVon(b.kunde_id) : (w.kunde_id ? kundeVon(w.kunde_id) : null);
   const titelTeile = [ku?.name, b ? feld(b,'name') : null].filter(Boolean);
   const name = titelTeile.length ? titelTeile.join(', ') : w.titel;
-  const desc = [w.titel, w.notiz].filter(Boolean).join('\n\n');
+  const telefon = (ku && ku.telefon) || (b && feld(b,'telefon')) || null;
+  const email = (ku && ku.email) || (b && feld(b,'email')) || null;
+  const hinweisText = [w.titel, w.notiz].filter(Boolean).join('\n\n');
+  const kontaktZeile = [telefon ? 'Tel: ' + telefon : null, email ? 'E-Mail: ' + email : null].filter(Boolean).join(' · ');
+  const desc = [hinweisText, kontaktZeile].filter(Boolean).join('\n\n');
   // Monatsanfang/-ende aus dem Fälligkeitsdatum für Start-/Fälligkeitsfeld der Trello-Karte
   let start = null, due = null;
   if(w.faellig_am){
@@ -1313,9 +1317,9 @@ async function wvAnTrelloAusfuehren(wvId, gewaehlteBauvorhabenId){
     kontakt_id: b ? b.id : null,
     bauvorhaben: b ? (feld(b,'name') || null) : null,
     ansprechpartner: b ? (feld(b,'ap') || null) : null,
-    telefon: (ku && ku.telefon) || (b && feld(b,'telefon')) || null,
-    email: (ku && ku.email) || (b && feld(b,'email')) || null,
-    hinweis: desc || null
+    telefon,
+    email,
+    hinweis: hinweisText || null
   };
   try{
     const pdfBase64 = auftragPdfBase64(auftrag);
