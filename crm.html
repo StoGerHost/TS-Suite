@@ -614,7 +614,7 @@ async function zeigKundeMaster(id){
             <div class="txt">${esc(a.bezeichnung)}</div>
             <div class="datum" style="color:${a.status==='angenommen'?'var(--gruen)':a.status==='abgelehnt'?'var(--rot)':'var(--gelb)'}">
               ${a.status==='angenommen'?'✓ Angenommen':a.status==='abgelehnt'?'✕ Abgelehnt':'○ Offen'}
-              ${a.betrag != null ? ' · ' + eur(a.betrag) : ''} · ${datumFmt(a.erstellt_am)}</div>
+              ${angebotBetragText(a)} · ${datumFmt(a.erstellt_am)}</div>
           </div>
           ${a.datei_url ? `<a href="${a.datei_url}" target="_blank" rel="noopener"
             style="align-self:center;font-size:1.2rem;text-decoration:none;padding:4px 6px">📎</a>` : ''}
@@ -904,13 +904,25 @@ async function positionLoeschen(positionId){
 }
 
 /* ================= ANGEBOTE ================= */
+function angebotBetragText(a){
+  if(a.betrag == null) return '';
+  if(a.rabatt_prozent){
+    const endbetrag = a.betrag * (1 - a.rabatt_prozent / 100);
+    return ` · ${eur(a.betrag)} · -${a.rabatt_prozent}% = ${eur(endbetrag)}`;
+  }
+  return ` · ${eur(a.betrag)}`;
+}
 function modalNeuesAngebot(kundeId){
   modal(`
     <h2>Neues Angebot</h2>
     <label>Bezeichnung</label>
     <input id="agBez" placeholder="z.B. Wartungsvertrag Angebot 2026">
-    <label>Betrag (€, optional)</label>
-    <input id="agBetrag" type="number" inputmode="decimal" step="0.01">
+    <div style="display:flex;gap:10px">
+      <div style="flex:2"><label>Betrag (€, optional)</label>
+        <input id="agBetrag" type="number" inputmode="decimal" step="0.01"></div>
+      <div style="flex:1"><label>Rabatt (%, optional)</label>
+        <input id="agRabatt" type="number" inputmode="decimal" step="0.1" min="0" max="100" placeholder="0"></div>
+    </div>
     <label>Status</label>
     <select id="agStatus">
       <option value="offen" selected>Offen</option>
@@ -942,6 +954,7 @@ async function speichereAngebot(kundeId){
       kunde_id: kundeId,
       bezeichnung,
       betrag: $('#agBetrag').value ? parseFloat($('#agBetrag').value.replace(',', '.')) : null,
+      rabatt_prozent: $('#agRabatt').value ? parseFloat($('#agRabatt').value.replace(',', '.')) : null,
       status: $('#agStatus').value,
       datei_url, datei_name
     })});
@@ -955,8 +968,12 @@ function modalAngebotBearbeiten(angebotId){
     <h2>Angebot bearbeiten</h2>
     <label>Bezeichnung</label>
     <input id="agBez" value="${esc(a.bezeichnung)}">
-    <label>Betrag (€, optional)</label>
-    <input id="agBetrag" type="number" inputmode="decimal" step="0.01" value="${a.betrag != null ? a.betrag : ''}">
+    <div style="display:flex;gap:10px">
+      <div style="flex:2"><label>Betrag (€, optional)</label>
+        <input id="agBetrag" type="number" inputmode="decimal" step="0.01" value="${a.betrag != null ? a.betrag : ''}"></div>
+      <div style="flex:1"><label>Rabatt (%, optional)</label>
+        <input id="agRabatt" type="number" inputmode="decimal" step="0.1" min="0" max="100" value="${a.rabatt_prozent != null ? a.rabatt_prozent : ''}"></div>
+    </div>
     <label>Status</label>
     <select id="agStatus">
       <option value="offen" ${a.status==='offen'?'selected':''}>Offen</option>
@@ -992,6 +1009,7 @@ async function speichereAngebotBearbeiten(angebotId){
     await sb(`${KONFIG.TAB_ANGEBOTE}?id=eq.${angebotId}`, { method:'PATCH', body: JSON.stringify({
       bezeichnung,
       betrag: $('#agBetrag').value ? parseFloat($('#agBetrag').value.replace(',', '.')) : null,
+      rabatt_prozent: $('#agRabatt').value ? parseFloat($('#agRabatt').value.replace(',', '.')) : null,
       status: $('#agStatus').value,
       datei_url, datei_name
     })});
