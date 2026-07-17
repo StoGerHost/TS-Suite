@@ -880,7 +880,7 @@ async function wvAnTrello(wvId){
   const name = titelTeile.length ? titelTeile.join(', ') : w.titel;
   const desc = [w.titel, w.notiz].filter(Boolean).join('\n\n');
   try{
-    const res = await fetch(`${KONFIG.SUPABASE_URL}/functions/v1/smooth-responder`, {
+    const res = await fetch(`${KONFIG.SUPABASE_URL}/functions/v1/create-trello-card`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
