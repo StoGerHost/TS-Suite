@@ -557,6 +557,7 @@ async function zeigKundeMaster(id){
             (v.vertragsende ? datumFmt(v.vertragsende) : 'unbefristet');
           const titel = v.vertragsnummer ? 'Vertrag ' + v.vertragsnummer
             : (positionen.length ? positionen.map(p => p.bezeichnung).join(', ') : 'Neuer Wartungsvertrag');
+          const gesamt = positionen.reduce((sum, p) => sum + (p.preis != null ? p.preis * (p.stueckzahl || 1) : 0), 0);
           return `<div class="wv" style="flex-direction:column;align-items:stretch;gap:8px">
             <div>
               <div style="display:flex;align-items:center;gap:10px">
@@ -565,7 +566,7 @@ async function zeigKundeMaster(id){
                   border-radius:99px;background:var(--panel2);color:var(--blau);font-size:.75rem;white-space:nowrap"
                   onclick="modalWartungBearbeiten('${v.id}')">✎ Bearbeiten</button>
               </div>
-              ${v.preis != null ? `<div class="datum" style="color:var(--dim)">${eur(v.preis)} / Termin</div>` : ''}
+              ${gesamt > 0 ? `<div class="datum" style="color:var(--dim)">Gesamt ${eur(gesamt)} / Termin</div>` : ''}
               <div class="datum" style="color:var(--dim)">Vertrag ${zeitraum}</div>
               <div class="datum" style="color:var(--dim)">${v.automatische_verlaengerung ? 'verlängert sich automatisch' : 'keine automatische Verlängerung'}
                 ${v.kuendigungsfrist_monate ? ` · Kündigungsfrist ${v.kuendigungsfrist_monate} Mon.` : ''}</div>
@@ -574,7 +575,8 @@ async function zeigKundeMaster(id){
               ${positionen.length ? positionen.map(p => {
                   const f = wartungsFaelligkeit(p, v);
                   return `<div style="border-left:2px solid var(--border);padding-left:10px">
-                    <div class="txt" style="font-size:.88rem">${esc(p.bezeichnung)}</div>
+                    <div class="txt" style="font-size:.88rem">${p.stueckzahl > 1 ? p.stueckzahl + '× ' : ''}${esc(p.bezeichnung)}</div>
+                    ${p.preis != null ? `<div class="datum" style="color:var(--dim)">${eur(p.preis)} je Stück${p.stueckzahl > 1 ? ' · ' + eur(p.preis * p.stueckzahl) + ' gesamt' : ''}</div>` : ''}
                     <div class="datum" style="color:var(--dim)">${p.intervall_monate === 6 ? 'halbjährlich' : 'jährlich'} ·
                       zuletzt ${p.letzte_wartung ? datumFmt(p.letzte_wartung) : 'noch nie'}</div>
                     <div class="datum ${f.status === 'faellig' || f.status === 'heute' ? f.status : ''}">
@@ -668,17 +670,23 @@ async function modalNeueWartung(kundeId){
       <option value="6">Halbjährlich</option>
       <option value="12" selected>Jährlich</option>
     </select>
-    <p style="font-size:.75rem;color:var(--dim);margin-top:4px">Weitere Positionen kannst du danach jederzeit im Vertrag ergänzen.</p>
-    <label>Vertragsnummer (optional)</label>
-    <input id="wpVertragsnr" placeholder="z.B. WV-2026-014">
     ${wartungspreise.length ? `
     <label>Preis aus Preisliste übernehmen (optional)</label>
     <select id="wpPreisWahl" onchange="if(this.value) document.getElementById('wpPreis').value = this.value">
       <option value="">— manuell eintragen —</option>
       ${wartungspreise.map(p => `<option value="${p.preis}">${esc(p.bezeichnung)} — ${eur(p.preis)}</option>`).join('')}
     </select>` : ''}
-    <label>Preis (€)</label>
-    <input id="wpPreis" type="number" inputmode="decimal" step="0.01" placeholder="0,00">
+    <div style="display:flex;gap:10px">
+      <div style="flex:2"><label>Preis (€) je Stück</label>
+        <input id="wpPreis" type="number" inputmode="decimal" step="0.01" placeholder="0,00"></div>
+      <div style="flex:1"><label>Stückzahl</label>
+        <input id="wpStueck" type="number" inputmode="numeric" min="1" value="1"></div>
+    </div>
+    <label>Letzte Wartung dieser Position (optional — leer = sofort fällig)</label>
+    <input type="date" id="wpLetzte">
+    <p style="font-size:.75rem;color:var(--dim);margin-top:4px">Weitere Positionen — auch mit eigenem Preis und eigener Stückzahl — kannst du danach jederzeit im Vertrag ergänzen.</p>
+    <label>Vertragsnummer (optional)</label>
+    <input id="wpVertragsnr" placeholder="z.B. WV-2026-014">
     <label>Vertragsbeginn</label>
     <input type="date" id="wpBeginn" value="${heute()}">
     <label>Vertragsende (leer = unbefristet)</label>
@@ -689,8 +697,6 @@ async function modalNeueWartung(kundeId){
       <input type="checkbox" id="wpAutoVerlaengerung" checked style="width:22px;height:22px;min-height:0">
       Verlängert sich automatisch, wenn nicht gekündigt
     </label>
-    <label>Letzte Wartung der ersten Position (optional — leer = sofort fällig)</label>
-    <input type="date" id="wpLetzte">
     <label>Notiz</label>
     <textarea id="wpNotiz" style="min-height:64px"></textarea>
     <div class="btnzeile">
@@ -705,7 +711,6 @@ async function speichereWartung(kundeId){
     const [vertrag] = await sb(KONFIG.TAB_WARTUNG, { method:'POST', body: JSON.stringify({
       kunde_id: kundeId,
       vertragsnummer: $('#wpVertragsnr').value.trim() || null,
-      preis: $('#wpPreis').value ? parseFloat($('#wpPreis').value.replace(',', '.')) : null,
       vertragsbeginn: $('#wpBeginn').value || null,
       vertragsende: $('#wpEnde').value || null,
       kuendigungsfrist_monate: $('#wpKuendigung').value ? parseInt($('#wpKuendigung').value, 10) : null,
@@ -716,6 +721,8 @@ async function speichereWartung(kundeId){
       vertrag_id: vertrag.id,
       bezeichnung,
       intervall_monate: parseInt($('#wpIntervall').value, 10),
+      preis: $('#wpPreis').value ? parseFloat($('#wpPreis').value.replace(',', '.')) : null,
+      stueckzahl: parseInt($('#wpStueck').value, 10) || 1,
       letzte_wartung: $('#wpLetzte').value || null
     })});
     modalZu(); toast('Wartungsvertrag angelegt ✓'); route();
@@ -724,20 +731,10 @@ async function speichereWartung(kundeId){
 async function modalWartungBearbeiten(planId){
   const plan = kundeWartungsDaten.find(p => String(p.id) === String(planId));
   if(!plan) return;
-  let wartungspreise = [];
-  try{ wartungspreise = await sb(`${KONFIG.TAB_PREISE}?kategorie=eq.wartung&select=*&order=bezeichnung.asc`); }catch(e){}
   modal(`
     <h2>Wartungsvertrag bearbeiten</h2>
     <label>Vertragsnummer (optional)</label>
     <input id="wpVertragsnr" value="${esc(plan.vertragsnummer)}" placeholder="z.B. WV-2026-014">
-    ${wartungspreise.length ? `
-    <label>Preis aus Preisliste übernehmen (optional)</label>
-    <select id="wpPreisWahl" onchange="if(this.value) document.getElementById('wpPreis').value = this.value">
-      <option value="">— manuell eintragen —</option>
-      ${wartungspreise.map(p => `<option value="${p.preis}">${esc(p.bezeichnung)} — ${eur(p.preis)}</option>`).join('')}
-    </select>` : ''}
-    <label>Preis (€)</label>
-    <input id="wpPreis" type="number" inputmode="decimal" step="0.01" value="${plan.preis != null ? plan.preis : ''}">
     <label>Vertragsbeginn</label>
     <input type="date" id="wpBeginn" value="${plan.vertragsbeginn || ''}">
     <label>Vertragsende (leer = unbefristet)</label>
@@ -769,7 +766,6 @@ async function speichereWartungBearbeiten(planId){
   try{
     await sb(`${KONFIG.TAB_WARTUNG}?id=eq.${planId}`, { method:'PATCH', body: JSON.stringify({
       vertragsnummer: $('#wpVertragsnr').value.trim() || null,
-      preis: $('#wpPreis').value ? parseFloat($('#wpPreis').value.replace(',', '.')) : null,
       vertragsbeginn: $('#wpBeginn').value || null,
       vertragsende: $('#wpEnde').value || null,
       kuendigungsfrist_monate: $('#wpKuendigung').value ? parseInt($('#wpKuendigung').value, 10) : null,
@@ -803,7 +799,9 @@ async function positionWiedervorlageAnlegen(positionId){
     cache.wv = null; toast('Wiedervorlage angelegt ✓'); route();
   }catch(e){ toast('Fehler: ' + e.message.slice(0,80)); }
 }
-function modalNeuePosition(vertragId){
+async function modalNeuePosition(vertragId){
+  let wartungspreise = [];
+  try{ wartungspreise = await sb(`${KONFIG.TAB_PREISE}?kategorie=eq.wartung&select=*&order=bezeichnung.asc`); }catch(e){}
   modal(`
     <h2>Neue Position</h2>
     <label>Bezeichnung</label>
@@ -813,6 +811,18 @@ function modalNeuePosition(vertragId){
       <option value="6">Halbjährlich</option>
       <option value="12" selected>Jährlich</option>
     </select>
+    ${wartungspreise.length ? `
+    <label>Preis aus Preisliste übernehmen (optional)</label>
+    <select id="posPreisWahl" onchange="if(this.value) document.getElementById('posPreis').value = this.value">
+      <option value="">— manuell eintragen —</option>
+      ${wartungspreise.map(p => `<option value="${p.preis}">${esc(p.bezeichnung)} — ${eur(p.preis)}</option>`).join('')}
+    </select>` : ''}
+    <div style="display:flex;gap:10px">
+      <div style="flex:2"><label>Preis (€) je Stück</label>
+        <input id="posPreis" type="number" inputmode="decimal" step="0.01" placeholder="0,00"></div>
+      <div style="flex:1"><label>Stückzahl</label>
+        <input id="posStueck" type="number" inputmode="numeric" min="1" value="1"></div>
+    </div>
     <label>Letzte Wartung (optional — leer = sofort fällig)</label>
     <input type="date" id="posLetzte">
     <div class="btnzeile">
@@ -828,14 +838,18 @@ async function speicherePosition(vertragId){
       vertrag_id: vertragId,
       bezeichnung,
       intervall_monate: parseInt($('#posIntervall').value, 10),
+      preis: $('#posPreis').value ? parseFloat($('#posPreis').value.replace(',', '.')) : null,
+      stueckzahl: parseInt($('#posStueck').value, 10) || 1,
       letzte_wartung: $('#posLetzte').value || null
     })});
     modalZu(); toast('Position hinzugefügt ✓'); route();
   }catch(e){ toast('Fehler: ' + e.message.slice(0,80)); }
 }
-function modalPositionBearbeiten(positionId){
+async function modalPositionBearbeiten(positionId){
   const p = kundePositionenDaten.find(x => String(x.id) === String(positionId));
   if(!p) return;
+  let wartungspreise = [];
+  try{ wartungspreise = await sb(`${KONFIG.TAB_PREISE}?kategorie=eq.wartung&select=*&order=bezeichnung.asc`); }catch(e){}
   modal(`
     <h2>Position bearbeiten</h2>
     <label>Bezeichnung</label>
@@ -845,6 +859,18 @@ function modalPositionBearbeiten(positionId){
       <option value="6" ${p.intervall_monate===6?'selected':''}>Halbjährlich</option>
       <option value="12" ${p.intervall_monate===12?'selected':''}>Jährlich</option>
     </select>
+    ${wartungspreise.length ? `
+    <label>Preis aus Preisliste übernehmen (optional)</label>
+    <select id="posPreisWahl" onchange="if(this.value) document.getElementById('posPreis').value = this.value">
+      <option value="">— manuell eintragen —</option>
+      ${wartungspreise.map(x => `<option value="${x.preis}">${esc(x.bezeichnung)} — ${eur(x.preis)}</option>`).join('')}
+    </select>` : ''}
+    <div style="display:flex;gap:10px">
+      <div style="flex:2"><label>Preis (€) je Stück</label>
+        <input id="posPreis" type="number" inputmode="decimal" step="0.01" value="${p.preis != null ? p.preis : ''}"></div>
+      <div style="flex:1"><label>Stückzahl</label>
+        <input id="posStueck" type="number" inputmode="numeric" min="1" value="${p.stueckzahl || 1}"></div>
+    </div>
     <label>Letzte Wartung</label>
     <input type="date" id="posLetzte" value="${p.letzte_wartung || ''}">
     <div class="btnzeile">
@@ -861,6 +887,8 @@ async function speicherePositionBearbeiten(positionId){
     await sb(`${KONFIG.TAB_WARTUNGSPOS}?id=eq.${positionId}`, { method:'PATCH', body: JSON.stringify({
       bezeichnung,
       intervall_monate: parseInt($('#posIntervall').value, 10),
+      preis: $('#posPreis').value ? parseFloat($('#posPreis').value.replace(',', '.')) : null,
+      stueckzahl: parseInt($('#posStueck').value, 10) || 1,
       letzte_wartung: $('#posLetzte').value || null
     })});
     modalZu(); toast('Gespeichert ✓'); route();
