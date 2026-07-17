@@ -754,7 +754,33 @@ async function zeigBauvorhaben(id){
         : `<div class="leer" style="padding:12px">Noch keine Einträge.</div>`}
     </div>
 
+    <button class="btn gefahr" style="width:100%;margin-bottom:70px" onclick="modalBauvorhabenLoeschen('${id}')">
+      🗑 Bauvorhaben löschen</button>
+
     <button class="fab" onclick="modalAktivitaet('kontakt','${id}')" title="Neue Aktivität">+</button>`;
+}
+function modalBauvorhabenLoeschen(kontaktId){
+  const k = bauvorhabenVon(kontaktId);
+  if(!k) return;
+  const ku = kundeVon(k.kunde_id);
+  modal(`
+    <h2>Bauvorhaben endgültig löschen?</h2>
+    <p style="font-size:.88rem;margin-top:8px">„${esc(feld(k,'name') || 'Ohne Namen')}" wird unwiderruflich gelöscht.</p>
+    <p style="font-size:.8rem;color:var(--dim);margin-top:8px">
+      Verlauf, Wiedervorlagen und strukturierte Ansprechpartner zu diesem Bauvorhaben werden mitgelöscht.
+      Berichte, die schon im Arbeitsbericht abgeschlossen wurden, bleiben unangetastet.
+      Das lässt sich nicht rückgängig machen.</p>
+    <div class="btnzeile">
+      <button class="btn sekundaer" onclick="modalZu()">Abbrechen</button>
+      <button class="btn gefahr" onclick="speichereBauvorhabenLoeschen('${kontaktId}','${ku ? ku.id : ''}')">Endgültig löschen</button>
+    </div>`);
+}
+async function speichereBauvorhabenLoeschen(kontaktId, kundeId){
+  try{
+    await sb(`${KONFIG.TAB_KONTAKTE}?id=eq.${kontaktId}`, { method:'DELETE' });
+    cache.kontakte = null; modalZu(); toast('Bauvorhaben gelöscht');
+    navigiere(kundeId ? '#/kunde/' + kundeId : '#/kunden');
+  }catch(e){ toast('Fehler: ' + e.message.slice(0,80)); }
 }
 
 /* ================= AUFTRAG EXPORTIEREN (für Arbeitsbericht) ================= */
@@ -816,7 +842,9 @@ function aktivitaetZeile(a, mitBauvorhaben){
       </div>` : ''}
     </li>`;
 }
+let wvSichtbar = {};
 function wvZeile(w, kontext){
+  wvSichtbar[w.id] = w;
   const h = heute();
   const cls = w.erledigt ? '' : w.faellig_am < h ? 'faellig' : w.faellig_am === h ? 'heute' : '';
   const b = (kontext !== 'keine' && w.kontakt_id) ? bauvorhabenVon(w.kontakt_id) : null;
@@ -840,7 +868,31 @@ function wvZeile(w, kontext){
       <div class="datum ${cls}">fällig ${datumFmt(w.faellig_am)}
         ${cls === 'faellig' ? '· überfällig' : cls === 'heute' ? '· heute' : ''}</div>
       ${kontextZeile}
+      ${!w.erledigt ? `<button class="kunde" style="color:var(--tuerkis)" onclick="wvAnTrello('${w.id}')">📌 An Trello</button>` : ''}
     </div></div>`;
+}
+async function wvAnTrello(wvId){
+  const w = wvSichtbar[wvId];
+  if(!w) return;
+  const b = w.kontakt_id ? bauvorhabenVon(w.kontakt_id) : null;
+  const ku = b ? kundeVon(b.kunde_id) : (w.kunde_id ? kundeVon(w.kunde_id) : null);
+  const titelTeile = [ku?.name, b ? feld(b,'name') : null].filter(Boolean);
+  const name = titelTeile.length ? titelTeile.join(', ') : w.titel;
+  const desc = [w.titel, w.notiz].filter(Boolean).join('\n\n');
+  try{
+    const res = await fetch(`${KONFIG.SUPABASE_URL}/functions/v1/smooth-responder`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer ' + KONFIG.SUPABASE_KEY,
+        'apikey': KONFIG.SUPABASE_KEY
+      },
+      body: JSON.stringify({ name, desc })
+    });
+    const data = await res.json();
+    if(!res.ok) throw new Error(data.error || ('HTTP ' + res.status));
+    toast('Trello-Karte angelegt ✓');
+  }catch(e){ toast('Fehler: ' + e.message.slice(0,80)); }
 }
 async function wvToggle(id, erledigt){
   await sb(`${KONFIG.TAB_WV}?id=eq.${id}`, { method:'PATCH',
