@@ -650,7 +650,17 @@ function modalWartungBearbeiten(planId){
     <div class="btnzeile">
       <button class="btn sekundaer" onclick="modalZu()">Abbrechen</button>
       <button class="btn primaer" onclick="speichereWartungBearbeiten('${planId}')">Speichern</button>
-    </div>`);
+    </div>
+    <button class="btn gefahr" style="width:100%;margin-top:10px" onclick="wartungLoeschen('${planId}')">
+      🗑 Wartungsplan löschen</button>`);
+}
+async function wartungLoeschen(planId){
+  const plan = kundeWartungsDaten.find(p => String(p.id) === String(planId));
+  if(!plan || !confirm(`„${plan.bezeichnung}" wirklich löschen?`)) return;
+  try{
+    await sb(`${KONFIG.TAB_WARTUNG}?id=eq.${planId}`, { method:'DELETE' });
+    modalZu(); toast('Wartungsplan gelöscht'); route();
+  }catch(e){ toast('Fehler: ' + e.message.slice(0,80)); }
 }
 async function speichereWartungBearbeiten(planId){
   const bezeichnung = $('#wpBez').value.trim();
