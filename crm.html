@@ -247,6 +247,7 @@ const KONFIG = {
   TAB_WV       : 'crm_wiedervorlagen',
   TAB_AP       : 'crm_ansprechpartner',
   TAB_WARTUNG  : 'crm_wartungsplan',
+  TAB_WARTUNGSPOS: 'crm_wartungspositionen',
   TAB_PREISE   : 'crm_preisliste',
   TAB_ANGEBOTE : 'crm_angebote',
 
@@ -503,13 +504,17 @@ async function zeigKundeMaster(id){
     sb(`${KONFIG.TAB_AKT}?kunde_id=eq.${id}&kontakt_id=is.null&select=*&order=erstellt_am.desc&limit=100`),
     sb(`${KONFIG.TAB_WV}?kontakt_id=in.(${idList})&erledigt=eq.false&select=*&order=faellig_am.asc&limit=100`),
     sb(`${KONFIG.TAB_WV}?kunde_id=eq.${id}&kontakt_id=is.null&erledigt=eq.false&select=*&order=faellig_am.asc&limit=100`),
-    sb(`${KONFIG.TAB_WARTUNG}?kunde_id=eq.${id}&select=*&order=bezeichnung.asc`),
+    sb(`${KONFIG.TAB_WARTUNG}?kunde_id=eq.${id}&select=*&order=erstellt_am.asc`),
     sb(`${KONFIG.TAB_ANGEBOTE}?kunde_id=eq.${id}&select=*&order=erstellt_am.desc`)
   ]);
   const verlauf = [...aktKu, ...akt].sort((a,b) => (b.erstellt_am||'').localeCompare(a.erstellt_am||''));
   const wv = [...wvKu, ...wvBv].sort((a,b) => (a.faellig_am||'').localeCompare(b.faellig_am||''));
   kundeWartungsDaten = wartung;
   kundeAngeboteDaten = angebote;
+  const vertragIds = wartung.map(v => v.id);
+  kundePositionenDaten = vertragIds.length
+    ? await sb(`${KONFIG.TAB_WARTUNGSPOS}?vertrag_id=in.(${vertragIds.join(',')})&select=*&order=bezeichnung.asc`)
+    : [];
   setStatus(true, 'verbunden');
 
   v.innerHTML = `
@@ -546,35 +551,49 @@ async function zeigKundeMaster(id){
     <div class="panel">
       <div class="eyebrow">Wartungsverträge
         <button class="plus" onclick="modalNeueWartung('${ku.id}')">＋</button></div>
-      ${wartung.length ? wartung.map(p => {
-          const f = wartungsFaelligkeit(p);
-          const zeitraum = (p.vertragsbeginn ? datumFmt(p.vertragsbeginn) : '–') + ' – ' +
-            (p.vertragsende ? datumFmt(p.vertragsende) : 'unbefristet');
+      ${wartung.length ? wartung.map(v => {
+          const positionen = kundePositionenDaten.filter(p => p.vertrag_id === v.id);
+          const zeitraum = (v.vertragsbeginn ? datumFmt(v.vertragsbeginn) : '–') + ' – ' +
+            (v.vertragsende ? datumFmt(v.vertragsende) : 'unbefristet');
+          const titel = v.vertragsnummer ? 'Vertrag ' + v.vertragsnummer
+            : (positionen.length ? positionen.map(p => p.bezeichnung).join(', ') : 'Neuer Wartungsvertrag');
           return `<div class="wv" style="flex-direction:column;align-items:stretch;gap:8px">
             <div>
-              <div class="txt">${esc(p.bezeichnung)}
+              <div class="txt">${esc(titel)}
                 <button style="color:var(--blau);font-size:.75rem;margin-left:6px"
-                  onclick="modalWartungBearbeiten('${p.id}')">✎</button></div>
-              ${p.vertragsnummer || p.preis != null ? `<div class="datum" style="color:var(--dim)">
-                ${p.vertragsnummer ? esc(p.vertragsnummer) : ''}${p.vertragsnummer && p.preis != null ? ' · ' : ''}
-                ${p.preis != null ? eur(p.preis) + ' / Termin' : ''}</div>` : ''}
-              <div class="datum" style="color:var(--dim)">${p.intervall_monate === 6 ? 'halbjährlich' : 'jährlich'} ·
-                Vertrag ${zeitraum}</div>
-              <div class="datum" style="color:var(--dim)">${p.automatische_verlaengerung ? 'verlängert sich automatisch' : 'keine automatische Verlängerung'}
-                ${p.kuendigungsfrist_monate ? ` · Kündigungsfrist ${p.kuendigungsfrist_monate} Mon.` : ''}</div>
-              <div class="datum" style="color:var(--dim)">zuletzt ${p.letzte_wartung ? datumFmt(p.letzte_wartung) : 'noch nie'}</div>
-              <div class="datum ${f.status === 'faellig' || f.status === 'heute' ? f.status : ''}">
-                ${f.status === 'beendet' || f.status === 'kuenftig' ? f.text : 'fällig ' + f.text}</div>
+                  onclick="modalWartungBearbeiten('${v.id}')">✎</button></div>
+              ${v.preis != null ? `<div class="datum" style="color:var(--dim)">${eur(v.preis)} / Termin</div>` : ''}
+              <div class="datum" style="color:var(--dim)">Vertrag ${zeitraum}</div>
+              <div class="datum" style="color:var(--dim)">${v.automatische_verlaengerung ? 'verlängert sich automatisch' : 'keine automatische Verlängerung'}
+                ${v.kuendigungsfrist_monate ? ` · Kündigungsfrist ${v.kuendigungsfrist_monate} Mon.` : ''}</div>
             </div>
-            ${f.status === 'beendet' ? '' : `
-            <div style="display:flex;gap:8px">
-              <button style="flex:1;min-height:40px;border:1px solid var(--border);border-radius:10px;
-                background:var(--panel2);font-size:.8rem;color:var(--tuerkis)"
-                onclick="wartungWiedervorlageAnlegen('${p.id}')">+ Wiedervorlage</button>
-              <button style="flex:1;min-height:40px;border:1px solid var(--border);border-radius:10px;
-                background:var(--panel2);font-size:.8rem;color:var(--gruen)"
-                onclick="wartungErledigt('${p.id}')">✓ Erledigt</button>
-            </div>`}
+            <div style="border-top:1px solid var(--border);padding-top:10px;display:flex;flex-direction:column;gap:12px">
+              ${positionen.length ? positionen.map(p => {
+                  const f = wartungsFaelligkeit(p, v);
+                  return `<div style="border-left:2px solid var(--border);padding-left:10px">
+                    <div class="txt" style="font-size:.88rem">${esc(p.bezeichnung)}
+                      <button style="color:var(--blau);font-size:.72rem;margin-left:6px"
+                        onclick="modalPositionBearbeiten('${p.id}')">✎</button></div>
+                    <div class="datum" style="color:var(--dim)">${p.intervall_monate === 6 ? 'halbjährlich' : 'jährlich'} ·
+                      zuletzt ${p.letzte_wartung ? datumFmt(p.letzte_wartung) : 'noch nie'}</div>
+                    <div class="datum ${f.status === 'faellig' || f.status === 'heute' ? f.status : ''}">
+                      ${f.status === 'beendet' || f.status === 'kuenftig' ? f.text : 'fällig ' + f.text}</div>
+                    ${f.status === 'beendet' ? '' : `
+                    <div style="display:flex;gap:8px;margin-top:6px">
+                      <button style="flex:1;min-height:36px;border:1px solid var(--border);border-radius:10px;
+                        background:var(--panel2);font-size:.75rem;color:var(--tuerkis)"
+                        onclick="positionWiedervorlageAnlegen('${p.id}')">+ Wiedervorlage</button>
+                      <button style="flex:1;min-height:36px;border:1px solid var(--border);border-radius:10px;
+                        background:var(--panel2);font-size:.75rem;color:var(--gruen)"
+                        onclick="positionErledigt('${p.id}')">✓ Erledigt</button>
+                    </div>`}
+                  </div>`;
+                }).join('')
+                : `<div style="color:var(--dim);font-size:.8rem">Noch keine Position.</div>`}
+              <button style="min-height:36px;border:1px dashed var(--border);border-radius:10px;
+                background:none;font-size:.78rem;color:var(--dim)"
+                onclick="modalNeuePosition('${v.id}')">＋ Position hinzufügen</button>
+            </div>
           </div>`;
         }).join('')
         : `<div class="leer" style="padding:12px">Noch kein Wartungsvertrag — mit ＋ anlegen.</div>`}
@@ -616,18 +635,19 @@ async function zeigKundeMaster(id){
 
 /* ================= WARTUNGSPLAN ================= */
 let kundeWartungsDaten = [];
+let kundePositionenDaten = [];
 let kundeAngeboteDaten = [];
-function wartungsFaelligkeit(plan){
+function wartungsFaelligkeit(position, vertrag){
   const h = heute();
-  if(plan.vertragsende && plan.vertragsende < h){
-    return { datum: null, status: 'beendet', text: 'Vertrag beendet ' + datumFmt(plan.vertragsende) };
+  if(vertrag.vertragsende && vertrag.vertragsende < h){
+    return { datum: null, status: 'beendet', text: 'Vertrag beendet ' + datumFmt(vertrag.vertragsende) };
   }
-  if(plan.vertragsbeginn && plan.vertragsbeginn > h){
-    return { datum: null, status: 'kuenftig', text: 'Vertrag beginnt ' + datumFmt(plan.vertragsbeginn) };
+  if(vertrag.vertragsbeginn && vertrag.vertragsbeginn > h){
+    return { datum: null, status: 'kuenftig', text: 'Vertrag beginnt ' + datumFmt(vertrag.vertragsbeginn) };
   }
-  if(!plan.letzte_wartung) return { datum: null, status: 'faellig', text: 'sofort' };
-  const d = new Date(plan.letzte_wartung + 'T00:00:00');
-  d.setMonth(d.getMonth() + plan.intervall_monate);
+  if(!position.letzte_wartung) return { datum: null, status: 'faellig', text: 'sofort' };
+  const d = new Date(position.letzte_wartung + 'T00:00:00');
+  d.setMonth(d.getMonth() + position.intervall_monate);
   const datum = d.toISOString().slice(0, 10);
   const status = datum < h ? 'faellig' : datum === h ? 'heute' : '';
   return { datum, status, text: datumFmt(datum) + (status === 'faellig' ? ' · überfällig' : status === 'heute' ? ' · heute' : '') };
@@ -637,15 +657,16 @@ async function modalNeueWartung(kundeId){
   try{ wartungspreise = await sb(`${KONFIG.TAB_PREISE}?kategorie=eq.wartung&select=*&order=bezeichnung.asc`); }catch(e){}
   modal(`
     <h2>Neuer Wartungsvertrag</h2>
-    <label>Bezeichnung</label>
+    <label>Erste Position — Bezeichnung</label>
     <input id="wpBez" placeholder="z.B. Schiebetür Haupteingang">
-    <label>Vertragsnummer (optional)</label>
-    <input id="wpVertragsnr" placeholder="z.B. WV-2026-014">
     <label>Intervall</label>
     <select id="wpIntervall">
       <option value="6">Halbjährlich</option>
       <option value="12" selected>Jährlich</option>
     </select>
+    <p style="font-size:.75rem;color:var(--dim);margin-top:4px">Weitere Positionen kannst du danach jederzeit im Vertrag ergänzen.</p>
+    <label>Vertragsnummer (optional)</label>
+    <input id="wpVertragsnr" placeholder="z.B. WV-2026-014">
     ${wartungspreise.length ? `
     <label>Preis aus Preisliste übernehmen (optional)</label>
     <select id="wpPreisWahl" onchange="if(this.value) document.getElementById('wpPreis').value = this.value">
@@ -664,7 +685,7 @@ async function modalNeueWartung(kundeId){
       <input type="checkbox" id="wpAutoVerlaengerung" checked style="width:22px;height:22px;min-height:0">
       Verlängert sich automatisch, wenn nicht gekündigt
     </label>
-    <label>Letzte Wartung (optional — leer = sofort fällig)</label>
+    <label>Letzte Wartung der ersten Position (optional — leer = sofort fällig)</label>
     <input type="date" id="wpLetzte">
     <label>Notiz</label>
     <textarea id="wpNotiz" style="min-height:64px"></textarea>
@@ -675,20 +696,23 @@ async function modalNeueWartung(kundeId){
 }
 async function speichereWartung(kundeId){
   const bezeichnung = $('#wpBez').value.trim();
-  if(!bezeichnung){ toast('Bezeichnung fehlt noch.'); return; }
+  if(!bezeichnung){ toast('Bezeichnung für die erste Position fehlt noch.'); return; }
   try{
-    await sb(KONFIG.TAB_WARTUNG, { method:'POST', body: JSON.stringify({
+    const [vertrag] = await sb(KONFIG.TAB_WARTUNG, { method:'POST', body: JSON.stringify({
       kunde_id: kundeId,
-      bezeichnung,
       vertragsnummer: $('#wpVertragsnr').value.trim() || null,
       preis: $('#wpPreis').value ? parseFloat($('#wpPreis').value.replace(',', '.')) : null,
-      intervall_monate: parseInt($('#wpIntervall').value, 10),
       vertragsbeginn: $('#wpBeginn').value || null,
       vertragsende: $('#wpEnde').value || null,
       kuendigungsfrist_monate: $('#wpKuendigung').value ? parseInt($('#wpKuendigung').value, 10) : null,
       automatische_verlaengerung: $('#wpAutoVerlaengerung').checked,
-      letzte_wartung: $('#wpLetzte').value || null,
       notiz: $('#wpNotiz').value.trim() || null
+    })});
+    await sb(KONFIG.TAB_WARTUNGSPOS, { method:'POST', body: JSON.stringify({
+      vertrag_id: vertrag.id,
+      bezeichnung,
+      intervall_monate: parseInt($('#wpIntervall').value, 10),
+      letzte_wartung: $('#wpLetzte').value || null
     })});
     modalZu(); toast('Wartungsvertrag angelegt ✓'); route();
   }catch(e){ toast('Fehler: ' + e.message.slice(0,80)); }
@@ -700,15 +724,8 @@ async function modalWartungBearbeiten(planId){
   try{ wartungspreise = await sb(`${KONFIG.TAB_PREISE}?kategorie=eq.wartung&select=*&order=bezeichnung.asc`); }catch(e){}
   modal(`
     <h2>Wartungsvertrag bearbeiten</h2>
-    <label>Bezeichnung</label>
-    <input id="wpBez" value="${esc(plan.bezeichnung)}">
     <label>Vertragsnummer (optional)</label>
     <input id="wpVertragsnr" value="${esc(plan.vertragsnummer)}" placeholder="z.B. WV-2026-014">
-    <label>Intervall</label>
-    <select id="wpIntervall">
-      <option value="6" ${plan.intervall_monate===6?'selected':''}>Halbjährlich</option>
-      <option value="12" ${plan.intervall_monate===12?'selected':''}>Jährlich</option>
-    </select>
     ${wartungspreise.length ? `
     <label>Preis aus Preisliste übernehmen (optional)</label>
     <select id="wpPreisWahl" onchange="if(this.value) document.getElementById('wpPreis').value = this.value">
@@ -727,8 +744,6 @@ async function modalWartungBearbeiten(planId){
       <input type="checkbox" id="wpAutoVerlaengerung" ${plan.automatische_verlaengerung ? 'checked' : ''} style="width:22px;height:22px;min-height:0">
       Verlängert sich automatisch, wenn nicht gekündigt
     </label>
-    <label>Letzte Wartung</label>
-    <input type="date" id="wpLetzte" value="${plan.letzte_wartung || ''}">
     <label>Notiz</label>
     <textarea id="wpNotiz" style="min-height:64px">${esc(plan.notiz)}</textarea>
     <div class="btnzeile">
@@ -736,7 +751,7 @@ async function modalWartungBearbeiten(planId){
       <button class="btn primaer" onclick="speichereWartungBearbeiten('${planId}')">Speichern</button>
     </div>
     <button class="btn gefahr" style="width:100%;margin-top:10px" onclick="wartungLoeschen('${planId}')">
-      🗑 Wartungsvertrag löschen</button>`);
+      🗑 Ganzen Vertrag löschen (inkl. aller Positionen)</button>`);
 }
 async function wartungLoeschen(planId){
   const plan = kundeWartungsDaten.find(p => String(p.id) === String(planId));
@@ -747,44 +762,112 @@ async function wartungLoeschen(planId){
   }catch(e){ toast('Fehler: ' + e.message.slice(0,80)); }
 }
 async function speichereWartungBearbeiten(planId){
-  const bezeichnung = $('#wpBez').value.trim();
-  if(!bezeichnung){ toast('Bezeichnung fehlt noch.'); return; }
   try{
     await sb(`${KONFIG.TAB_WARTUNG}?id=eq.${planId}`, { method:'PATCH', body: JSON.stringify({
-      bezeichnung,
       vertragsnummer: $('#wpVertragsnr').value.trim() || null,
       preis: $('#wpPreis').value ? parseFloat($('#wpPreis').value.replace(',', '.')) : null,
-      intervall_monate: parseInt($('#wpIntervall').value, 10),
       vertragsbeginn: $('#wpBeginn').value || null,
       vertragsende: $('#wpEnde').value || null,
       kuendigungsfrist_monate: $('#wpKuendigung').value ? parseInt($('#wpKuendigung').value, 10) : null,
       automatische_verlaengerung: $('#wpAutoVerlaengerung').checked,
-      letzte_wartung: $('#wpLetzte').value || null,
       notiz: $('#wpNotiz').value.trim() || null
     })});
     modalZu(); toast('Gespeichert ✓'); route();
   }catch(e){ toast('Fehler: ' + e.message.slice(0,80)); }
 }
-async function wartungErledigt(planId){
+async function positionErledigt(positionId){
   try{
-    await sb(`${KONFIG.TAB_WARTUNG}?id=eq.${planId}`, { method:'PATCH',
+    await sb(`${KONFIG.TAB_WARTUNGSPOS}?id=eq.${positionId}`, { method:'PATCH',
       body: JSON.stringify({ letzte_wartung: heute() }) });
     toast('Als erledigt markiert ✓'); route();
   }catch(e){ toast('Fehler: ' + e.message.slice(0,80)); }
 }
-async function wartungWiedervorlageAnlegen(planId){
-  const plan = kundeWartungsDaten.find(p => String(p.id) === String(planId));
-  if(!plan) return;
-  const f = wartungsFaelligkeit(plan);
+async function positionWiedervorlageAnlegen(positionId){
+  const position = kundePositionenDaten.find(p => String(p.id) === String(positionId));
+  if(!position) return;
+  const vertrag = kundeWartungsDaten.find(v => String(v.id) === String(position.vertrag_id));
+  if(!vertrag) return;
+  const f = wartungsFaelligkeit(position, vertrag);
   try{
     await sb(KONFIG.TAB_WV, { method:'POST', body: JSON.stringify({
-      kunde_id: plan.kunde_id,
-      titel: 'Wartung: ' + plan.bezeichnung,
-      faellig_am: f.datum || plan.vertragsbeginn || heute(),
-      notiz: plan.notiz || null,
+      kunde_id: vertrag.kunde_id,
+      titel: 'Wartung: ' + position.bezeichnung,
+      faellig_am: f.datum || vertrag.vertragsbeginn || heute(),
+      notiz: vertrag.notiz || null,
       erstellt_von: localStorage.getItem(KONFIG.KUERZEL_LS_KEY) || null
     })});
     cache.wv = null; toast('Wiedervorlage angelegt ✓'); route();
+  }catch(e){ toast('Fehler: ' + e.message.slice(0,80)); }
+}
+function modalNeuePosition(vertragId){
+  modal(`
+    <h2>Neue Position</h2>
+    <label>Bezeichnung</label>
+    <input id="posBez" placeholder="z.B. Drehtür Nebeneingang">
+    <label>Intervall</label>
+    <select id="posIntervall">
+      <option value="6">Halbjährlich</option>
+      <option value="12" selected>Jährlich</option>
+    </select>
+    <label>Letzte Wartung (optional — leer = sofort fällig)</label>
+    <input type="date" id="posLetzte">
+    <div class="btnzeile">
+      <button class="btn sekundaer" onclick="modalZu()">Abbrechen</button>
+      <button class="btn primaer" onclick="speicherePosition('${vertragId}')">Hinzufügen</button>
+    </div>`);
+}
+async function speicherePosition(vertragId){
+  const bezeichnung = $('#posBez').value.trim();
+  if(!bezeichnung){ toast('Bezeichnung fehlt noch.'); return; }
+  try{
+    await sb(KONFIG.TAB_WARTUNGSPOS, { method:'POST', body: JSON.stringify({
+      vertrag_id: vertragId,
+      bezeichnung,
+      intervall_monate: parseInt($('#posIntervall').value, 10),
+      letzte_wartung: $('#posLetzte').value || null
+    })});
+    modalZu(); toast('Position hinzugefügt ✓'); route();
+  }catch(e){ toast('Fehler: ' + e.message.slice(0,80)); }
+}
+function modalPositionBearbeiten(positionId){
+  const p = kundePositionenDaten.find(x => String(x.id) === String(positionId));
+  if(!p) return;
+  modal(`
+    <h2>Position bearbeiten</h2>
+    <label>Bezeichnung</label>
+    <input id="posBez" value="${esc(p.bezeichnung)}">
+    <label>Intervall</label>
+    <select id="posIntervall">
+      <option value="6" ${p.intervall_monate===6?'selected':''}>Halbjährlich</option>
+      <option value="12" ${p.intervall_monate===12?'selected':''}>Jährlich</option>
+    </select>
+    <label>Letzte Wartung</label>
+    <input type="date" id="posLetzte" value="${p.letzte_wartung || ''}">
+    <div class="btnzeile">
+      <button class="btn sekundaer" onclick="modalZu()">Abbrechen</button>
+      <button class="btn primaer" onclick="speicherePositionBearbeiten('${positionId}')">Speichern</button>
+    </div>
+    <button class="btn gefahr" style="width:100%;margin-top:10px" onclick="positionLoeschen('${positionId}')">
+      🗑 Position löschen</button>`);
+}
+async function speicherePositionBearbeiten(positionId){
+  const bezeichnung = $('#posBez').value.trim();
+  if(!bezeichnung){ toast('Bezeichnung fehlt noch.'); return; }
+  try{
+    await sb(`${KONFIG.TAB_WARTUNGSPOS}?id=eq.${positionId}`, { method:'PATCH', body: JSON.stringify({
+      bezeichnung,
+      intervall_monate: parseInt($('#posIntervall').value, 10),
+      letzte_wartung: $('#posLetzte').value || null
+    })});
+    modalZu(); toast('Gespeichert ✓'); route();
+  }catch(e){ toast('Fehler: ' + e.message.slice(0,80)); }
+}
+async function positionLoeschen(positionId){
+  const p = kundePositionenDaten.find(x => String(x.id) === String(positionId));
+  if(!p || !confirm(`„${p.bezeichnung}" wirklich löschen?`)) return;
+  try{
+    await sb(`${KONFIG.TAB_WARTUNGSPOS}?id=eq.${positionId}`, { method:'DELETE' });
+    modalZu(); toast('Position gelöscht'); route();
   }catch(e){ toast('Fehler: ' + e.message.slice(0,80)); }
 }
 
