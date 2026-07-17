@@ -129,6 +129,13 @@ main{max-width:760px;margin:0 auto;padding:14px 14px 24px}
 .wv .datum.faellig{color:var(--rot)}
 .wv .datum.heute{color:var(--gelb)}
 .wv .kunde{font-size:.75rem;color:var(--blau)}
+.wv .trello-btn{
+  display:inline-flex;align-items:center;gap:7px;margin-top:10px;
+  padding:9px 16px;min-height:40px;border-radius:99px;
+  border:1px solid rgba(0,132,209,.45);background:rgba(0,132,209,.14);
+  color:#5eb8f5;font-size:.8rem;font-weight:600;
+}
+.wv .trello-btn:active{background:rgba(0,132,209,.26)}
 
 /* Artikel-Liste */
 .artzeile{display:flex;align-items:center;gap:12px;padding:12px 4px;
@@ -868,7 +875,7 @@ function wvZeile(w, kontext){
       <div class="datum ${cls}">fällig ${datumFmt(w.faellig_am)}
         ${cls === 'faellig' ? '· überfällig' : cls === 'heute' ? '· heute' : ''}</div>
       ${kontextZeile}
-      ${!w.erledigt ? `<button class="kunde" style="color:var(--tuerkis)" onclick="wvAnTrello('${w.id}')">📌 An Trello</button>` : ''}
+      ${!w.erledigt ? `<button class="trello-btn" onclick="wvAnTrello('${w.id}')">↗ An Trello senden</button>` : ''}
     </div></div>`;
 }
 async function wvAnTrello(wvId){
