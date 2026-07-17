@@ -248,6 +248,7 @@ const KONFIG = {
   TAB_AP       : 'crm_ansprechpartner',
   TAB_WARTUNG  : 'crm_wartungsplan',
   TAB_PREISE   : 'crm_preisliste',
+  TAB_ANGEBOTE : 'crm_angebote',
 
   // Feld-Zuordnung für die kontakte-Tabelle (= Bauvorhaben).
   // kunde bleibt als Text-Fallback für Zeilen ohne kunde_id.
@@ -316,6 +317,22 @@ async function sb(pfad, opts = {}){
 function setStatus(ok, txt){
   $('#statusDot').className = 'dot ' + (ok === null ? '' : ok ? 'ok' : 'err');
   $('#statusTxt').textContent = txt;
+}
+/* Lädt eine Datei in den 'angebote'-Storage-Bucket hoch und gibt die
+   öffentliche URL zurück. */
+async function ladeAngebotDateiHoch(pfad, file){
+  const res = await fetch(`${KONFIG.SUPABASE_URL}/storage/v1/object/angebote/${pfad}`, {
+    method: 'POST',
+    headers: {
+      'Authorization': 'Bearer ' + KONFIG.SUPABASE_KEY,
+      'apikey': KONFIG.SUPABASE_KEY,
+      'Content-Type': file.type || 'application/octet-stream',
+      'x-upsert': 'true'
+    },
+    body: file
+  });
+  if(!res.ok) throw new Error('Datei-Upload fehlgeschlagen (' + res.status + ')');
+  return `${KONFIG.SUPABASE_URL}/storage/v1/object/public/angebote/${pfad}`;
 }
 
 /* ================= ARTIKEL (3 Schichten) ================= */
@@ -481,16 +498,18 @@ async function zeigKundeMaster(id){
   const bauvorhaben = cache.kontakte.filter(k => String(k.kunde_id) === String(id));
   const ids = bauvorhaben.map(k => k.id);
   const idList = ids.length ? ids.join(',') : '0';
-  const [akt, aktKu, wvBv, wvKu, wartung] = await Promise.all([
+  const [akt, aktKu, wvBv, wvKu, wartung, angebote] = await Promise.all([
     sb(`${KONFIG.TAB_AKT}?kontakt_id=in.(${idList})&select=*&order=erstellt_am.desc&limit=100`),
     sb(`${KONFIG.TAB_AKT}?kunde_id=eq.${id}&kontakt_id=is.null&select=*&order=erstellt_am.desc&limit=100`),
     sb(`${KONFIG.TAB_WV}?kontakt_id=in.(${idList})&erledigt=eq.false&select=*&order=faellig_am.asc&limit=100`),
     sb(`${KONFIG.TAB_WV}?kunde_id=eq.${id}&kontakt_id=is.null&erledigt=eq.false&select=*&order=faellig_am.asc&limit=100`),
-    sb(`${KONFIG.TAB_WARTUNG}?kunde_id=eq.${id}&select=*&order=bezeichnung.asc`)
+    sb(`${KONFIG.TAB_WARTUNG}?kunde_id=eq.${id}&select=*&order=bezeichnung.asc`),
+    sb(`${KONFIG.TAB_ANGEBOTE}?kunde_id=eq.${id}&select=*&order=erstellt_am.desc`)
   ]);
   const verlauf = [...aktKu, ...akt].sort((a,b) => (b.erstellt_am||'').localeCompare(a.erstellt_am||''));
   const wv = [...wvKu, ...wvBv].sort((a,b) => (a.faellig_am||'').localeCompare(b.faellig_am||''));
   kundeWartungsDaten = wartung;
+  kundeAngeboteDaten = angebote;
   setStatus(true, 'verbunden');
 
   v.innerHTML = `
@@ -562,6 +581,25 @@ async function zeigKundeMaster(id){
     </div>
 
     <div class="panel">
+      <div class="eyebrow">Angebote
+        <button class="plus" onclick="modalNeuesAngebot('${ku.id}')">＋</button></div>
+      ${angebote.length ? angebote.map(a => `
+        <div class="wv">
+          <div style="flex:1">
+            <div class="txt">${esc(a.bezeichnung)}</div>
+            <div class="datum" style="color:${a.status==='angenommen'?'var(--gruen)':a.status==='abgelehnt'?'var(--rot)':'var(--gelb)'}">
+              ${a.status==='angenommen'?'✓ Angenommen':a.status==='abgelehnt'?'✕ Abgelehnt':'○ Offen'}
+              ${a.betrag != null ? ' · ' + eur(a.betrag) : ''} · ${datumFmt(a.erstellt_am)}</div>
+          </div>
+          ${a.datei_url ? `<a href="${a.datei_url}" target="_blank" rel="noopener"
+            style="align-self:center;font-size:1.2rem;text-decoration:none;padding:4px 6px">📎</a>` : ''}
+          <button style="align-self:center;color:var(--blau);font-size:.8rem;padding:4px 6px"
+            onclick="modalAngebotBearbeiten('${a.id}')">✎</button>
+        </div>`).join('')
+        : `<div class="leer" style="padding:12px">Noch kein Angebot — mit ＋ hinterlegen.</div>`}
+    </div>
+
+    <div class="panel">
       <div class="eyebrow">Offene Wiedervorlagen
         <button class="plus" onclick="modalWV('kunde','${ku.id}')">＋</button></div>
       ${wv.length ? wv.map(w => wvZeile(w, 'kunde')).join('')
@@ -578,6 +616,7 @@ async function zeigKundeMaster(id){
 
 /* ================= WARTUNGSPLAN ================= */
 let kundeWartungsDaten = [];
+let kundeAngeboteDaten = [];
 function wartungsFaelligkeit(plan){
   const h = heute();
   if(plan.vertragsende && plan.vertragsende < h){
@@ -746,6 +785,110 @@ async function wartungWiedervorlageAnlegen(planId){
       erstellt_von: localStorage.getItem(KONFIG.KUERZEL_LS_KEY) || null
     })});
     cache.wv = null; toast('Wiedervorlage angelegt ✓'); route();
+  }catch(e){ toast('Fehler: ' + e.message.slice(0,80)); }
+}
+
+/* ================= ANGEBOTE ================= */
+function modalNeuesAngebot(kundeId){
+  modal(`
+    <h2>Neues Angebot</h2>
+    <label>Bezeichnung</label>
+    <input id="agBez" placeholder="z.B. Wartungsvertrag Angebot 2026">
+    <label>Betrag (€, optional)</label>
+    <input id="agBetrag" type="number" inputmode="decimal" step="0.01">
+    <label>Status</label>
+    <select id="agStatus">
+      <option value="offen" selected>Offen</option>
+      <option value="angenommen">Angenommen</option>
+      <option value="abgelehnt">Abgelehnt</option>
+    </select>
+    <label>Datei (PDF, Foto, ...) — optional</label>
+    <input type="file" id="agDatei" accept=".pdf,image/*,.doc,.docx">
+    <div class="btnzeile">
+      <button class="btn sekundaer" onclick="modalZu()">Abbrechen</button>
+      <button class="btn primaer" id="agSpeichernBtn" onclick="speichereAngebot('${kundeId}')">Speichern</button>
+    </div>`);
+}
+async function speichereAngebot(kundeId){
+  const bezeichnung = $('#agBez').value.trim();
+  if(!bezeichnung){ toast('Bezeichnung fehlt noch.'); return; }
+  const datei = $('#agDatei').files[0];
+  const btn = $('#agSpeichernBtn'); btn.disabled = true;
+  let datei_url = null, datei_name = null;
+  try{
+    if(datei){
+      toast('Lade Datei hoch …');
+      const sicherName = datei.name.replace(/[^a-zA-Z0-9.\-_]/g, '_');
+      const pfad = `${kundeId}/${Date.now()}-${sicherName}`;
+      datei_url = await ladeAngebotDateiHoch(pfad, datei);
+      datei_name = datei.name;
+    }
+    await sb(KONFIG.TAB_ANGEBOTE, { method:'POST', body: JSON.stringify({
+      kunde_id: kundeId,
+      bezeichnung,
+      betrag: $('#agBetrag').value ? parseFloat($('#agBetrag').value.replace(',', '.')) : null,
+      status: $('#agStatus').value,
+      datei_url, datei_name
+    })});
+    modalZu(); toast('Angebot gespeichert ✓'); route();
+  }catch(e){ btn.disabled = false; toast('Fehler: ' + e.message.slice(0,80)); }
+}
+function modalAngebotBearbeiten(angebotId){
+  const a = kundeAngeboteDaten.find(x => String(x.id) === String(angebotId));
+  if(!a) return;
+  modal(`
+    <h2>Angebot bearbeiten</h2>
+    <label>Bezeichnung</label>
+    <input id="agBez" value="${esc(a.bezeichnung)}">
+    <label>Betrag (€, optional)</label>
+    <input id="agBetrag" type="number" inputmode="decimal" step="0.01" value="${a.betrag != null ? a.betrag : ''}">
+    <label>Status</label>
+    <select id="agStatus">
+      <option value="offen" ${a.status==='offen'?'selected':''}>Offen</option>
+      <option value="angenommen" ${a.status==='angenommen'?'selected':''}>Angenommen</option>
+      <option value="abgelehnt" ${a.status==='abgelehnt'?'selected':''}>Abgelehnt</option>
+    </select>
+    ${a.datei_url ? `<div style="font-size:.8rem;color:var(--dim);margin-top:8px">
+      Aktuelle Datei: <a href="${a.datei_url}" target="_blank" rel="noopener" style="color:var(--blau)">${esc(a.datei_name || 'öffnen')}</a></div>` : ''}
+    <label>${a.datei_url ? 'Datei ersetzen' : 'Datei hinzufügen'} (optional)</label>
+    <input type="file" id="agDatei" accept=".pdf,image/*,.doc,.docx">
+    <div class="btnzeile">
+      <button class="btn sekundaer" onclick="modalZu()">Abbrechen</button>
+      <button class="btn primaer" id="agSpeichernBtn" onclick="speichereAngebotBearbeiten('${angebotId}')">Speichern</button>
+    </div>
+    <button class="btn gefahr" style="width:100%;margin-top:10px" onclick="angebotLoeschen('${angebotId}')">
+      🗑 Angebot löschen</button>`);
+}
+async function speichereAngebotBearbeiten(angebotId){
+  const a = kundeAngeboteDaten.find(x => String(x.id) === String(angebotId));
+  const bezeichnung = $('#agBez').value.trim();
+  if(!bezeichnung){ toast('Bezeichnung fehlt noch.'); return; }
+  const datei = $('#agDatei').files[0];
+  const btn = $('#agSpeichernBtn'); btn.disabled = true;
+  let datei_url = a?.datei_url || null, datei_name = a?.datei_name || null;
+  try{
+    if(datei){
+      toast('Lade Datei hoch …');
+      const sicherName = datei.name.replace(/[^a-zA-Z0-9.\-_]/g, '_');
+      const pfad = `${a.kunde_id}/${Date.now()}-${sicherName}`;
+      datei_url = await ladeAngebotDateiHoch(pfad, datei);
+      datei_name = datei.name;
+    }
+    await sb(`${KONFIG.TAB_ANGEBOTE}?id=eq.${angebotId}`, { method:'PATCH', body: JSON.stringify({
+      bezeichnung,
+      betrag: $('#agBetrag').value ? parseFloat($('#agBetrag').value.replace(',', '.')) : null,
+      status: $('#agStatus').value,
+      datei_url, datei_name
+    })});
+    modalZu(); toast('Gespeichert ✓'); route();
+  }catch(e){ btn.disabled = false; toast('Fehler: ' + e.message.slice(0,80)); }
+}
+async function angebotLoeschen(angebotId){
+  const a = kundeAngeboteDaten.find(x => String(x.id) === String(angebotId));
+  if(!a || !confirm(`„${a.bezeichnung}" wirklich löschen?`)) return;
+  try{
+    await sb(`${KONFIG.TAB_ANGEBOTE}?id=eq.${angebotId}`, { method:'DELETE' });
+    modalZu(); toast('Angebot gelöscht'); route();
   }catch(e){ toast('Fehler: ' + e.message.slice(0,80)); }
 }
 
