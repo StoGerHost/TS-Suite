@@ -1237,7 +1237,51 @@ function auftragPdfBase64(auftrag){
 async function wvAnTrello(wvId){
   const w = wvSichtbar[wvId];
   if(!w) return;
-  const b = w.kontakt_id ? bauvorhabenVon(w.kontakt_id) : null;
+  // Nur bei allgemeinen (kundendirekten) Wiedervorlagen ist das Bauvorhaben
+  // unbekannt — hängt der Kunde mehrere Bauvorhaben, muss ausgewählt werden.
+  if(!w.kontakt_id && w.kunde_id){
+    await holeKontakte();
+    const kandidaten = cache.kontakte.filter(k => String(k.kunde_id) === String(w.kunde_id));
+    if(kandidaten.length > 1){
+      modalBauvorhabenWahl(wvId, kandidaten);
+      return;
+    }
+  }
+  await wvAnTrelloAusfuehren(wvId, null);
+}
+function modalBauvorhabenWahl(wvId, kandidaten){
+  modal(`
+    <h2>Welches Bauvorhaben?</h2>
+    <p style="font-size:.85rem;color:var(--dim);margin-top:4px">Dieser Kunde hat mehrere Bauvorhaben —
+      welches soll auf der Trello-Karte und im Auftrag stehen?</p>
+    <div style="margin-top:12px;display:flex;flex-direction:column;gap:8px">
+      <label style="display:flex;align-items:center;gap:10px;text-transform:none;font-family:inherit;
+        font-size:.9rem;color:var(--text);padding:10px;border:1px solid var(--border);border-radius:10px">
+        <input type="radio" name="bvWahl" value="" checked style="width:20px;height:20px;min-height:0">
+        Kein bestimmtes Bauvorhaben (allgemein)
+      </label>
+      ${kandidaten.map(k => `
+      <label style="display:flex;align-items:center;gap:10px;text-transform:none;font-family:inherit;
+        font-size:.9rem;color:var(--text);padding:10px;border:1px solid var(--border);border-radius:10px">
+        <input type="radio" name="bvWahl" value="${k.id}" style="width:20px;height:20px;min-height:0">
+        ${esc(feld(k,'name') || '(ohne Namen)')}
+      </label>`).join('')}
+    </div>
+    <div class="btnzeile">
+      <button class="btn sekundaer" onclick="modalZu()">Abbrechen</button>
+      <button class="btn primaer" onclick="waehleBauvorhabenUndSende('${wvId}')">Weiter</button>
+    </div>`);
+}
+async function waehleBauvorhabenUndSende(wvId){
+  const gewaehlt = document.querySelector('input[name="bvWahl"]:checked')?.value || null;
+  modalZu();
+  await wvAnTrelloAusfuehren(wvId, gewaehlt || null);
+}
+async function wvAnTrelloAusfuehren(wvId, gewaehlteBauvorhabenId){
+  const w = wvSichtbar[wvId];
+  if(!w) return;
+  const b = gewaehlteBauvorhabenId ? bauvorhabenVon(gewaehlteBauvorhabenId)
+    : (w.kontakt_id ? bauvorhabenVon(w.kontakt_id) : null);
   const ku = b ? kundeVon(b.kunde_id) : (w.kunde_id ? kundeVon(w.kunde_id) : null);
   const titelTeile = [ku?.name, b ? feld(b,'name') : null].filter(Boolean);
   const name = titelTeile.length ? titelTeile.join(', ') : w.titel;
