@@ -1321,7 +1321,16 @@ async function wvAnTrelloAusfuehren(wvId, gewaehlteBauvorhabenId){
   const email = (ku && ku.email) || (b && feld(b,'email')) || null;
   const hinweisText = [w.titel, w.notiz].filter(Boolean).join('\n\n');
   const kontaktZeile = [telefon ? 'Tel: ' + telefon : null, email ? 'E-Mail: ' + email : null].filter(Boolean).join(' · ');
-  const desc = [hinweisText, kontaktZeile].filter(Boolean).join('\n\n');
+  const berichtParams = new URLSearchParams();
+  if(ku?.name) berichtParams.set('kunde', ku.name);
+  if(b) berichtParams.set('bauvorhaben', feld(b,'name') || '');
+  if(b && feld(b,'ap')) berichtParams.set('ansprechpartner', feld(b,'ap'));
+  if(telefon) berichtParams.set('telefon', telefon);
+  if(email) berichtParams.set('email', email);
+  if(hinweisText) berichtParams.set('hinweis', hinweisText);
+  if(ku?.id) berichtParams.set('kunde_id', ku.id);
+  const berichtLink = `https://stogerhost.github.io/TS-Suite/arbeitsbericht.html?${berichtParams.toString()}`;
+  const desc = [hinweisText, kontaktZeile, 'Arbeitsbericht ausgefüllt öffnen: ' + berichtLink].filter(Boolean).join('\n\n');
   // Monatsanfang/-ende aus dem Fälligkeitsdatum für Start-/Fälligkeitsfeld der Trello-Karte
   let start = null, due = null;
   if(w.faellig_am){
