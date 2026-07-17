@@ -1242,6 +1242,14 @@ async function wvAnTrello(wvId){
   const titelTeile = [ku?.name, b ? feld(b,'name') : null].filter(Boolean);
   const name = titelTeile.length ? titelTeile.join(', ') : w.titel;
   const desc = [w.titel, w.notiz].filter(Boolean).join('\n\n');
+  // Monatsanfang/-ende aus dem Fälligkeitsdatum für Start-/Fälligkeitsfeld der Trello-Karte
+  let start = null, due = null;
+  if(w.faellig_am){
+    const [jahr, monat] = w.faellig_am.split('-').map(Number);
+    const letzterTag = new Date(jahr, monat, 0).getDate();
+    start = `${jahr}-${String(monat).padStart(2,'0')}-01`;
+    due = `${jahr}-${String(monat).padStart(2,'0')}-${String(letzterTag).padStart(2,'0')}`;
+  }
   const auftrag = {
     typ: 'ts-auftrag',
     version: 1,
@@ -1264,7 +1272,7 @@ async function wvAnTrello(wvId){
         'Authorization': 'Bearer ' + KONFIG.SUPABASE_KEY,
         'apikey': KONFIG.SUPABASE_KEY
       },
-      body: JSON.stringify({ name, desc, auftrag, pdfBase64 })
+      body: JSON.stringify({ name, desc, auftrag, pdfBase64, start, due })
     });
     const data = await res.json();
     if(!res.ok) throw new Error(data.error || ('HTTP ' + res.status));
