@@ -8,6 +8,7 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="CRM">
 <title>Blueprint · CRM</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <style>
 :root{
   --bg:#0a0a0c; --panel:#131318; --panel2:#191921; --border:#26262e;
@@ -884,6 +885,38 @@ function wvZeile(w, kontext){
       ↗ ${w.an_trello_gesendet_am ? 'Erneut senden' : 'An Trello senden'}</button>` : ''}
     </div>`;
 }
+/* Erzeugt aus den Auftragsdaten ein einfaches, für jeden lesbares PDF —
+   reines Base64 (ohne data:-Prefix), fürs Hochladen an die Edge Function. */
+function auftragPdfBase64(auftrag){
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF();
+  doc.setFont('helvetica', 'bold'); doc.setFontSize(18);
+  doc.text('Arbeitsauftrag', 15, 20);
+  doc.setDrawColor(210); doc.line(15, 25, 195, 25);
+
+  let y = 38;
+  const zeile = (label, wert) => {
+    if(!wert) return;
+    doc.setFont('helvetica', 'bold'); doc.setFontSize(11);
+    doc.text(label + ':', 15, y);
+    doc.setFont('helvetica', 'normal');
+    const lines = doc.splitTextToSize(String(wert), 125);
+    doc.text(lines, 60, y);
+    y += 7.5 * lines.length + 2;
+  };
+  zeile('Kunde', auftrag.kunde);
+  zeile('Bauvorhaben', auftrag.bauvorhaben);
+  zeile('Ansprechpartner', auftrag.ansprechpartner);
+  zeile('Telefon', auftrag.telefon);
+  zeile('E-Mail', auftrag.email);
+  y += 4;
+  zeile('Hinweis', auftrag.hinweis);
+
+  doc.setFontSize(9); doc.setTextColor(150);
+  doc.text('Erstellt am ' + new Date(auftrag.erstellt_am).toLocaleString('de-DE') + ' · TS-Suite CRM', 15, 285);
+
+  return doc.output('datauristring').split(',')[1];
+}
 async function wvAnTrello(wvId){
   const w = wvSichtbar[wvId];
   if(!w) return;
@@ -906,6 +939,7 @@ async function wvAnTrello(wvId){
     hinweis: desc || null
   };
   try{
+    const pdfBase64 = auftragPdfBase64(auftrag);
     const res = await fetch(`${KONFIG.SUPABASE_URL}/functions/v1/create-trello-card`, {
       method: 'POST',
       headers: {
@@ -913,7 +947,7 @@ async function wvAnTrello(wvId){
         'Authorization': 'Bearer ' + KONFIG.SUPABASE_KEY,
         'apikey': KONFIG.SUPABASE_KEY
       },
-      body: JSON.stringify({ name, desc, auftrag })
+      body: JSON.stringify({ name, desc, auftrag, pdfBase64 })
     });
     const data = await res.json();
     if(!res.ok) throw new Error(data.error || ('HTTP ' + res.status));
