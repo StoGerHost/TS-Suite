@@ -1092,7 +1092,33 @@ function modalKundeBearbeiten(kundeId){
     <div class="btnzeile">
       <button class="btn sekundaer" onclick="modalZu()">Abbrechen</button>
       <button class="btn primaer" onclick="speichereKundeBearbeiten('${kundeId}')">Speichern</button>
+    </div>
+    <button class="btn gefahr" style="width:100%;margin-top:10px" onclick="modalKundeLoeschen('${kundeId}')">
+      🗑 Kunde löschen</button>`);
+}
+function modalKundeLoeschen(kundeId){
+  const ku = kundeVon(kundeId); if(!ku) return;
+  const anzahl = bauvorhabenAnzahl(kundeId);
+  if(anzahl > 0){
+    toast(`Kann nicht gelöscht werden — hat noch ${anzahl} Bauvorhaben. Erst umziehen oder entfernen.`);
+    return;
+  }
+  modal(`
+    <h2>Kunde endgültig löschen?</h2>
+    <p style="font-size:.88rem;margin-top:8px">„${esc(ku.name)}" wird unwiderruflich gelöscht.</p>
+    <p style="font-size:.8rem;color:var(--dim);margin-top:8px">
+      Wartungsplan sowie alle direkt an diesem Kunden hängenden Notizen und Wiedervorlagen
+      werden mitgelöscht. Das lässt sich nicht rückgängig machen.</p>
+    <div class="btnzeile">
+      <button class="btn sekundaer" onclick="modalZu()">Abbrechen</button>
+      <button class="btn gefahr" onclick="speichereKundeLoeschen('${kundeId}')">Endgültig löschen</button>
     </div>`);
+}
+async function speichereKundeLoeschen(kundeId){
+  try{
+    await sb(`${KONFIG.TAB_KUNDEN}?id=eq.${kundeId}`, { method:'DELETE' });
+    cache.kunden = null; modalZu(); toast('Kunde gelöscht'); navigiere('#/kunden');
+  }catch(e){ toast('Fehler: ' + e.message.slice(0,80)); }
 }
 async function speichereKundeBearbeiten(kundeId){
   const name = $('#keName').value.trim();
