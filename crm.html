@@ -135,6 +135,9 @@ main{max-width:760px;margin:0 auto;padding:14px 14px 24px}
   border:1px solid rgba(0,132,209,.45);background:rgba(0,132,209,.14);
   color:#5eb8f5;font-size:.8rem;font-weight:600;
 }
+.wv .trello-btn.gesendet{
+  border-color:var(--border);background:var(--panel2);color:var(--dim);font-weight:400;
+}
 .wv .trello-btn:active{background:rgba(0,132,209,.26)}
 
 /* Artikel-Liste */
@@ -874,9 +877,11 @@ function wvZeile(w, kontext){
       ${w.notiz ? `<div class="datum" style="color:var(--dim)">${esc(w.notiz)}</div>` : ''}
       <div class="datum ${cls}">fällig ${datumFmt(w.faellig_am)}
         ${cls === 'faellig' ? '· überfällig' : cls === 'heute' ? '· heute' : ''}</div>
+      ${w.an_trello_gesendet_am ? `<div class="datum" style="color:var(--tuerkis)">✓ An Trello übergeben · ${datumFmt(w.an_trello_gesendet_am)}</div>` : ''}
       ${kontextZeile}
     </div>
-    ${!w.erledigt ? `<button class="trello-btn" onclick="wvAnTrello('${w.id}')">↗ An Trello senden</button>` : ''}
+    ${!w.erledigt ? `<button class="trello-btn ${w.an_trello_gesendet_am ? 'gesendet' : ''}" onclick="wvAnTrello('${w.id}')">
+      ↗ ${w.an_trello_gesendet_am ? 'Erneut senden' : 'An Trello senden'}</button>` : ''}
     </div>`;
 }
 async function wvAnTrello(wvId){
@@ -887,6 +892,19 @@ async function wvAnTrello(wvId){
   const titelTeile = [ku?.name, b ? feld(b,'name') : null].filter(Boolean);
   const name = titelTeile.length ? titelTeile.join(', ') : w.titel;
   const desc = [w.titel, w.notiz].filter(Boolean).join('\n\n');
+  const auftrag = {
+    typ: 'ts-auftrag',
+    version: 1,
+    erstellt_am: new Date().toISOString(),
+    kunde_id: ku ? ku.id : null,
+    kunde: ku ? ku.name : null,
+    kontakt_id: b ? b.id : null,
+    bauvorhaben: b ? (feld(b,'name') || null) : null,
+    ansprechpartner: b ? (feld(b,'ap') || null) : null,
+    telefon: (ku && ku.telefon) || (b && feld(b,'telefon')) || null,
+    email: (ku && ku.email) || (b && feld(b,'email')) || null,
+    hinweis: desc || null
+  };
   try{
     const res = await fetch(`${KONFIG.SUPABASE_URL}/functions/v1/create-trello-card`, {
       method: 'POST',
@@ -895,11 +913,15 @@ async function wvAnTrello(wvId){
         'Authorization': 'Bearer ' + KONFIG.SUPABASE_KEY,
         'apikey': KONFIG.SUPABASE_KEY
       },
-      body: JSON.stringify({ name, desc })
+      body: JSON.stringify({ name, desc, auftrag })
     });
     const data = await res.json();
     if(!res.ok) throw new Error(data.error || ('HTTP ' + res.status));
+    await sb(`${KONFIG.TAB_WV}?id=eq.${wvId}`, { method:'PATCH',
+      body: JSON.stringify({ an_trello_gesendet_am: new Date().toISOString() }) });
+    cache.wv = null;
     toast('Trello-Karte angelegt ✓');
+    route();
   }catch(e){ toast('Fehler: ' + e.message.slice(0,80)); }
 }
 async function wvToggle(id, erledigt){
