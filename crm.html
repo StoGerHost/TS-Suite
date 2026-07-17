@@ -468,12 +468,14 @@ async function zeigKundeMaster(id){
   const bauvorhaben = cache.kontakte.filter(k => String(k.kunde_id) === String(id));
   const ids = bauvorhaben.map(k => k.id);
   const idList = ids.length ? ids.join(',') : '0';
-  const [akt, wvBv, wvKu, wartung] = await Promise.all([
+  const [akt, aktKu, wvBv, wvKu, wartung] = await Promise.all([
     sb(`${KONFIG.TAB_AKT}?kontakt_id=in.(${idList})&select=*&order=erstellt_am.desc&limit=100`),
+    sb(`${KONFIG.TAB_AKT}?kunde_id=eq.${id}&kontakt_id=is.null&select=*&order=erstellt_am.desc&limit=100`),
     sb(`${KONFIG.TAB_WV}?kontakt_id=in.(${idList})&erledigt=eq.false&select=*&order=faellig_am.asc&limit=100`),
     sb(`${KONFIG.TAB_WV}?kunde_id=eq.${id}&kontakt_id=is.null&erledigt=eq.false&select=*&order=faellig_am.asc&limit=100`),
     sb(`${KONFIG.TAB_WARTUNG}?kunde_id=eq.${id}&select=*&order=bezeichnung.asc`)
   ]);
+  const verlauf = [...aktKu, ...akt].sort((a,b) => (b.erstellt_am||'').localeCompare(a.erstellt_am||''));
   const wv = [...wvKu, ...wvBv].sort((a,b) => (a.faellig_am||'').localeCompare(b.faellig_am||''));
   kundeWartungsDaten = wartung;
   setStatus(true, 'verbunden');
@@ -543,8 +545,9 @@ async function zeigKundeMaster(id){
     </div>
 
     <div class="panel">
-      <div class="eyebrow">Verlauf</div>
-      ${akt.length ? `<ul class="tl">${akt.map(a => aktivitaetZeile(a, true)).join('')}</ul>`
+      <div class="eyebrow">Verlauf
+        <button class="plus" onclick="modalAktivitaet('kunde','${ku.id}')">＋</button></div>
+      ${verlauf.length ? `<ul class="tl">${verlauf.map(a => aktivitaetZeile(a, true)).join('')}</ul>`
         : `<div class="leer" style="padding:12px">Noch keine Einträge.</div>`}
     </div>`;
 }
@@ -692,7 +695,7 @@ async function zeigBauvorhaben(id){
         : `<div class="leer" style="padding:12px">Noch keine Einträge.</div>`}
     </div>
 
-    <button class="fab" onclick="modalAktivitaet('${id}')" title="Neue Aktivität">+</button>`;
+    <button class="fab" onclick="modalAktivitaet('kontakt','${id}')" title="Neue Aktivität">+</button>`;
 }
 
 /* ================= AUFTRAG EXPORTIEREN (für Arbeitsbericht) ================= */
@@ -741,13 +744,14 @@ function slugify(s){
     .replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '').slice(0, 40) || 'auftrag';
 }
 function aktivitaetZeile(a, mitBauvorhaben){
-  const b = mitBauvorhaben ? bauvorhabenVon(a.kontakt_id) : null;
+  const b = (mitBauvorhaben && a.kontakt_id) ? bauvorhabenVon(a.kontakt_id) : null;
   return `<li class="t-${esc(a.typ)}">
       <div class="tlkopf"><span class="tltyp">${esc(TYPEN[a.typ] || a.typ)}</span>
         <span>${datumFmt(a.erstellt_am)}</span>
         ${a.erstellt_von ? `<span>· ${esc(a.erstellt_von)}</span>` : ''}</div>
       <p>${esc(a.text)}</p>
-      ${b ? `<button class="kunde" onclick="navigiere('#/bauvorhaben/${b.id}')">${esc(feld(b,'name'))} →</button>` : ''}
+      ${b ? `<button class="kunde" onclick="navigiere('#/bauvorhaben/${b.id}')">${esc(feld(b,'name'))} →</button>`
+        : (mitBauvorhaben && !a.kontakt_id ? `<span class="datum" style="color:var(--dim)">allgemein</span>` : '')}
       ${Array.isArray(a.artikel) && a.artikel.length ? `<div class="artchips">
         ${a.artikel.map(x => `<span class="chip">${esc(x.nr)}${x.key ? ' · ' + esc(x.key) : ''}</span>`).join('')}
       </div>` : ''}
@@ -850,7 +854,7 @@ function modalZu(){ $('#modalRoot').innerHTML = ''; }
 
 /* --- Neue Aktivität (mit Artikel-Verknüpfung) --- */
 let aktArtikel = [];
-function modalAktivitaet(kontaktId){
+function modalAktivitaet(zielTyp, zielId){
   aktArtikel = [];
   const kuerzel = localStorage.getItem(KONFIG.KUERZEL_LS_KEY) || '';
   modal(`
@@ -879,7 +883,7 @@ function modalAktivitaet(kontaktId){
     </div>
     <div class="btnzeile">
       <button class="btn sekundaer" onclick="modalZu()">Abbrechen</button>
-      <button class="btn primaer" onclick="speichereAktivitaet('${kontaktId}')">Speichern</button>
+      <button class="btn primaer" onclick="speichereAktivitaet('${zielTyp}','${zielId}')">Speichern</button>
     </div>`);
   $('#typWahl').addEventListener('click', e => {
     const b = e.target.closest('button'); if(!b) return;
@@ -907,21 +911,22 @@ function renderAktChips(){
   $('#aktArtChips').innerHTML = aktArtikel.map((a,i) =>
     `<span class="chip">${esc(a.nr)}<button onclick="aktArtikel.splice(${i},1);renderAktChips()">×</button></span>`).join('');
 }
-async function speichereAktivitaet(kontaktId){
+async function speichereAktivitaet(zielTyp, zielId){
   const text = $('#aktText').value.trim();
   if(!text){ toast('Bitte kurz beschreiben, was war.'); return; }
   const typ = $('#typWahl .aktiv')?.dataset.typ || 'notiz';
   const kuerzel = $('#aktKuerzel').value.trim().toUpperCase();
   if(kuerzel) localStorage.setItem(KONFIG.KUERZEL_LS_KEY, kuerzel);
+  const zielFeld = zielTyp === 'kunde' ? { kunde_id: zielId } : { kontakt_id: zielId };
   try{
     await sb(KONFIG.TAB_AKT, { method:'POST', body: JSON.stringify({
-      kontakt_id: kontaktId, typ, text,
+      ...zielFeld, typ, text,
       artikel: aktArtikel.length ? aktArtikel : null,
       erstellt_von: kuerzel || null
     })});
     if($('#aktMitWV').checked){
       await sb(KONFIG.TAB_WV, { method:'POST', body: JSON.stringify({
-        kontakt_id: kontaktId,
+        ...zielFeld,
         titel: TYPEN[typ] + ': ' + text.slice(0,60),
         faellig_am: $('#aktWVDatum').value || heute(),
         erstellt_von: kuerzel || null
