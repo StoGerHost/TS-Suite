@@ -236,6 +236,7 @@ const KONFIG = {
   TAB_WV       : 'crm_wiedervorlagen',
   TAB_AP       : 'crm_ansprechpartner',
   TAB_WARTUNG  : 'crm_wartungsplan',
+  TAB_PREISE   : 'crm_preisliste',
 
   // Feld-Zuordnung für die kontakte-Tabelle (= Bauvorhaben).
   // kunde bleibt als Text-Fallback für Zeilen ohne kunde_id.
@@ -366,7 +367,8 @@ const routen = {
   bauvorhaben : id => zeigBauvorhaben(id),
   unzugeordnet: () => zeigUnzugeordnet(),
   wv          : () => zeigWV(),
-  artikel     : () => zeigArtikel()
+  artikel     : () => zeigArtikel(),
+  preise      : () => zeigPreisliste()
 };
 function navigiere(hash){ location.hash = hash; }
 async function route(){
@@ -900,6 +902,112 @@ function artikelKopieren(nr){
     () => toast('Artikelnummer kopiert: ' + nr),
     () => toast(nr));
 }
+
+/* ================= ANSICHT: PREISLISTE ================= */
+const PREIS_KATEGORIEN = [
+  ['stundensatz', 'Stundensätze / Arbeitszeiten', 'z.B. Normalarbeitszeit, Überstunden, Wochenende', 'pro Stunde'],
+  ['anfahrt',     'Anfahrtspauschalen',            'z.B. Anfahrt Pauschale, Anfahrt außerhalb 30km',   'pauschal'],
+  ['wartung',     'Wartungspauschalen',            'z.B. Jahreswartung Schiebetür',                    'pauschal'],
+  ['artikel',     'Weitere Preise',                'frei erweiterbar für alles Sonstige',              '']
+];
+function eur(n){
+  return Number(n).toLocaleString('de-DE', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' €';
+}
+let preislisteDaten = [];
+async function zeigPreisliste(){
+  const v = $('#view');
+  v.innerHTML = `<div class="leer">Lade Preisliste …</div>`;
+  preislisteDaten = await sb(`${KONFIG.TAB_PREISE}?select=*&order=bezeichnung.asc`);
+  setStatus(true, preislisteDaten.length + ' Preise');
+  v.innerHTML = PREIS_KATEGORIEN.map(([kat, titel, hinweis]) => {
+    const eintraege = preislisteDaten.filter(p => p.kategorie === kat);
+    return `<div class="panel">
+      <div class="eyebrow">${titel}
+        <button class="plus" onclick="modalNeuerPreis('${kat}')">＋</button></div>
+      ${eintraege.length ? eintraege.map(p => `
+        <button class="artzeile" onclick="modalPreisBearbeiten('${p.id}')" style="align-items:flex-start">
+          <span class="bez">${esc(p.bezeichnung)}
+            ${p.einheit ? `<span style="color:var(--dim);font-size:.75rem"> · ${esc(p.einheit)}</span>` : ''}
+            ${p.notiz ? `<br><span style="color:var(--dim);font-size:.75rem">${esc(p.notiz)}</span>` : ''}</span>
+          <span class="nr" style="min-width:auto">${eur(p.preis)}</span>
+        </button>`).join('')
+        : `<div class="leer" style="padding:12px">Noch keine Einträge — ${esc(hinweis)}.</div>`}
+    </div>`;
+  }).join('');
+}
+function modalNeuerPreis(kategorie){
+  const kat = PREIS_KATEGORIEN.find(k => k[0] === kategorie);
+  modal(`
+    <h2>Neuer Preis — ${esc(kat ? kat[1] : '')}</h2>
+    <label>Bezeichnung</label>
+    <input id="ppBez" placeholder="z.B. Normalarbeitszeit">
+    <label>Preis (€)</label>
+    <input id="ppPreis" type="number" inputmode="decimal" step="0.01" placeholder="0,00">
+    <label>Einheit</label>
+    <input id="ppEinheit" placeholder="${esc(kat ? kat[3] : '')}" value="${esc(kat ? kat[3] : '')}">
+    <label>Notiz (optional)</label>
+    <textarea id="ppNotiz" style="min-height:56px"></textarea>
+    <div class="btnzeile">
+      <button class="btn sekundaer" onclick="modalZu()">Abbrechen</button>
+      <button class="btn primaer" onclick="speicherePreis('${kategorie}')">Anlegen</button>
+    </div>`);
+}
+async function speicherePreis(kategorie){
+  const bezeichnung = $('#ppBez').value.trim();
+  const preis = parseFloat($('#ppPreis').value.replace(',', '.'));
+  if(!bezeichnung){ toast('Bezeichnung fehlt noch.'); return; }
+  if(isNaN(preis)){ toast('Preis fehlt noch.'); return; }
+  try{
+    await sb(KONFIG.TAB_PREISE, { method:'POST', body: JSON.stringify({
+      kategorie, bezeichnung, preis,
+      einheit: $('#ppEinheit').value.trim() || null,
+      notiz: $('#ppNotiz').value.trim() || null
+    })});
+    modalZu(); toast('Preis angelegt ✓'); route();
+  }catch(e){ toast('Fehler: ' + e.message.slice(0,80)); }
+}
+function modalPreisBearbeiten(preisId){
+  const p = preislisteDaten.find(x => String(x.id) === String(preisId));
+  if(!p) return;
+  modal(`
+    <h2>Preis bearbeiten</h2>
+    <label>Bezeichnung</label>
+    <input id="ppBez" value="${esc(p.bezeichnung)}">
+    <label>Preis (€)</label>
+    <input id="ppPreis" type="number" inputmode="decimal" step="0.01" value="${p.preis}">
+    <label>Einheit</label>
+    <input id="ppEinheit" value="${esc(p.einheit)}">
+    <label>Notiz (optional)</label>
+    <textarea id="ppNotiz" style="min-height:56px">${esc(p.notiz)}</textarea>
+    <div class="btnzeile">
+      <button class="btn sekundaer" onclick="modalZu()">Abbrechen</button>
+      <button class="btn primaer" onclick="speicherePreisBearbeiten('${preisId}')">Speichern</button>
+    </div>
+    <button class="btn gefahr" style="width:100%;margin-top:10px" onclick="preisLoeschen('${preisId}')">
+      🗑 Preis löschen</button>`);
+}
+async function speicherePreisBearbeiten(preisId){
+  const bezeichnung = $('#ppBez').value.trim();
+  const preis = parseFloat($('#ppPreis').value.replace(',', '.'));
+  if(!bezeichnung){ toast('Bezeichnung fehlt noch.'); return; }
+  if(isNaN(preis)){ toast('Preis fehlt noch.'); return; }
+  try{
+    await sb(`${KONFIG.TAB_PREISE}?id=eq.${preisId}`, { method:'PATCH', body: JSON.stringify({
+      bezeichnung, preis,
+      einheit: $('#ppEinheit').value.trim() || null,
+      notiz: $('#ppNotiz').value.trim() || null
+    })});
+    modalZu(); toast('Gespeichert ✓'); route();
+  }catch(e){ toast('Fehler: ' + e.message.slice(0,80)); }
+}
+async function preisLoeschen(preisId){
+  const p = preislisteDaten.find(x => String(x.id) === String(preisId));
+  if(!p || !confirm(`„${p.bezeichnung}" wirklich löschen?`)) return;
+  try{
+    await sb(`${KONFIG.TAB_PREISE}?id=eq.${preisId}`, { method:'DELETE' });
+    modalZu(); toast('Preis gelöscht'); route();
+  }catch(e){ toast('Fehler: ' + e.message.slice(0,80)); }
+}
 </script>
 <script>
 /* ================= MODALS ================= */
@@ -1209,7 +1317,8 @@ async function zuordnenNeuerKunde(kontaktId){
 const NAV = [
   ['kunden',  'Kunden',        '<circle cx="12" cy="8" r="4"/><path d="M4 21v-1a8 8 0 0 1 16 0v1"/>'],
   ['wv',      'Wiedervorlagen','<rect x="4" y="5" width="16" height="16" rx="2"/><path d="M8 3v4M16 3v4M4 11h16"/>'],
-  ['artikel', 'Artikel',       '<path d="M21 8l-9-5-9 5 9 5 9-5zM3 8v8l9 5 9-5V8"/><path d="M12 13v8"/>']
+  ['artikel', 'Artikel',       '<path d="M21 8l-9-5-9 5 9 5 9-5zM3 8v8l9 5 9-5V8"/><path d="M12 13v8"/>'],
+  ['preise',  'Preise',        '<path d="M3 3v7.586a2 2 0 0 0 .586 1.414l9 9a2 2 0 0 0 2.828 0l6-6a2 2 0 0 0 0-2.828l-9-9A2 2 0 0 0 10.586 3H3z"/><circle cx="8" cy="8" r="1.5"/>']
 ];
 $('#nav').innerHTML = NAV.map(([ziel, txt, icon]) => `
   <button data-ziel="${ziel}" onclick="navigiere('#/${ziel}')">
