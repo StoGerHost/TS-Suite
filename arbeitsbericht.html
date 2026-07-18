@@ -4,6 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1">
 <title>Arbeitsbericht — Blueprint</title>
+<script src="config.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <style>
@@ -1120,11 +1121,10 @@ function val(id){
 document.getElementById('fDatum').valueAsDate = new Date();
 
 /* ============================================================
-   SUPABASE-KONFIGURATION
-   Nach Einrichtung (siehe Anleitung) hier eintragen:
+   SUPABASE-KONFIGURATION — kommt aus config.js (TENANT)
    ============================================================ */
-const SUPABASE_URL = 'https://guuywhrzygcnpzrnnlsw.supabase.co';
-const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imd1dXl3aHJ6eWdjbnB6cm5ubHN3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODM3MjcyOTIsImV4cCI6MjA5OTMwMzI5Mn0.tvPfk5j6mXNG2YcYl4cUR-rF-T3QWdTGuOZ8SHRSv2U';
+const SUPABASE_URL = TENANT.supabaseUrl;
+const SUPABASE_ANON_KEY = TENANT.supabaseKey;
 const SUPABASE_CONFIGURED = !SUPABASE_URL.includes('DEIN-PROJEKT');
 
 function supabaseHeaders(extra){
@@ -1413,7 +1413,7 @@ function ermittleStandort(){
 }
 
 /* ---------- Bericht an Server senden ---------- */
-const STORAGE_BUCKET = 'berichte-medien';
+const STORAGE_BUCKET = TENANT.bucketBerichte;
 
 async function ladeBildHoch(pfad, dataUrl){
   const blob = await (await fetch(dataUrl)).blob();
@@ -1528,7 +1528,7 @@ document.getElementById('toggleLieferanschrift').addEventListener('click', () =>
 /* ---------- Techniker-Verwaltung ---------- */
 const LS_LISTE = 'ts_techniker_liste';
 const LS_AKTUELL = 'ts_techniker_aktuell';
-const DEFAULT_TECHNIKER = ['Marko', 'Techniker 2', 'Techniker 3'];
+const DEFAULT_TECHNIKER = TENANT.techniker.slice();
 
 function getTechListe(){
   const raw = localStorage.getItem(LS_LISTE);
@@ -1580,7 +1580,7 @@ document.getElementById('adminBtn').addEventListener('click', () => {
   document.getElementById('standortToggle').checked = standortIstAktiv();
   adminModal.style.display = 'flex';
 });
-const STANDORT_PASSWORT = 'sto7808'; // <- Zugangscode hier bei Bedarf ändern
+const STANDORT_PASSWORT = TENANT.zugangscode; // zentral in config.js
 
 document.getElementById('standortToggle').addEventListener('click', function(e){
   e.preventDefault(); // Häkchen zunächst nicht setzen, erst nach korrektem Code

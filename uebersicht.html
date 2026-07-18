@@ -4,6 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Berichtsübersicht — Blueprint</title>
+<script src="config.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
@@ -177,9 +178,9 @@
 /* ============================================================
    KONFIGURATION — gleiche Werte wie im Arbeitsbericht-Formular
    ============================================================ */
-const SUPABASE_URL = 'https://guuywhrzygcnpzrnnlsw.supabase.co';
-const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imd1dXl3aHJ6eWdjbnB6cm5ubHN3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODM3MjcyOTIsImV4cCI6MjA5OTMwMzI5Mn0.tvPfk5j6mXNG2YcYl4cUR-rF-T3QWdTGuOZ8SHRSv2U';
-const ZUGANGSCODE = 'sto7808'; // <- hier den gewünschten Zugangscode ändern
+const SUPABASE_URL = TENANT.supabaseUrl;
+const SUPABASE_ANON_KEY = TENANT.supabaseKey;
+const ZUGANGSCODE = TENANT.zugangscode; // zentral in config.js
 
 function supabaseHeaders(){
   return { 'apikey': SUPABASE_ANON_KEY, 'Authorization': 'Bearer ' + SUPABASE_ANON_KEY };

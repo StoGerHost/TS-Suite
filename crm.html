@@ -8,6 +8,7 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="CRM">
 <title>Blueprint · CRM</title>
+<script src="config.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <style>
 :root{
@@ -290,8 +291,8 @@ nav .badge{position:absolute;transform:translate(14px,-26px);background:var(--ro
 /* ================= KONFIGURATION =================
    Nur hier anpassen — der Rest der App liest daraus. */
 const KONFIG = {
-  SUPABASE_URL : 'https://guuywhrzygcnpzrnnlsw.supabase.co',
-  SUPABASE_KEY : 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imd1dXl3aHJ6eWdjbnB6cm5ubHN3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODM3MjcyOTIsImV4cCI6MjA5OTMwMzI5Mn0.tvPfk5j6mXNG2YcYl4cUR-rF-T3QWdTGuOZ8SHRSv2U',
+  SUPABASE_URL : TENANT.supabaseUrl,
+  SUPABASE_KEY : TENANT.supabaseKey,
 
   TAB_KONTAKTE : 'kontakte',                   // Bauvorhaben — bestehende TS-Suite-Tabelle
   TAB_KUNDEN   : 'kunden',                      // Kunden-Stammdaten (neu, Phase 1)
@@ -374,7 +375,7 @@ function setStatus(ok, txt){
 /* Lädt eine Datei in den 'angebote'-Storage-Bucket hoch und gibt die
    öffentliche URL zurück. */
 async function ladeAngebotDateiHoch(pfad, file){
-  const res = await fetch(`${KONFIG.SUPABASE_URL}/storage/v1/object/angebote/${pfad}`, {
+  const res = await fetch(`${KONFIG.SUPABASE_URL}/storage/v1/object/${TENANT.bucketAngebote}/${pfad}`, {
     method: 'POST',
     headers: {
       'Authorization': 'Bearer ' + KONFIG.SUPABASE_KEY,
@@ -385,7 +386,7 @@ async function ladeAngebotDateiHoch(pfad, file){
     body: file
   });
   if(!res.ok) throw new Error('Datei-Upload fehlgeschlagen (' + res.status + ')');
-  return `${KONFIG.SUPABASE_URL}/storage/v1/object/public/angebote/${pfad}`;
+  return `${KONFIG.SUPABASE_URL}/storage/v1/object/public/${TENANT.bucketAngebote}/${pfad}`;
 }
 
 /* ================= ARTIKEL (3 Schichten) ================= */
