@@ -1,0 +1,1643 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1">
+<title>Arbeitsbericht — Blueprint</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<style>
+  :root{
+    --bg:#0e1318;
+    --panel:#161d24;
+    --panel-2:#1b232b;
+    --line:#28333d;
+    --blue:#4a90b8;
+    --blue-dim:#2e4a5a;
+    --amber:#e8934a;
+    --text:#e7edf2;
+    --muted:#8394a1;
+    --danger:#c9604f;
+    --ok:#5c9e7c;
+    --radius:2px;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    background:
+      linear-gradient(var(--bg),var(--bg)),
+      repeating-linear-gradient(0deg, rgba(74,144,184,0.05) 0 1px, transparent 1px 28px),
+      repeating-linear-gradient(90deg, rgba(74,144,184,0.05) 0 1px, transparent 1px 28px);
+    color:var(--text);
+    font-family:"IBM Plex Sans", "Segoe UI", Arial, sans-serif;
+    padding:0 0 80px 0;
+    min-height:100vh;
+  }
+  @font-face{font-family:'IBM Plex Sans';src:local('Arial');}
+  .mono{font-family:"IBM Plex Mono","Courier New",monospace;}
+
+  header{
+    padding:22px 18px 16px;
+    border-bottom:1px solid var(--line);
+    position:sticky; top:0; z-index:5;
+    background:rgba(14,19,24,0.92);
+    backdrop-filter:blur(6px);
+  }
+  .eyebrow{
+    font-family:"IBM Plex Mono",monospace;
+    font-size:11px; letter-spacing:.14em; text-transform:uppercase;
+    color:var(--blue); margin:0 0 6px;
+  }
+  h1{font-size:20px; margin:0; font-weight:600; letter-spacing:-.01em;}
+  .sub{color:var(--muted); font-size:13px; margin-top:4px;}
+
+  main{padding:18px; max-width:640px; margin:0 auto;}
+
+  .card{
+    background:var(--panel);
+    border:1px solid var(--line);
+    border-radius:var(--radius);
+    margin-bottom:16px;
+    position:relative;
+    padding:18px 16px 20px;
+  }
+  .card::before, .card::after{
+    content:""; position:absolute; width:9px; height:9px;
+    border:1px solid var(--blue-dim); opacity:.7;
+  }
+  .card::before{top:-1px; left:-1px; border-right:none; border-bottom:none;}
+  .card::after{bottom:-1px; right:-1px; border-left:none; border-top:none;}
+
+  .card-title{
+    font-family:"IBM Plex Mono",monospace;
+    font-size:11px; letter-spacing:.1em; text-transform:uppercase;
+    color:var(--amber); margin:0 0 14px;
+    display:flex; align-items:center; gap:8px;
+  }
+  .card-title .n{
+    color:var(--muted); font-size:11px;
+  }
+
+  label{
+    display:block; font-size:12px; color:var(--muted); margin:12px 0 5px;
+  }
+  label:first-of-type{margin-top:0;}
+
+  input[type=text], input[type=date], input[type=time], input[type=tel], input[type=email], input[type=number], textarea, select{
+    width:100%; background:var(--panel-2); border:1px solid var(--line);
+    color:var(--text); padding:10px 11px; border-radius:var(--radius);
+    font-size:14.5px; font-family:inherit;
+  }
+  input:focus, textarea:focus, select:focus{
+    outline:none; border-color:var(--blue);
+  }
+  textarea{min-height:90px; resize:vertical;}
+
+  .row2{display:grid; grid-template-columns:1fr 1fr; gap:10px;}
+
+  .pdf-drop{
+    border:1px dashed var(--line); border-radius:var(--radius);
+    padding:16px; text-align:center; cursor:pointer;
+    background:var(--panel-2); color:var(--muted); font-size:13px;
+  }
+  .pdf-drop:hover{border-color:var(--blue);}
+  .pdf-status{font-size:12px; margin-top:8px;}
+  .pdf-status.ok{color:var(--ok);}
+  .pdf-status.err{color:var(--danger);}
+
+  .zeit-row{
+    display:grid; grid-template-columns:1fr 1fr auto; gap:8px;
+    align-items:end; margin-bottom:10px;
+    padding-bottom:10px; border-bottom:1px solid var(--line);
+  }
+  .zeit-row:last-of-type{border-bottom:none;}
+  .icon-btn{
+    background:transparent; border:1px solid var(--line); color:var(--muted);
+    width:38px; height:38px; border-radius:var(--radius); cursor:pointer; font-size:16px;
+  }
+  .icon-btn:hover{border-color:var(--danger); color:var(--danger);}
+
+  .add-btn{
+    background:transparent; border:1px solid var(--blue-dim); color:var(--blue);
+    padding:9px 14px; border-radius:var(--radius); cursor:pointer;
+    font-size:13px; font-family:"IBM Plex Mono",monospace; margin-top:4px;
+  }
+  .add-btn:hover{border-color:var(--blue); background:rgba(74,144,184,0.08);}
+
+  .zeit-total{
+    margin-top:10px; font-family:"IBM Plex Mono",monospace; font-size:13px; color:var(--amber);
+  }
+
+  .photo-actions{display:flex; gap:10px; margin-bottom:12px;}
+  .photo-actions label{
+    margin:0; flex:1; text-align:center; padding:11px 8px;
+    border:1px solid var(--line); border-radius:var(--radius);
+    background:var(--panel-2); color:var(--text); font-size:13px; cursor:pointer;
+  }
+  .photo-actions label:hover{border-color:var(--blue);}
+  .photo-actions input{display:none;}
+  .thumbs{display:grid; grid-template-columns:repeat(3,1fr); gap:8px;}
+  .thumb{position:relative; aspect-ratio:1; border-radius:var(--radius); overflow:hidden; border:1px solid var(--line);}
+  .thumb img{width:100%; height:100%; object-fit:cover; display:block;}
+  .thumb .rm{
+    position:absolute; top:3px; right:3px; background:rgba(14,19,24,0.85);
+    color:var(--danger); border:none; width:22px; height:22px; border-radius:50%;
+    cursor:pointer; font-size:13px; line-height:1;
+  }
+
+  canvas#sig{
+    width:100%; height:160px; background:var(--panel-2);
+    border:1px solid var(--line); border-radius:var(--radius); touch-action:none;
+    display:block;
+  }
+  .sig-actions{display:flex; justify-content:space-between; align-items:center; margin-top:8px;}
+  .clear-link{background:none; border:none; color:var(--muted); font-size:12px; cursor:pointer; text-decoration:underline;}
+  .sig-name{margin-top:10px;}
+
+  .generate{
+    position:sticky; bottom:0; padding:14px 18px 22px;
+    background:linear-gradient(transparent, var(--bg) 30%);
+  }
+  .generate button{
+    width:100%; background:var(--amber); color:#1a1208; border:none;
+    padding:15px; font-size:14.5px; font-weight:600; border-radius:var(--radius);
+    cursor:pointer; font-family:"IBM Plex Mono",monospace; letter-spacing:.02em;
+  }
+  .generate button:hover{background:#f3a361;}
+  .generate button:disabled{background:var(--line); color:var(--muted); cursor:not-allowed;}
+  .gen-status{text-align:center; font-size:12px; color:var(--muted); margin-top:8px; min-height:16px;}
+  .gen-status.err{color:var(--danger);}
+  .db-status{display:inline-flex; align-items:center; gap:6px; font-size:10.5px; color:var(--muted); font-family:"IBM Plex Mono",monospace; cursor:pointer; white-space:nowrap;}
+  .db-dot{width:8px; height:8px; border-radius:50%; display:inline-block; background:var(--muted); flex-shrink:0;}
+  .db-dot.green{background:var(--ok); box-shadow:0 0 6px rgba(92,158,124,0.7);}
+  .db-dot.yellow{background:#e0c34a; box-shadow:0 0 6px rgba(224,195,74,0.7);}
+  .db-dot.red{background:var(--danger); box-shadow:0 0 6px rgba(201,96,79,0.7);}
+</style>
+</head>
+<body>
+
+<header>
+  <div style="display:flex; justify-content:space-between; align-items:flex-start;">
+    <div>
+      <p class="eyebrow">Blueprint · TS-Suite</p>
+      <h1>Arbeitsbericht</h1>
+      <div class="sub">Auftrag erfassen, abschließen, als PDF exportieren</div>
+      <div id="standortHinweis" style="display:none; margin-top:8px; font-size:11.5px; color:var(--amber); font-family:'IBM Plex Mono',monospace;">📍 GPS-Standort wird bei Berichtserstellung erfasst und übermittelt</div>
+    </div>
+    <div style="display:flex; flex-direction:column; align-items:flex-end; gap:8px;">
+      <button id="adminBtn" title="Techniker-Verwaltung" style="background:transparent;border:1px solid var(--line);color:var(--muted);width:36px;height:36px;border-radius:var(--radius);cursor:pointer;font-size:15px;">⚙</button>
+      <span class="db-status" id="dbStatus" title="Zum Neu-Prüfen antippen">
+        <span class="db-dot" id="dbDot"></span>
+        <span id="dbLabel">prüfe ...</span>
+      </span>
+    </div>
+  </div>
+</header>
+
+<!-- Techniker-Auswahl (Ersteinrichtung) -->
+<div id="techModal" style="display:none;position:fixed;inset:0;background:rgba(10,13,16,0.88);z-index:20;align-items:center;justify-content:center;padding:20px;">
+  <div style="background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);padding:22px 18px;max-width:400px;width:100%;">
+    <p class="card-title" style="margin-bottom:10px;">Wer bist du?</p>
+    <div style="font-size:13px;color:var(--muted);margin-bottom:14px;">Dieses Gerät merkt sich deine Auswahl dauerhaft.</div>
+    <select id="techSelect" style="margin-bottom:14px;"></select>
+    <button class="add-btn" id="techConfirm" style="width:100%;text-align:center;">Bestätigen</button>
+  </div>
+</div>
+
+<!-- Admin: Techniker-Verwaltung -->
+<div id="adminModal" style="display:none;position:fixed;inset:0;background:rgba(10,13,16,0.88);z-index:20;align-items:center;justify-content:center;padding:20px;">
+  <div style="background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);padding:22px 18px;max-width:420px;width:100%;max-height:85vh;overflow:auto;">
+    <p class="card-title" style="margin-bottom:14px;">Techniker-Verwaltung</p>
+    <div id="techList" style="margin-bottom:14px;"></div>
+    <div style="display:flex;gap:8px;margin-bottom:14px;">
+      <input type="text" id="newTechName" placeholder="Name neuer Techniker" style="flex:1;">
+      <button class="icon-btn" id="addTechBtn" style="width:44px;color:var(--ok);border-color:var(--ok);">+</button>
+    </div>
+    <div style="border-top:1px solid var(--line);padding:14px 0;">
+      <label style="display:flex; align-items:center; gap:8px; margin:0; color:var(--text); font-size:14px; cursor:pointer;">
+        <input type="checkbox" id="bilderSpeichernToggle" style="width:17px;height:17px;accent-color:var(--amber);">
+        Fotos &amp; Unterschrift zentral speichern
+      </label>
+      <div style="font-size:11.5px; color:var(--muted); margin-top:6px; line-height:1.4;">
+        Wenn aktiv, werden Fotos und Unterschrift zusätzlich zum lokalen PDF auch in die Datenbank hochgeladen (Supabase Storage) und sind dann in der Büroübersicht sichtbar. Verbraucht Speicherplatz — bei Bedarf ausschalten.
+      </div>
+    </div>
+    <div style="border-top:1px solid var(--line);padding:14px 0;">
+      <label style="display:flex; align-items:center; gap:8px; margin:0; color:var(--text); font-size:14px; cursor:pointer;">
+        <input type="checkbox" id="standortToggle" style="width:17px;height:17px;accent-color:var(--amber);">
+        Standort beim Absenden mit übertragen
+      </label>
+      <div style="font-size:11.5px; color:var(--muted); margin-top:6px; line-height:1.4;">
+        Standardmäßig aktiv. Fragt beim Absenden eines Berichts den aktuellen GPS-Standort ab und speichert ihn mit. Der Browser fragt dafür explizit um Erlaubnis. Ausschalten und Wiedereinschalten erfordern jeweils den Zugangscode.
+      </div>
+    </div>
+    <div style="border-top:1px solid var(--line);padding-top:14px;">
+      <button class="add-btn" id="switchTechBtn" style="width:100%;text-align:center;margin-bottom:8px;">Techniker dieses Geräts ändern</button>
+      <button class="clear-link" id="closeAdmin">schließen</button>
+    </div>
+  </div>
+</div>
+
+<main>
+
+  <div class="card">
+    <p class="card-title"><span class="n">01</span> Auftragsdaten</p>
+
+    <label>Angebots-PDF einlesen (optional — befüllt Felder unten)</label>
+    <div class="pdf-drop" id="pdfDrop">PDF auswählen oder hier ablegen</div>
+    <input type="file" id="pdfInput" accept="application/pdf" style="display:none">
+    <div class="pdf-status" id="pdfStatus"></div>
+
+    <button id="auftragBtn" style="background:none;border:1px solid var(--line);color:var(--blue);
+      font-size:12.5px;cursor:pointer;padding:8px 12px;border-radius:var(--radius);margin-top:8px;width:100%;">
+      📋 Auftrag aus CRM laden (.json)</button>
+    <input type="file" id="auftragInput" accept="application/json,.json" style="display:none">
+    <div class="pdf-status" id="auftragStatus"></div>
+
+    <label>Kunde</label>
+    <input type="text" id="fKunde" placeholder="z. B. Stadt Karlsruhe" list="kundenListe" autocomplete="off">
+    <datalist id="kundenListe"></datalist>
+
+    <label>Bauvorhaben</label>
+    <input type="text" id="fBauvorhaben" placeholder="z. B. Karlsburg BA3 BS-Sanierung">
+
+    <div id="lieferanschriftBlock" style="display:none;">
+      <label>Lieferanschrift <span style="color:var(--muted);font-weight:normal;">(abweichend von Kunde)</span></label>
+      <textarea id="fLieferanschrift" placeholder="Abweichende Lieferadresse" style="min-height:60px;"></textarea>
+    </div>
+    <button id="toggleLieferanschrift" style="background:none;border:none;color:var(--blue);font-size:12px;cursor:pointer;text-decoration:underline;margin-top:6px;padding:0;">+ abweichende Lieferanschrift</button>
+
+    <div class="row2" style="margin-top:14px;">
+      <div>
+        <label>Ansprechpartner vor Ort</label>
+        <input type="text" id="fAnsprechpartner" placeholder="Name">
+      </div>
+      <div>
+        <label>Telefonnummer</label>
+        <input type="tel" id="fTelefon" placeholder="0721 ...">
+      </div>
+    </div>
+    <label style="margin-top:10px;">E-Mail-Adresse</label>
+    <input type="email" id="fEmail" placeholder="name@firma.de">
+    <div class="pdf-status" id="emailStatus"></div>
+    <div class="pdf-status" id="kontaktStatus"></div>
+
+    <div class="row2">
+      <div>
+        <label>Angebots-/Auftragsnr.</label>
+        <input type="text" id="fAngebotsnr" placeholder="i-2026-XXXXX">
+      </div>
+      <div>
+        <label>Datum</label>
+        <input type="date" id="fDatum">
+      </div>
+    </div>
+
+    <label>Techniker</label>
+    <div style="display:flex;align-items:center;gap:10px;background:var(--panel-2);border:1px solid var(--line);border-radius:var(--radius);padding:10px 11px;">
+      <span id="fTechniker" class="mono" style="flex:1;color:var(--text);">–</span>
+      <button id="changeTechInline" style="background:none;border:none;color:var(--blue);font-size:12px;cursor:pointer;text-decoration:underline;">ändern</button>
+    </div>
+  </div>
+
+  <div class="card">
+    <p class="card-title"><span class="n">02</span> Zeiterfassung</p>
+    <div id="technikerZeitBlocks"></div>
+    <button class="add-btn" id="addTechnikerBlock">+ Weiterer Techniker auf der Baustelle</button>
+    <div class="zeit-total" id="zeitTotal">Gesamt: 0,0 Std.</div>
+  </div>
+
+  <div class="card">
+    <p class="card-title"><span class="n">03</span> Tätigkeitsbeschreibung</p>
+    <textarea id="fTaetigkeit" placeholder="Was wurde gemacht? z. B. Montage, Reparatur, Störungsursache, durchgeführte Prüfungen ..." style="min-height:120px;"></textarea>
+
+    <label style="margin-top:14px;">Status</label>
+    <div style="display:flex; gap:18px; margin-top:4px;">
+      <label style="display:flex; align-items:center; gap:8px; margin:0; color:var(--text); font-size:14px; cursor:pointer;">
+        <input type="radio" name="arbeitsstatus" id="statusBeendet" value="beendet" checked style="width:17px;height:17px;accent-color:var(--amber);">
+        Arbeiten beendet
+      </label>
+      <label style="display:flex; align-items:center; gap:8px; margin:0; color:var(--text); font-size:14px; cursor:pointer;">
+        <input type="radio" name="arbeitsstatus" id="statusFortgesetzt" value="fortgesetzt" style="width:17px;height:17px;accent-color:var(--amber);">
+        Wird fortgesetzt
+      </label>
+    </div>
+
+    <label style="margin-top:14px;">Interner Bericht <span style="color:var(--muted);font-weight:normal;">(nicht für den Kunden)</span></label>
+    <textarea id="fInternerBericht" placeholder="Nur für intern, z. B. Rückfragen an den Innendienst, Auffälligkeiten ..." style="min-height:70px;"></textarea>
+
+    <label style="margin-top:14px;">Hinweis</label>
+    <textarea id="fHinweis" placeholder="Zusätzlicher Hinweis, falls nötig ..." style="min-height:70px;"></textarea>
+  </div>
+
+  <div class="card">
+    <p class="card-title"><span class="n">04</span> Materialverbrauch</p>
+
+    <div id="materialSection" style="display:none;">
+      <div style="display:flex;align-items:center;gap:8px;padding-bottom:10px;margin-bottom:10px;border-bottom:1px solid var(--line);">
+        <input type="checkbox" id="selectAllMaterial" style="width:17px;height:17px;accent-color:var(--amber);">
+        <label for="selectAllMaterial" style="margin:0;color:var(--text);font-size:13px;cursor:pointer;">Alle auswählen</label>
+      </div>
+      <div id="materialChecklist"></div>
+    </div>
+
+    <label style="margin-top:14px;">Sonstiges / Kleinmaterial</label>
+    <textarea id="fMaterial" placeholder="Zusätzliches Material, das nicht im Angebot steht ..."></textarea>
+  </div>
+
+  <div class="card">
+    <p class="card-title"><span class="n">05</span> Fotos</p>
+    <div class="photo-actions">
+      <label>Kamera<input type="file" accept="image/*" capture="environment" id="photoCam"></label>
+      <label>Datei wählen<input type="file" accept="image/*" multiple id="photoFile"></label>
+    </div>
+    <div class="thumbs" id="thumbs"></div>
+    <div class="pdf-status" id="medienStatus" style="margin-top:10px;"></div>
+  </div>
+
+  <div class="card">
+    <p class="card-title"><span class="n">06</span> Kundenunterschrift</p>
+
+    <label style="display:flex; align-items:center; gap:8px; margin:0 0 14px; color:var(--text); font-size:14px; cursor:pointer;">
+      <input type="checkbox" id="keinAbnehmer" style="width:17px;height:17px;accent-color:var(--amber);">
+      Unterschriftsberechtigter nicht vor Ort
+    </label>
+
+    <div id="signatureSection">
+      <canvas id="sig" width="600" height="300"></canvas>
+      <div class="sig-actions">
+        <span style="font-size:12px;color:var(--muted);">Mit Finger oder Maus unterschreiben</span>
+        <button class="clear-link" id="clearSig">löschen</button>
+      </div>
+      <div class="sig-name">
+        <label>Name des Kunden (Druckschrift)</label>
+        <input type="text" id="fKundenname" placeholder="Name in Druckschrift">
+      </div>
+      <label style="margin-top:12px;">Funktion des Abnehmers</label>
+      <input type="text" id="fAbnehmerFunktion" placeholder="z. B. Hausmeister, Objektleiter">
+    </div>
+  </div>
+
+</main>
+
+<!-- Zusätzlichen Techniker für Zeiterfassung auswählen -->
+<div id="addTechTimeModal" style="display:none;position:fixed;inset:0;background:rgba(10,13,16,0.88);z-index:20;align-items:center;justify-content:center;padding:20px;">
+  <div style="background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);padding:22px 18px;max-width:400px;width:100%;">
+    <p class="card-title" style="margin-bottom:10px;">Weiterer Techniker</p>
+    <select id="extraTechSelect" style="margin-bottom:14px;"></select>
+    <div style="display:flex;gap:8px;">
+      <button class="add-btn" id="extraTechConfirm" style="flex:1;text-align:center;">Hinzufügen</button>
+      <button class="clear-link" id="extraTechCancel">abbrechen</button>
+    </div>
+  </div>
+</div>
+
+<div class="generate">
+  <button id="genBtn">Bericht als PDF erzeugen</button>
+  <div class="gen-status" id="genStatus"></div>
+  <a href="index.html" style="display:block; text-align:center; margin-top:14px; color:var(--muted); font-size:12.5px; text-decoration:underline;">← Zurück zur Startseite</a>
+</div>
+
+<script>
+pdfjsLib.GlobalWorkerOptions.workerSrc = "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js";
+
+/* Harmlose pdf.js-Konsolenmeldung zur Fake-Worker-Initialisierung ausblenden,
+   ohne andere Warnungen/Fehler zu unterdrücken. */
+(function(){
+  const originalWarn = console.warn;
+  console.warn = function(...args){
+    if(args.some(a => typeof a === 'string' && a.includes('fake worker'))) return;
+    originalWarn.apply(console, args);
+  };
+})();
+
+/* Setzt pdf.js Textfragmente anhand ihrer Y/X-Position zu echten Zeilen zusammen,
+   statt sie in roher Stream-Reihenfolge aneinanderzuhängen (die nicht der visuellen
+   Zeilenordnung entspricht, besonders bei mehrspaltigen Layouts). */
+function reconstructLines(content){
+  const lines = [];
+  content.items.forEach(item => {
+    if(!item.str || !item.str.trim()) return;
+    const y = item.transform[5];
+    const x = item.transform[4];
+    let line = lines.find(l => Math.abs(l.y - y) < 2.5);
+    if(!line){ line = {y, parts: []}; lines.push(line); }
+    line.parts.push({x, str: item.str});
+  });
+  lines.sort((a, b) => b.y - a.y);
+  return lines.map(line => {
+    line.parts.sort((a, b) => a.x - b.x);
+    let out = '';
+    let lastEndX = null;
+    line.parts.forEach(p => {
+      if(lastEndX !== null && p.x - lastEndX > 3 && !out.endsWith(' ') && !p.str.startsWith(' ')){
+        out += ' ';
+      }
+      out += p.str;
+      lastEndX = p.x + (p.str.length * 4); // grobe Schätzung der Textbreite
+    });
+    return out.replace(/\s+/g, ' ').trim();
+  }).join('\n');
+}
+
+/* ---------- PDF Datenextraktion ---------- */
+const pdfDrop = document.getElementById('pdfDrop');
+const pdfInput = document.getElementById('pdfInput');
+const pdfStatus = document.getElementById('pdfStatus');
+
+pdfDrop.addEventListener('click', () => pdfInput.click());
+pdfInput.addEventListener('change', e => { if(e.target.files[0]) handlePdf(e.target.files[0]); });
+pdfDrop.addEventListener('dragover', e => { e.preventDefault(); pdfDrop.style.borderColor='var(--blue)'; });
+pdfDrop.addEventListener('dragleave', () => { pdfDrop.style.borderColor='var(--line)'; });
+pdfDrop.addEventListener('drop', e => {
+  e.preventDefault(); pdfDrop.style.borderColor='var(--line)';
+  if(e.dataTransfer.files[0]) handlePdf(e.dataTransfer.files[0]);
+});
+
+/* ---------- Auftrag aus CRM (.json) ---------- */
+const auftragBtn = document.getElementById('auftragBtn');
+const auftragInput = document.getElementById('auftragInput');
+const auftragStatus = document.getElementById('auftragStatus');
+let importierteKundeId = null; // gilt als sicher, solange Kunde/Bauvorhaben nicht von Hand geändert werden
+
+auftragBtn.addEventListener('click', () => auftragInput.click());
+auftragInput.addEventListener('change', e => { if(e.target.files[0]) handleAuftragsdatei(e.target.files[0]); });
+
+function wendeAuftragAn(daten){
+  if(daten.kunde)        document.getElementById('fKunde').value = daten.kunde;
+  if(daten.bauvorhaben)  document.getElementById('fBauvorhaben').value = daten.bauvorhaben;
+  if(daten.ansprechpartner) document.getElementById('fAnsprechpartner').value = daten.ansprechpartner;
+  if(daten.telefon)      document.getElementById('fTelefon').value = daten.telefon;
+  if(daten.email)        document.getElementById('fEmail').value = daten.email;
+  if(daten.hinweis)      document.getElementById('fHinweis').value = daten.hinweis;
+  importierteKundeId = daten.kunde_id || null;
+
+  auftragStatus.textContent = `Auftrag geladen: ${daten.bauvorhaben || '–'} · ${daten.kunde || 'ohne Kunde'}`;
+  auftragStatus.className = 'pdf-status ok';
+}
+async function handleAuftragsdatei(file){
+  auftragStatus.textContent = 'Lese Auftragsdatei ...';
+  auftragStatus.className = 'pdf-status';
+  try{
+    const text = await file.text();
+    const daten = JSON.parse(text);
+    if(daten.typ !== 'ts-auftrag'){
+      throw new Error('Keine gültige TS-Suite-Auftragsdatei.');
+    }
+    wendeAuftragAn(daten);
+  } catch(err){
+    console.error('Auftragsdatei-Import fehlgeschlagen:', err);
+    auftragStatus.textContent = 'Datei konnte nicht gelesen werden — ist es eine Auftragsdatei aus dem CRM?';
+    auftragStatus.className = 'pdf-status err';
+  }
+}
+/* Direkter Link aus dem CRM/von der Trello-Karte: Felder kommen als
+   URL-Parameter mit, z.B. ?kunde=...&bauvorhaben=...&kunde_id=... */
+(function ausUrlUebernehmen(){
+  const p = new URLSearchParams(location.search);
+  if(!p.has('bauvorhaben') && !p.has('kunde')) return;
+  wendeAuftragAn({
+    kunde: p.get('kunde') || null,
+    bauvorhaben: p.get('bauvorhaben') || null,
+    ansprechpartner: p.get('ansprechpartner') || null,
+    telefon: p.get('telefon') || null,
+    email: p.get('email') || null,
+    hinweis: p.get('hinweis') || null,
+    kunde_id: p.get('kunde_id') || null
+  });
+  history.replaceState(null, '', location.pathname); // URL wieder sauber, Werte bleiben im Formular
+})();
+/* Manuelle Korrektur nach dem Laden hebt die sichere Zuordnung wieder auf,
+   dann greift beim Speichern wieder der normale Namensabgleich. */
+document.getElementById('fKunde').addEventListener('input', () => { importierteKundeId = null; });
+document.getElementById('fBauvorhaben').addEventListener('input', () => { importierteKundeId = null; });
+
+async function handlePdf(file){
+  pdfStatus.textContent = 'Lese PDF ...';
+  pdfStatus.className = 'pdf-status';
+
+  /* Alte Werte zurücksetzen, damit Reste von einem vorherigen Versuch nicht stehen bleiben */
+  ['fKunde','fBauvorhaben','fAngebotsnr','fLieferanschrift'].forEach(id => {
+    const el = document.getElementById(id);
+    if(el) el.value = '';
+  });
+  document.getElementById('lieferanschriftBlock').style.display = 'none';
+  document.getElementById('toggleLieferanschrift').textContent = '+ abweichende Lieferanschrift';
+
+  try{
+    const buf = await file.arrayBuffer();
+    const loadingTask = pdfjsLib.getDocument({data: buf});
+    const doc = await loadingTask.promise;
+    const page = await doc.getPage(1);
+    const content = await page.getTextContent();
+    const text = reconstructLines(content);
+
+    if(!text || text.trim().length < 5){
+      pdfStatus.textContent = 'PDF enthält keinen auslesbaren Text (evtl. gescanntes Bild ohne Textebene). Bitte manuell eintragen.';
+      pdfStatus.className = 'pdf-status err';
+      return;
+    }
+
+    let kunde = null, bauvorhaben = null, angebotsnr = null, datum = null, summe = null, docType = null, lieferMatch = null;
+
+    if(/Auftragsbestätigung/.test(text)){
+      /* --- Typ: Auftragsbestätigung --- */
+      docType = 'Auftragsbestätigung';
+      const belegMatch = text.match(/Belegnummer:\s*(VA[NT]\d+)/) || text.match(/\bVA[NT]\d{5,9}\b/);
+      const referenzMatch = text.match(/Ihre Referenz\s*:\s*([^\n]+)/);
+      const datumMatch = text.match(/Auftragsdatum:\s*(\d{2}\.\d{2}\.\d{4})/);
+      const summeMatch = text.match(/Auftragssumme EUR:\s*([\d.,]+)/);
+      const kundeMatch = text.match(/\*VA[NT]\d+\*\s*\n([\s\S]*?)\nKundennummer:/);
+      lieferMatch = text.match(/Lieferanschrift:\s*([\s\S]*?)\nArtikelnr\./);
+
+      if(belegMatch) angebotsnr = belegMatch[1] || belegMatch[0];
+      if(referenzMatch) bauvorhaben = referenzMatch[1].trim();
+      if(datumMatch) datum = datumMatch[1];
+      if(summeMatch) summe = summeMatch[1];
+      if(kundeMatch){
+        kunde = kundeMatch[1].split('\n')
+          .map(l => l.replace(/(Belegnummer:.*|Auftragsdatum:.*|Voraussichtl\..*|Lieferdatum:.*)/g, '').trim())
+          .filter(Boolean).join(', ');
+      }
+      if(lieferMatch){
+        const lieferAdresse = lieferMatch[1].split('\n').map(l => l.trim()).filter(Boolean).join(', ');
+        document.getElementById('fLieferanschrift').value = lieferAdresse;
+        document.getElementById('lieferanschriftBlock').style.display = 'block';
+        document.getElementById('toggleLieferanschrift').textContent = '– Lieferanschrift ausblenden';
+      }
+    } else if(/Angebot\s+i-/.test(text)){
+      /* --- Typ: Angebot --- */
+      docType = 'Angebot';
+      const angebotsnrMatch = text.match(/Angebot\s+([a-zA-Z0-9\-]+)/);
+      const bauvorhabenMatch = text.match(/Bauvorhaben:?\s*\n?(.+)/);
+      const kundeMatch = matchLine(text, /^(Stadt .+|Firma .+|Gemeinde .+)$/m);
+
+      if(angebotsnrMatch) angebotsnr = angebotsnrMatch[1];
+      if(bauvorhabenMatch) bauvorhaben = cleanLine(bauvorhabenMatch[1]);
+      if(kundeMatch) kunde = cleanLine(kundeMatch).replace(/\s*Ansprechpartner\s*$/, '').trim();
+    }
+
+    /* Absicherung: offensichtlich falsch erkannte Werte (z.B. nur ein Datum) verwerfen */
+    const looksLikeDate = v => v && /^\d{2}\.\d{2}\.\d{4}$/.test(v.trim());
+    if(looksLikeDate(kunde)) kunde = null;
+    if(looksLikeDate(bauvorhaben)) bauvorhaben = null;
+
+    let filled = [];
+    if(angebotsnr){ document.getElementById('fAngebotsnr').value = angebotsnr.trim(); filled.push('Auftragsnr.'); }
+    if(bauvorhaben){ document.getElementById('fBauvorhaben').value = bauvorhaben; filled.push('Bauvorhaben/Referenz'); }
+    if(kunde){ document.getElementById('fKunde').value = kunde; filled.push('Kunde'); }
+    if(datum){
+      const [d,m,y] = datum.split('.');
+      document.getElementById('fDatum').value = `${y}-${m}-${d}`;
+      filled.push('Datum');
+    }
+
+    if(lieferMatch) filled.push('Lieferanschrift');
+
+    if(filled.length){
+      const typeLabel = docType ? `(${docType}) ` : '';
+      const summeInfo = summe ? ` · Auftragssumme: ${summe} €` : '';
+      pdfStatus.textContent = typeLabel + 'Übernommen: ' + filled.join(', ') + summeInfo + ' — bitte prüfen.';
+      pdfStatus.className = 'pdf-status ok';
+    } else {
+      pdfStatus.textContent = 'PDF gelesen, aber keine bekannten Felder gefunden (unbekanntes Format). Bitte manuell eintragen.';
+      pdfStatus.className = 'pdf-status err';
+    }
+
+    /* Artikel-/Materialliste extrahieren */
+    const items = extractMaterialListFromPdf(text, docType);
+    if(items.length) setMaterialItems(items);
+
+  } catch(err){
+    console.error('PDF-Parse-Fehler:', err);
+    const detail = (err && err.message) ? err.message : String(err);
+    pdfStatus.textContent = 'PDF konnte nicht gelesen werden (' + detail + '). Bitte erneut versuchen oder manuell eintragen.';
+    pdfStatus.className = 'pdf-status err';
+  }
+}
+
+/* ---------- Artikelliste aus PDF extrahieren ---------- */
+function extractMaterialListFromPdf(text, docType){
+  const items = [];
+
+  if(docType === 'Auftragsbestätigung'){
+    const re = /^(\d{1,3})\s+(?:\(\*\)\s*)?(\d{5,8})\s+(.+?)\s+[A-Z]?\s*(\d+,\d{3})\s*[A-Z]{2,4}\b/gm;
+    let m;
+    while((m = re.exec(text)) !== null){
+      const [, pos, artikelnr, beschreibung, menge] = m;
+      items.push(`Pos. ${pos}: ${menge.replace(',000','')}× ${beschreibung.trim()} (Art. ${artikelnr})`);
+    }
+  } else if(docType === 'Angebot'){
+    const blocks = text.split(/(?=Pos\.:\s*\d+)/g);
+    blocks.forEach(block => {
+      const posMatch = block.match(/Pos\.:\s*(\d+)\s*\n+([^\n]+)/);
+      const posLabel = posMatch ? `Pos. ${posMatch[1]}` : null;
+      if(posMatch) items.push(`${posLabel}: ${posMatch[2].trim()}`);
+
+      const compRe = /^([A-Za-zÄÖÜäöüß][A-Za-zÄÖÜäöüß0-9\- ]{1,40}) \(E11\)\s*:\s*([^\n]+)$/gm;
+      let cm;
+      while((cm = compRe.exec(block)) !== null){
+        const [, label, value] = cm;
+        const prefix = posLabel ? `${posLabel} – ` : '';
+        items.push(`${prefix}${label.trim()}: ${value.trim()}`);
+      }
+    });
+  }
+  /* Duplikate entfernen, Reihenfolge erhalten */
+  return [...new Set(items)];
+}
+
+/* ---------- Material-Checkliste ---------- */
+let materialItems = [];
+function setMaterialItems(items){
+  materialItems = items.map((label, i) => ({id: 'mat_' + i, label, checked: true}));
+  renderMaterialChecklist();
+}
+function renderMaterialChecklist(){
+  const section = document.getElementById('materialSection');
+  const listEl = document.getElementById('materialChecklist');
+  if(!materialItems.length){ section.style.display = 'none'; return; }
+  section.style.display = 'block';
+  listEl.innerHTML = materialItems.map(item => `
+    <div style="display:flex;align-items:flex-start;gap:8px;padding:7px 0;">
+      <input type="checkbox" class="matCheck" data-id="${item.id}" ${item.checked ? 'checked' : ''}
+        style="width:17px;height:17px;margin-top:2px;accent-color:var(--amber);flex-shrink:0;">
+      <label style="margin:0;font-size:13.5px;color:var(--text);cursor:pointer;line-height:1.4;">${item.label}</label>
+    </div>
+  `).join('');
+  listEl.querySelectorAll('.matCheck').forEach(cb => {
+    cb.addEventListener('change', () => {
+      const it = materialItems.find(x => x.id === cb.dataset.id);
+      if(it) it.checked = cb.checked;
+      updateSelectAllState();
+    });
+  });
+  updateSelectAllState();
+}
+function updateSelectAllState(){
+  const all = document.getElementById('selectAllMaterial');
+  all.checked = materialItems.length > 0 && materialItems.every(i => i.checked);
+}
+document.getElementById('selectAllMaterial').addEventListener('change', e => {
+  materialItems.forEach(i => i.checked = e.target.checked);
+  renderMaterialChecklist();
+});
+function matchAfter(text, re){ const m = text.match(re); return m ? m[1] : null; }
+function matchLine(text, re){ const m = text.match(re); return m ? m[1] : null; }
+function cleanLine(s){ return s.split('\n')[0].replace(/,+\s*$/,'').trim(); }
+
+/* ---------- Zeiterfassung: mehrere Techniker ---------- */
+const technikerZeitBlocks = document.getElementById('technikerZeitBlocks');
+const zeitTotal = document.getElementById('zeitTotal');
+let zeitBlocks = []; // [{id, name, primary, wegepauschale, rows:[{id, datum, stunden}]}]
+let zeitBlockSeq = 0;
+let zeitRowSeq = 0;
+
+function heutigesDatum(){
+  const d = new Date();
+  return d.toISOString().slice(0,10);
+}
+
+function initZeitBlocks(primaryName){
+  zeitBlocks = [{ id: zeitBlockSeq++, name: primaryName, primary: true,
+    rows: [{id: zeitRowSeq++, datum: heutigesDatum(), stunden: '', wegepauschale: false}] }];
+  renderZeitBlocks();
+}
+
+function renderZeitBlocks(){
+  technikerZeitBlocks.innerHTML = zeitBlocks.map(block => `
+    <div style="margin-bottom:16px;padding-bottom:14px;border-bottom:1px solid var(--line);">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">
+        <span class="mono" style="font-size:12px;color:var(--amber);">${block.name}${block.primary ? ' (Gerät)' : ''}</span>
+        ${block.primary ? '' : `<button class="clear-link rmBlock" data-block="${block.id}">entfernen</button>`}
+      </div>
+      <div class="rowsFor" data-block="${block.id}">
+        ${block.rows.map(r => `
+          <div data-row="${r.id}" data-block="${block.id}" style="margin-bottom:10px;padding-bottom:10px;border-bottom:1px solid var(--line);">
+            <div class="zeit-row" style="border:none;padding:0;margin:0;">
+              <div><label>Datum</label><input type="date" class="zDatum" value="${r.datum}"></div>
+              <div><label>Stunden</label><input type="number" step="0.25" min="0" inputmode="decimal" class="zStunden" placeholder="0,50" value="${r.stunden}"></div>
+              <button class="icon-btn zRemove" data-row="${r.id}" data-block="${block.id}" title="entfernen">×</button>
+            </div>
+            <div style="display:flex; align-items:center; gap:8px; margin-top:8px;">
+              <input type="checkbox" class="zWege" data-row="${r.id}" data-block="${block.id}" id="wege_${block.id}_${r.id}" ${r.wegepauschale ? 'checked' : ''} style="width:16px;height:16px;accent-color:var(--amber);">
+              <label for="wege_${block.id}_${r.id}" style="margin:0; color:var(--muted); font-size:13px; cursor:pointer;">Wegepauschale für diesen Tag</label>
+            </div>
+          </div>
+        `).join('')}
+      </div>
+      <button class="add-btn addRow" data-block="${block.id}" style="margin-top:4px;">+ Tag hinzufügen</button>
+    </div>
+  `).join('');
+
+  technikerZeitBlocks.querySelectorAll('.zDatum, .zStunden').forEach(inp => {
+    inp.addEventListener('change', e => {
+      const row = e.target.closest('[data-row]');
+      const blockId = parseInt(row.dataset.block), rowId = parseInt(row.dataset.row);
+      const block = zeitBlocks.find(b => b.id === blockId);
+      const r = block.rows.find(x => x.id === rowId);
+      r.datum = row.querySelector('.zDatum').value;
+      r.stunden = row.querySelector('.zStunden').value;
+      updateTotal();
+    });
+  });
+  technikerZeitBlocks.querySelectorAll('.zWege').forEach(inp => {
+    inp.addEventListener('change', e => {
+      const blockId = parseInt(e.target.dataset.block), rowId = parseInt(e.target.dataset.row);
+      const block = zeitBlocks.find(b => b.id === blockId);
+      const r = block.rows.find(x => x.id === rowId);
+      r.wegepauschale = e.target.checked;
+    });
+  });
+  technikerZeitBlocks.querySelectorAll('.zRemove').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const blockId = parseInt(btn.dataset.block), rowId = parseInt(btn.dataset.row);
+      const block = zeitBlocks.find(b => b.id === blockId);
+      block.rows = block.rows.filter(r => r.id !== rowId);
+      if(block.rows.length === 0) block.rows.push({id: zeitRowSeq++, datum: heutigesDatum(), stunden: '', wegepauschale: false});
+      renderZeitBlocks();
+      updateTotal();
+    });
+  });
+  technikerZeitBlocks.querySelectorAll('.addRow').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const block = zeitBlocks.find(b => b.id === parseInt(btn.dataset.block));
+      block.rows.push({id: zeitRowSeq++, datum: heutigesDatum(), stunden: '', wegepauschale: false});
+      renderZeitBlocks();
+    });
+  });
+  technikerZeitBlocks.querySelectorAll('.rmBlock').forEach(btn => {
+    btn.addEventListener('click', () => {
+      zeitBlocks = zeitBlocks.filter(b => b.id !== parseInt(btn.dataset.block));
+      renderZeitBlocks();
+      updateTotal();
+    });
+  });
+  updateTotal();
+}
+
+function stundenOf(rows){
+  return rows.reduce((sum, r) => sum + (parseFloat((r.stunden||'').toString().replace(',','.')) || 0), 0);
+}
+function updateTotal(){
+  const total = zeitBlocks.reduce((sum, b) => sum + stundenOf(b.rows), 0);
+  zeitTotal.textContent = 'Gesamt: ' + total.toFixed(2).replace('.',',').replace(/,?0+$/,'').replace(/,$/,'') + ' Std.';
+}
+
+document.getElementById('addTechnikerBlock').addEventListener('click', () => {
+  const used = zeitBlocks.map(b => b.name);
+  const available = getTechListe().filter(t => !used.includes(t));
+  const sel = document.getElementById('extraTechSelect');
+  if(!available.length){
+    sel.innerHTML = '<option disabled>Alle Techniker bereits hinzugefügt</option>';
+  } else {
+    sel.innerHTML = available.map(t => `<option value="${t}">${t}</option>`).join('');
+  }
+  document.getElementById('addTechTimeModal').style.display = 'flex';
+});
+document.getElementById('extraTechCancel').addEventListener('click', () => {
+  document.getElementById('addTechTimeModal').style.display = 'none';
+});
+document.getElementById('extraTechConfirm').addEventListener('click', () => {
+  const sel = document.getElementById('extraTechSelect');
+  if(sel.value){
+    zeitBlocks.push({ id: zeitBlockSeq++, name: sel.value, primary: false,
+      rows: [{id: zeitRowSeq++, datum: heutigesDatum(), stunden: '', wegepauschale: false}] });
+    renderZeitBlocks();
+  }
+  document.getElementById('addTechTimeModal').style.display = 'none';
+});
+
+/* ---------- Fotos ---------- */
+const thumbs = document.getElementById('thumbs');
+let photos = [];
+
+function addPhotos(fileList){
+  Array.from(fileList).forEach(file => {
+    const reader = new FileReader();
+    reader.onload = e => {
+      const id = Date.now() + Math.random();
+      photos.push({id, dataUrl: e.target.result});
+      renderThumbs();
+    };
+    reader.readAsDataURL(file);
+  });
+}
+function renderThumbs(){
+  thumbs.innerHTML = '';
+  photos.forEach(p => {
+    const div = document.createElement('div');
+    div.className = 'thumb';
+    div.innerHTML = `<img src="${p.dataUrl}"><button class="rm">×</button>`;
+    div.querySelector('.rm').addEventListener('click', () => {
+      photos = photos.filter(x => x.id !== p.id);
+      renderThumbs();
+    });
+    thumbs.appendChild(div);
+  });
+}
+document.getElementById('photoCam').addEventListener('change', e => addPhotos(e.target.files));
+document.getElementById('photoFile').addEventListener('change', e => addPhotos(e.target.files));
+
+/* ---------- Unterschrift ---------- */
+const canvas = document.getElementById('sig');
+const ctx = canvas.getContext('2d');
+ctx.strokeStyle = '#e7edf2';
+ctx.lineWidth = 2.2;
+ctx.lineCap = 'round';
+let drawing = false, hasSig = false;
+
+function getPos(e){
+  const rect = canvas.getBoundingClientRect();
+  const scaleX = canvas.width / rect.width;
+  const scaleY = canvas.height / rect.height;
+  const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+  const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+  return {x:(clientX-rect.left)*scaleX, y:(clientY-rect.top)*scaleY};
+}
+function start(e){ drawing = true; hasSig = true; const p = getPos(e); ctx.beginPath(); ctx.moveTo(p.x,p.y); e.preventDefault(); }
+function move(e){ if(!drawing) return; const p = getPos(e); ctx.lineTo(p.x,p.y); ctx.stroke(); e.preventDefault(); }
+function end(){ drawing = false; }
+
+canvas.addEventListener('mousedown', start);
+canvas.addEventListener('mousemove', move);
+window.addEventListener('mouseup', end);
+canvas.addEventListener('touchstart', start, {passive:false});
+canvas.addEventListener('touchmove', move, {passive:false});
+canvas.addEventListener('touchend', end);
+
+document.getElementById('clearSig').addEventListener('click', () => {
+  ctx.clearRect(0,0,canvas.width,canvas.height);
+  hasSig = false;
+});
+
+/* ---------- Kein Abnehmer vor Ort ---------- */
+document.getElementById('keinAbnehmer').addEventListener('change', e => {
+  document.getElementById('signatureSection').style.display = e.target.checked ? 'none' : 'block';
+});
+
+/* ---------- PDF Bericht generieren ---------- */
+document.getElementById('genBtn').addEventListener('click', generateReport);
+
+async function generateReport(){
+  const genStatus = document.getElementById('genStatus');
+  const btn = document.getElementById('genBtn');
+  btn.disabled = true;
+  genStatus.textContent = 'Bericht wird erstellt ...';
+
+  try{
+    const { jsPDF } = window.jspdf;
+    const doc = new jsPDF({unit:'mm', format:'a4'});
+    const pageW = 210, margin = 16;
+    let y = 20;
+
+    doc.setFont('helvetica','bold'); doc.setFontSize(16);
+    doc.text('Arbeitsbericht', margin, y); y += 10;
+
+    doc.setFont('helvetica','normal'); doc.setFontSize(10);
+    const fields = [
+      ['Kunde', val('fKunde')],
+      ['Bauvorhaben', val('fBauvorhaben')],
+      ['Angebots-/Auftragsnr.', val('fAngebotsnr')],
+      ['Datum', val('fDatum')],
+      ['Techniker', val('fTechniker')],
+    ];
+    fields.forEach(([label, value]) => {
+      doc.setFont('helvetica','bold'); doc.text(label + ':', margin, y);
+      doc.setFont('helvetica','normal'); doc.text(value || '-', margin + 55, y);
+      y += 6.5;
+    });
+    const lieferwert = val('fLieferanschrift');
+    if(lieferwert){
+      doc.setFont('helvetica','bold'); doc.text('Lieferanschrift:', margin, y);
+      doc.setFont('helvetica','normal');
+      const liefLines = doc.splitTextToSize(lieferwert, pageW - margin - 55 - margin);
+      doc.text(liefLines, margin + 55, y);
+      y += Math.max(6.5, liefLines.length * 5);
+    }
+
+    y += 4;
+    doc.setFont('helvetica','bold'); doc.setFontSize(12);
+    doc.text('Zeiterfassung', margin, y); y += 7;
+    doc.setFontSize(10);
+    let gesamtStunden = 0;
+    let gesamtWegepauschalen = 0;
+    zeitBlocks.forEach(block => {
+      doc.setFont('helvetica','bold');
+      doc.text(block.name + (block.primary ? ' (Gerät)' : ''), margin, y); y += 5.5;
+      doc.setFont('helvetica','normal');
+      block.rows.forEach(r => {
+        const std = parseFloat((r.stunden||'').toString().replace(',','.')) || 0;
+        if(r.datum || std){
+          const datumFmt = r.datum ? r.datum.split('-').reverse().join('.') : '-';
+          const wegeText = r.wegepauschale ? '  ·  Wegepauschale' : '';
+          doc.text(`  ${datumFmt}   ${std.toFixed(2).replace('.',',').replace(/,?0+$/,'').replace(/,$/,'') || '0'} Std.${wegeText}`, margin, y);
+          y += 5.5;
+          if(r.wegepauschale) gesamtWegepauschalen++;
+        }
+      });
+      const blockStunden = stundenOf(block.rows);
+      gesamtStunden += blockStunden;
+      doc.setFont('helvetica','italic');
+      doc.text(`  Zwischensumme: ${blockStunden.toFixed(2).replace('.',',').replace(/,?0+$/,'').replace(/,$/,'')} Std.`, margin, y);
+      y += 7;
+    });
+    doc.setFont('helvetica','bold');
+    doc.text('Gesamt: ' + gesamtStunden.toFixed(2).replace('.',',').replace(/,?0+$/,'').replace(/,$/,'') + ' Std.'
+      + (gesamtWegepauschalen ? `  ·  Wegepauschalen: ${gesamtWegepauschalen}x` : ''), margin, y);
+    y += 10;
+
+    doc.setFont('helvetica','bold'); doc.setFontSize(12);
+    doc.text('Tätigkeitsbeschreibung', margin, y); y += 7;
+    doc.setFont('helvetica','normal'); doc.setFontSize(10);
+    const taetigkeit = val('fTaetigkeit') || '-';
+    const taetLines = doc.splitTextToSize(taetigkeit, pageW - margin*2);
+    doc.text(taetLines, margin, y);
+    y += taetLines.length * 5 + 6;
+
+    const status = document.querySelector('input[name="arbeitsstatus"]:checked').value;
+    doc.setFont('helvetica','bold');
+    doc.text('Status: ' + (status === 'beendet' ? 'Arbeiten beendet' : 'Arbeiten werden fortgesetzt'), margin, y);
+    y += 10;
+
+    const internerBericht = val('fInternerBericht');
+    if(internerBericht){
+      if(y > 250){ doc.addPage(); y = 20; }
+      doc.setFont('helvetica','bold'); doc.setFontSize(12);
+      doc.text('Interner Bericht (nicht für den Kunden)', margin, y); y += 7;
+      doc.setFont('helvetica','normal'); doc.setFontSize(10);
+      const ibLines = doc.splitTextToSize(internerBericht, pageW - margin*2);
+      doc.text(ibLines, margin, y); y += ibLines.length * 5 + 8;
+    }
+
+    const hinweis = val('fHinweis');
+    if(hinweis){
+      if(y > 250){ doc.addPage(); y = 20; }
+      doc.setFont('helvetica','bold'); doc.setFontSize(12);
+      doc.text('Hinweis', margin, y); y += 7;
+      doc.setFont('helvetica','normal'); doc.setFontSize(10);
+      const hLines = doc.splitTextToSize(hinweis, pageW - margin*2);
+      doc.text(hLines, margin, y); y += hLines.length * 5 + 8;
+    }
+
+    if(y > 240){ doc.addPage(); y = 20; }
+    doc.setFont('helvetica','bold'); doc.setFontSize(12);
+    doc.text('Materialverbrauch', margin, y); y += 7;
+    doc.setFont('helvetica','normal'); doc.setFontSize(10);
+
+    const checkedItems = materialItems.filter(i => i.checked).map(i => '• ' + i.label);
+    const material = val('fMaterial');
+    const materialBlocks = [...checkedItems];
+    if(material) materialBlocks.push(...material.split('\n').filter(Boolean));
+    const materialText = materialBlocks.length ? materialBlocks.join('\n') : '-';
+
+    const matLines = doc.splitTextToSize(materialText, pageW - margin*2);
+    doc.text(matLines, margin, y);
+    y += matLines.length * 5 + 8;
+
+    if(photos.length){
+      if(y > 230){ doc.addPage(); y = 20; }
+      doc.setFont('helvetica','bold'); doc.setFontSize(12);
+      doc.text('Fotos', margin, y); y += 7;
+      let x = margin;
+      const imgW = 55, imgH = 55, gap = 6;
+      for(const p of photos){
+        if(x + imgW > pageW - margin){ x = margin; y += imgH + gap; }
+        if(y + imgH > 280){ doc.addPage(); y = 20; x = margin; }
+        try{ doc.addImage(p.dataUrl, 'JPEG', x, y, imgW, imgH); }catch(e){}
+        x += imgW + gap;
+      }
+      y += imgH + 12;
+    }
+
+    if(y > 230){ doc.addPage(); y = 20; }
+    doc.setFont('helvetica','bold'); doc.setFontSize(12);
+    doc.text('Kundenunterschrift', margin, y); y += 4;
+
+    const keinAbnehmer = document.getElementById('keinAbnehmer').checked;
+    if(keinAbnehmer){
+      y += 8;
+      doc.setFont('helvetica','italic'); doc.setFontSize(10);
+      doc.text('Unterschriftsberechtigter nicht vor Ort', margin, y);
+      y += 8;
+    } else {
+      if(hasSig){
+        doc.addImage(canvas.toDataURL('image/png'), 'PNG', margin, y, 90, 40);
+      } else {
+        doc.setFont('helvetica','normal'); doc.setFontSize(10);
+        doc.text('(keine Unterschrift erfasst)', margin, y + 10);
+      }
+      y += 44;
+      doc.setFont('helvetica','normal'); doc.setFontSize(10);
+      doc.text(val('fKundenname') || '-', margin, y);
+      doc.setDrawColor(180); doc.line(margin, y-1, margin+90, y-1);
+      y += 8;
+      const funktion = val('fAbnehmerFunktion');
+      if(funktion){
+        doc.text('Funktion: ' + funktion, margin, y);
+        y += 6;
+      }
+    }
+
+    const zeitDaten = zeitBlocks.map(b => ({
+      techniker: b.name, primary: b.primary,
+      tage: b.rows.map(r => ({datum: r.datum, stunden: r.stunden, wegepauschale: r.wegepauschale}))
+    }));
+    const reportData = {
+      angebotsnr: val('fAngebotsnr') || null,
+      bauvorhaben: val('fBauvorhaben') || null,
+      kunde: val('fKunde') || null,
+      techniker: val('fTechniker') || null,
+      daten: {
+        lieferanschrift: val('fLieferanschrift') || null,
+        ansprechpartner: val('fAnsprechpartner') || null,
+        telefon: val('fTelefon') || null,
+        email: (val('fEmail') && EMAIL_REGEX.test(val('fEmail').trim())) ? val('fEmail').trim() : null,
+        zeiterfassung: zeitDaten,
+        taetigkeit: val('fTaetigkeit') || null,
+        status: document.querySelector('input[name="arbeitsstatus"]:checked').value,
+        interner_bericht: val('fInternerBericht') || null,
+        hinweis: val('fHinweis') || null,
+        material_checkliste: materialItems.filter(i => i.checked).map(i => i.label),
+        material_freitext: val('fMaterial') || null,
+        kein_abnehmer_vor_ort: document.getElementById('keinAbnehmer').checked,
+        kundenname: val('fKundenname') || null,
+        abnehmer_funktion: val('fAbnehmerFunktion') || null,
+        anzahl_fotos: photos.length
+      }
+    };
+
+    /* Erst an den Server senden, DANACH das PDF lokal öffnen/speichern.
+       Grund: doc.save() öffnet auf iOS ein neues Tab/Fenster, wodurch die
+       Seite in den Hintergrund geschoben wird — laufende Netzwerk-Requests
+       können danach abgebrochen/verzögert werden. Deshalb zuerst der Upload. */
+    genStatus.textContent = 'Sende an Server ...';
+    if(standortIstAktiv()){
+      genStatus.textContent = 'Frage Standort ab ...';
+    }
+    const standort = await ermittleStandort();
+    if(standort){
+      reportData.daten.standort = standort; // bleibt für die Detailansicht in der Übersicht erhalten
+      reportData.standort_lat = standort.lat;
+      reportData.standort_lng = standort.lng;
+      reportData.standort_genauigkeit_m = standort.genauigkeit_m;
+      reportData.standort_erfasst_am = standort.erfasst_am;
+    }
+    genStatus.textContent = 'Sende an Server ...';
+    const medien = await ladeMedienHoch(val('fAngebotsnr'));
+    reportData.daten.foto_urls = medien.fotoUrls;
+    reportData.daten.unterschrift_url = medien.unterschriftUrl;
+    const sendResult = await sendeBerichtAnServer(reportData);
+
+    const filename = `Arbeitsbericht_${(val('fAngebotsnr')||'ohne-nr').replace(/[^a-zA-Z0-9\-]/g,'')}.pdf`;
+    doc.save(filename);
+
+    if(sendResult.ok){
+      genStatus.textContent = 'Bericht an Server übertragen und lokal gespeichert: ' + filename;
+      if(medien.fehler && medien.fehler.length){
+        genStatus.textContent += ' — Achtung, Medien-Upload teilweise fehlgeschlagen: ' + medien.fehler.join('; ');
+        genStatus.className = 'gen-status err';
+      }
+    } else if(sendResult.reason === 'not-configured'){
+      genStatus.textContent = 'Bericht lokal gespeichert: ' + filename + ' (Server noch nicht eingerichtet)';
+    } else {
+      genStatus.textContent = 'Bericht lokal gespeichert: ' + filename + ' — Server-Übertragung fehlgeschlagen (' + sendResult.reason + '), bitte später erneut versuchen.';
+    }
+  } catch(err){
+    genStatus.textContent = 'Fehler beim Erstellen des Berichts.';
+    console.error(err);
+  } finally {
+    btn.disabled = false;
+  }
+}
+function val(id){
+  const el = document.getElementById(id);
+  if(!el) return '';
+  return el.tagName === 'SPAN' ? el.textContent : el.value;
+}
+
+/* Datum vorbelegen */
+document.getElementById('fDatum').valueAsDate = new Date();
+
+/* ============================================================
+   SUPABASE-KONFIGURATION
+   Nach Einrichtung (siehe Anleitung) hier eintragen:
+   ============================================================ */
+const SUPABASE_URL = 'https://guuywhrzygcnpzrnnlsw.supabase.co';
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imd1dXl3aHJ6eWdjbnB6cm5ubHN3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODM3MjcyOTIsImV4cCI6MjA5OTMwMzI5Mn0.tvPfk5j6mXNG2YcYl4cUR-rF-T3QWdTGuOZ8SHRSv2U';
+const SUPABASE_CONFIGURED = !SUPABASE_URL.includes('DEIN-PROJEKT');
+
+function supabaseHeaders(extra){
+  return Object.assign({
+    'apikey': SUPABASE_ANON_KEY,
+    'Authorization': 'Bearer ' + SUPABASE_ANON_KEY,
+    'Content-Type': 'application/json'
+  }, extra || {});
+}
+
+/* ---------- Kontakte: lokal gecachte Kopie + Sync ---------- */
+const LS_KONTAKTE = 'ts_kontakte_cache';
+const LS_KUNDEN = 'ts_kunden_cache';
+let kontakteMap = {}; // { bauvorhaben(lowercase): {ansprechpartner, telefon, kunde, kunde_id} }
+let kundenNameZuId = {}; // { normalisierter Kundenname: id } — für automatische Verknüpfung
+
+function normText(s){
+  return (s || '').toString().trim().toLowerCase().replace(/\s+/g, ' ');
+}
+
+function ladeKontakteAusCache(){
+  try{ kontakteMap = JSON.parse(localStorage.getItem(LS_KONTAKTE) || '{}'); }catch(e){ kontakteMap = {}; }
+  try{ kundenNameZuId = JSON.parse(localStorage.getItem(LS_KUNDEN) || '{}'); }catch(e){ kundenNameZuId = {}; }
+}
+function speichereKontakteCache(){
+  localStorage.setItem(LS_KONTAKTE, JSON.stringify(kontakteMap));
+}
+
+async function syncKundenVonServer(){
+  if(!SUPABASE_CONFIGURED) return;
+  try{
+    const res = await fetch(`${SUPABASE_URL}/rest/v1/kunden?select=id,name`, { headers: supabaseHeaders() });
+    if(!res.ok) throw new Error('HTTP ' + res.status);
+    const rows = await res.json();
+    kundenNameZuId = {};
+    const dl = document.getElementById('kundenListe');
+    dl.innerHTML = '';
+    rows.forEach(k => {
+      kundenNameZuId[normText(k.name)] = k.id;
+      const opt = document.createElement('option');
+      opt.value = k.name;
+      dl.appendChild(opt);
+    });
+    localStorage.setItem(LS_KUNDEN, JSON.stringify(kundenNameZuId));
+  } catch(err){
+    console.error('Kunden-Sync fehlgeschlagen:', err);
+  }
+}
+
+async function syncKontakteVonServer(){
+  const statusEl = document.getElementById('kontaktStatus');
+  if(!SUPABASE_CONFIGURED){
+    statusEl.textContent = 'Supabase noch nicht eingerichtet – Kontakte nur lokal auf diesem Gerät.';
+    statusEl.className = 'pdf-status';
+    return;
+  }
+  try{
+    const res = await fetch(`${SUPABASE_URL}/rest/v1/kontakte?select=*`, { headers: supabaseHeaders() });
+    if(!res.ok) throw new Error('HTTP ' + res.status);
+    const rows = await res.json();
+    rows.forEach(r => {
+      kontakteMap[r.bauvorhaben.toLowerCase()] = { id: r.id, bauvorhaben: r.bauvorhaben, ansprechpartner: r.ansprechpartner, telefon: r.telefon, email: r.email, kunde: r.kunde, kunde_id: r.kunde_id };
+    });
+    speichereKontakteCache();
+    statusEl.textContent = `Kontakte synchronisiert (${rows.length} Bauvorhaben bekannt).`;
+    statusEl.className = 'pdf-status ok';
+  } catch(err){
+    console.error('Kontakt-Sync fehlgeschlagen:', err);
+    statusEl.textContent = 'Kontakt-Sync fehlgeschlagen – nutze lokalen Stand.';
+    statusEl.className = 'pdf-status err';
+  }
+}
+
+/* Einfache Levenshtein-Distanz — für den Ähnlichkeits-Check unten,
+   läuft komplett lokal, kein Server nötig. */
+function levenshtein(a, b){
+  const m = a.length, n = b.length;
+  if(!m) return n;
+  if(!n) return m;
+  let prev = Array.from({length: n + 1}, (_, i) => i);
+  for(let i = 1; i <= m; i++){
+    const curr = [i];
+    for(let j = 1; j <= n; j++){
+      curr[j] = a[i-1] === b[j-1] ? prev[j-1] : 1 + Math.min(prev[j-1], prev[j], curr[j-1]);
+    }
+    prev = curr;
+  }
+  return prev[n];
+}
+/* Findet ein bereits bekanntes Bauvorhaben, das dem eingegebenen Text
+   sehr ähnlich ist (Tippfehler, leicht andere Schreibweise) — Grundlage
+   für die Warnung, die verhindert, dass aus Versehen ein doppelter
+   Eintrag statt einer Umbenennung entsteht. */
+function findeAehnlichesBauvorhaben(text){
+  const norm = normText(text);
+  if(!norm) return null;
+  let bester = null, besterAbstand = Infinity;
+  for(const key in kontakteMap){
+    if(key === norm) continue;
+    const dist = levenshtein(norm, key);
+    const schwelle = Math.max(2, Math.floor(Math.max(norm.length, key.length) * 0.15));
+    if(dist <= schwelle && dist < besterAbstand){
+      besterAbstand = dist; bester = kontakteMap[key];
+    }
+  }
+  return bester;
+}
+
+async function upsertKontakt(){
+  let bauvorhaben = document.getElementById('fBauvorhaben').value.trim();
+  const ansprechpartner = document.getElementById('fAnsprechpartner').value.trim();
+  const telefon = document.getElementById('fTelefon').value.trim();
+  let email = document.getElementById('fEmail').value.trim();
+  if(email && !EMAIL_REGEX.test(email)) email = ''; // ungültige E-Mail nie speichern
+  let kunde = document.getElementById('fKunde').value.trim();
+  if(!bauvorhaben || (!ansprechpartner && !telefon && !email)) return;
+
+  // Upsert-Risiko absichern: bei einem neuen Bauvorhaben-Namen erst prüfen,
+  // ob nicht eigentlich ein fast identischer schon existiert (Tippfehler-Fall).
+  if(!kontakteMap[bauvorhaben.toLowerCase()]){
+    const aehnlich = findeAehnlichesBauvorhaben(bauvorhaben);
+    if(aehnlich){
+      const uebernehmen = confirm(
+        `Ähnliches Bauvorhaben schon vorhanden:\n"${aehnlich.bauvorhaben}"\n\n` +
+        `OK = dieses verwenden (empfohlen, sonst entsteht ein doppelter Eintrag)\n` +
+        `Abbrechen = "${bauvorhaben}" wirklich neu anlegen`
+      );
+      if(uebernehmen){
+        bauvorhaben = aehnlich.bauvorhaben;
+        document.getElementById('fBauvorhaben').value = bauvorhaben;
+        if(aehnlich.kunde && !kunde){
+          kunde = aehnlich.kunde;
+          document.getElementById('fKunde').value = kunde;
+        }
+      }
+    }
+  }
+
+  const kundeId = importierteKundeId || kundenNameZuId[normText(kunde)] || null;
+  const bestehend = kontakteMap[bauvorhaben.toLowerCase()];
+  kontakteMap[bauvorhaben.toLowerCase()] = { id: bestehend?.id, bauvorhaben, ansprechpartner, telefon, email, kunde, kunde_id: kundeId };
+  speichereKontakteCache();
+
+  if(!SUPABASE_CONFIGURED) return;
+  try{
+    const zeile = { bauvorhaben, kunde, ansprechpartner, telefon, email, updated_at: new Date().toISOString() };
+    if(kundeId) zeile.kunde_id = kundeId; // nur bei sicherem Treffer setzen — sonst bleibt eine
+                                           // bestehende Zuordnung in der DB unangetastet
+    const res = await fetch(`${SUPABASE_URL}/rest/v1/kontakte?on_conflict=bauvorhaben`, {
+      method: 'POST',
+      headers: supabaseHeaders({ 'Prefer': 'resolution=merge-duplicates,return=representation' }),
+      body: JSON.stringify([zeile])
+    });
+    if(res.ok){
+      const gespeichert = await res.json();
+      const kontaktId = gespeichert?.[0]?.id;
+      if(kontaktId){
+        kontakteMap[bauvorhaben.toLowerCase()].id = kontaktId;
+        speichereKontakteCache();
+        if(ansprechpartner) upsertAnsprechpartnerStrukturiert(kontaktId, ansprechpartner, telefon, email);
+      }
+    }
+  } catch(err){
+    console.error('Kontakt-Upload fehlgeschlagen:', err);
+  }
+}
+
+/* Ansprechpartner-Konsolidierung: legt denselben Ansprechpartner zusätzlich
+   strukturiert in crm_ansprechpartner an (oder aktualisiert ihn dort),
+   damit das CRM ihn kennt, ohne dass du ihn dort nochmal eintippen musst.
+   kontakte.ansprechpartner bleibt daneben bestehen — die Telefon-Suche auf
+   der Startseite braucht dieses Feld weiterhin. Läuft im Hintergrund,
+   ein Fehler hier verhindert nie das Speichern des Berichts. */
+async function upsertAnsprechpartnerStrukturiert(kontaktId, name, telefon, email){
+  try{
+    const suchRes = await fetch(
+      `${SUPABASE_URL}/rest/v1/crm_ansprechpartner?kontakt_id=eq.${kontaktId}&name=ilike.${encodeURIComponent(name)}&select=id`,
+      { headers: supabaseHeaders() }
+    );
+    const treffer = suchRes.ok ? await suchRes.json() : [];
+    if(treffer.length){
+      await fetch(`${SUPABASE_URL}/rest/v1/crm_ansprechpartner?id=eq.${treffer[0].id}`, {
+        method: 'PATCH',
+        headers: supabaseHeaders(),
+        body: JSON.stringify({ telefon: telefon || null, email: email || null })
+      });
+    } else {
+      await fetch(`${SUPABASE_URL}/rest/v1/crm_ansprechpartner`, {
+        method: 'POST',
+        headers: supabaseHeaders(),
+        body: JSON.stringify([{ kontakt_id: kontaktId, name, telefon: telefon || null, email: email || null }])
+      });
+    }
+  } catch(err){
+    console.error('Ansprechpartner-Konsolidierung fehlgeschlagen (unkritisch):', err);
+  }
+}
+
+function autofillKontaktFuerBauvorhaben(){
+  const bauvorhaben = document.getElementById('fBauvorhaben').value.trim().toLowerCase();
+  if(!bauvorhaben || !kontakteMap[bauvorhaben]) return;
+  const eintrag = kontakteMap[bauvorhaben];
+  const kundeField = document.getElementById('fKunde');
+  const apField = document.getElementById('fAnsprechpartner');
+  const telField = document.getElementById('fTelefon');
+  const emailField = document.getElementById('fEmail');
+  if(!kundeField.value && eintrag.kunde) kundeField.value = eintrag.kunde;
+  if(!apField.value && eintrag.ansprechpartner) apField.value = eintrag.ansprechpartner;
+  if(!telField.value && eintrag.telefon) telField.value = eintrag.telefon;
+  if(!emailField.value && eintrag.email) emailField.value = eintrag.email;
+  if(eintrag.ansprechpartner || eintrag.telefon || eintrag.email){
+    const statusEl = document.getElementById('kontaktStatus');
+    statusEl.textContent = 'Ansprechpartner aus früherem Bericht übernommen – bitte prüfen.';
+    statusEl.className = 'pdf-status ok';
+  }
+}
+
+document.getElementById('fBauvorhaben').addEventListener('blur', autofillKontaktFuerBauvorhaben);
+document.getElementById('fAnsprechpartner').addEventListener('blur', upsertKontakt);
+document.getElementById('fTelefon').addEventListener('blur', upsertKontakt);
+
+/* ---------- E-Mail-Format-Validierung ---------- */
+const EMAIL_REGEX = /^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$/;
+
+function emailIstGueltig(){
+  const feld = document.getElementById('fEmail');
+  const statusEl = document.getElementById('emailStatus');
+  const wert = feld.value.trim();
+
+  if(!wert){
+    statusEl.textContent = '';
+    feld.style.borderColor = '';
+    return true; // Feld ist optional, leer ist ok
+  }
+  if(EMAIL_REGEX.test(wert)){
+    statusEl.textContent = '';
+    feld.style.borderColor = '';
+    return true;
+  }
+  statusEl.textContent = 'Sieht nicht wie eine gültige E-Mail-Adresse aus – wird nicht gespeichert.';
+  statusEl.className = 'pdf-status err';
+  feld.style.borderColor = 'var(--danger)';
+  return false;
+}
+
+document.getElementById('fEmail').addEventListener('blur', () => {
+  if(emailIstGueltig()) upsertKontakt();
+});
+document.getElementById('fEmail').addEventListener('input', () => {
+  // Fehleranzeige beim Weitertippen zurücksetzen, nicht bei jedem Tastendruck neu prüfen
+  document.getElementById('emailStatus').textContent = '';
+  document.getElementById('fEmail').style.borderColor = '';
+});
+
+/* Standort ist standardmäßig AN — nur ein explizites "0" (per Passwort ausgeschaltet) deaktiviert es */
+function standortIstAktiv(){
+  return localStorage.getItem('ts_standort_uebertragen') !== '0';
+}
+function aktualisiereStandortHinweis(){
+  document.getElementById('standortHinweis').style.display = standortIstAktiv() ? 'block' : 'none';
+}
+aktualisiereStandortHinweis();
+
+/* ---------- Standort (GPS) ---------- */
+function ermittleStandort(){
+  return new Promise(resolve => {
+    const aktiv = standortIstAktiv();
+    if(!aktiv || !navigator.geolocation){
+      resolve(null);
+      return;
+    }
+    navigator.geolocation.getCurrentPosition(
+      pos => resolve({
+        lat: pos.coords.latitude,
+        lng: pos.coords.longitude,
+        genauigkeit_m: Math.round(pos.coords.accuracy),
+        erfasst_am: new Date().toISOString()
+      }),
+      err => {
+        console.error('Standort konnte nicht ermittelt werden:', err.message);
+        resolve(null); // Bericht trotzdem ganz normal weiter erzeugen
+      },
+      { enableHighAccuracy: true, timeout: 8000, maximumAge: 60000 }
+    );
+  });
+}
+
+/* ---------- Bericht an Server senden ---------- */
+const STORAGE_BUCKET = 'berichte-medien';
+
+async function ladeBildHoch(pfad, dataUrl){
+  const blob = await (await fetch(dataUrl)).blob();
+  const contentType = blob.type || 'image/png';
+  const res = await fetch(`${SUPABASE_URL}/storage/v1/object/${STORAGE_BUCKET}/${pfad}`, {
+    method: 'POST',
+    headers: supabaseHeaders({ 'Content-Type': contentType, 'x-upsert': 'true' }),
+    body: blob
+  });
+  if(!res.ok) throw new Error('Upload fehlgeschlagen (' + res.status + ')');
+  return `${SUPABASE_URL}/storage/v1/object/public/${STORAGE_BUCKET}/${pfad}`;
+}
+
+async function ladeMedienHoch(angebotsnr){
+  const bilderSpeichern = localStorage.getItem('ts_bilder_speichern') === '1';
+  if(!bilderSpeichern || !SUPABASE_CONFIGURED) return { fotoUrls: [], unterschriftUrl: null, fehler: [] };
+
+  const ordner = (angebotsnr || 'ohne-nr').replace(/[^a-zA-Z0-9\-]/g,'') + '_' + Date.now();
+  const fotoUrls = [];
+  const fehler = [];
+  for(let i = 0; i < photos.length; i++){
+    try{
+      const url = await ladeBildHoch(`${ordner}/foto_${i+1}.jpg`, photos[i].dataUrl);
+      fotoUrls.push(url);
+    } catch(err){
+      console.error('Foto-Upload fehlgeschlagen:', err);
+      fehler.push('Foto ' + (i+1) + ': ' + err.message);
+    }
+  }
+
+  let unterschriftUrl = null;
+  const keinAbnehmer = document.getElementById('keinAbnehmer').checked;
+  if(!keinAbnehmer && hasSig){
+    try{
+      unterschriftUrl = await ladeBildHoch(`${ordner}/unterschrift.png`, canvas.toDataURL('image/png'));
+    } catch(err){
+      console.error('Unterschrift-Upload fehlgeschlagen:', err);
+      fehler.push('Unterschrift: ' + err.message);
+    }
+  }
+
+  return { fotoUrls, unterschriftUrl, fehler };
+}
+
+async function sendeBerichtAnServer(reportData){
+  if(!SUPABASE_CONFIGURED) return { ok: false, reason: 'not-configured' };
+  try{
+    const res = await fetch(`${SUPABASE_URL}/rest/v1/berichte`, {
+      method: 'POST',
+      headers: supabaseHeaders(),
+      body: JSON.stringify([reportData])
+    });
+    if(!res.ok) throw new Error('HTTP ' + res.status);
+    return { ok: true };
+  } catch(err){
+    console.error('Berichts-Upload fehlgeschlagen:', err);
+    return { ok: false, reason: err.message };
+  }
+}
+
+/* Beim Start: gecachte Kontakte laden, dann mit Server abgleichen */
+ladeKontakteAusCache();
+syncKontakteVonServer();
+syncKundenVonServer();
+
+/* ---------- DB-Status-Ampel ---------- */
+async function pruefeDbStatus(){
+  const dot = document.getElementById('dbDot');
+  const label = document.getElementById('dbLabel');
+  dot.className = 'db-dot';
+  label.textContent = 'prüfe ...';
+
+  if(!SUPABASE_CONFIGURED){
+    dot.classList.add('yellow');
+    label.textContent = 'nicht eingerichtet';
+    return;
+  }
+  try{
+    const start = Date.now();
+    const res = await fetch(`${SUPABASE_URL}/rest/v1/kontakte?select=bauvorhaben&limit=1`, { headers: supabaseHeaders() });
+    const dauer = Date.now() - start;
+    if(res.ok){
+      if(dauer > 3000){
+        dot.classList.add('yellow');
+        label.textContent = 'langsam (' + Math.round(dauer/1000) + 's)';
+      } else {
+        dot.classList.add('green');
+        label.textContent = 'verbunden';
+      }
+    } else {
+      dot.classList.add('yellow');
+      label.textContent = 'Fehler (' + res.status + ')';
+    }
+  } catch(err){
+    dot.classList.add('red');
+    label.textContent = 'nicht erreichbar';
+  }
+}
+document.getElementById('dbStatus').addEventListener('click', pruefeDbStatus);
+pruefeDbStatus();
+setInterval(pruefeDbStatus, 120000); // alle 2 Minuten erneut prüfen
+
+/* ---------- Lieferanschrift Toggle ---------- */
+document.getElementById('toggleLieferanschrift').addEventListener('click', () => {
+  const block = document.getElementById('lieferanschriftBlock');
+  const btn = document.getElementById('toggleLieferanschrift');
+  const show = block.style.display === 'none';
+  block.style.display = show ? 'block' : 'none';
+  btn.textContent = show ? '– Lieferanschrift ausblenden' : '+ abweichende Lieferanschrift';
+});
+
+/* ---------- Techniker-Verwaltung ---------- */
+const LS_LISTE = 'ts_techniker_liste';
+const LS_AKTUELL = 'ts_techniker_aktuell';
+const DEFAULT_TECHNIKER = ['Marko', 'Techniker 2', 'Techniker 3'];
+
+function getTechListe(){
+  const raw = localStorage.getItem(LS_LISTE);
+  return raw ? JSON.parse(raw) : DEFAULT_TECHNIKER.slice();
+}
+function saveTechListe(list){ localStorage.setItem(LS_LISTE, JSON.stringify(list)); }
+function getAktuellerTech(){ return localStorage.getItem(LS_AKTUELL) || ''; }
+function setAktuellerTech(name){
+  localStorage.setItem(LS_AKTUELL, name);
+  document.getElementById('fTechniker').textContent = name;
+  const primary = zeitBlocks.find(b => b.primary);
+  if(primary){ primary.name = name; renderZeitBlocks(); }
+  else { initZeitBlocks(name); }
+}
+
+const techModal = document.getElementById('techModal');
+const adminModal = document.getElementById('adminModal');
+
+function openTechModal(){
+  const sel = document.getElementById('techSelect');
+  sel.innerHTML = getTechListe().map(t => `<option value="${t}">${t}</option>`).join('');
+  techModal.style.display = 'flex';
+}
+document.getElementById('techConfirm').addEventListener('click', () => {
+  const sel = document.getElementById('techSelect');
+  if(sel.value){ setAktuellerTech(sel.value); techModal.style.display = 'none'; }
+});
+document.getElementById('changeTechInline').addEventListener('click', openTechModal);
+document.getElementById('switchTechBtn').addEventListener('click', () => {
+  adminModal.style.display = 'none';
+  openTechModal();
+});
+
+/* Ersteinrichtung: Gerät kennt noch keinen Techniker */
+window.addEventListener('DOMContentLoaded', () => {
+  const current = getAktuellerTech();
+  if(current){
+    document.getElementById('fTechniker').textContent = current;
+    initZeitBlocks(current);
+  } else {
+    openTechModal();
+  }
+});
+
+/* ---------- Admin-Panel ---------- */
+document.getElementById('adminBtn').addEventListener('click', () => {
+  renderTechList();
+  document.getElementById('bilderSpeichernToggle').checked = localStorage.getItem('ts_bilder_speichern') === '1';
+  document.getElementById('standortToggle').checked = standortIstAktiv();
+  adminModal.style.display = 'flex';
+});
+const STANDORT_PASSWORT = 'sto7808'; // <- Zugangscode hier bei Bedarf ändern
+
+document.getElementById('standortToggle').addEventListener('click', function(e){
+  e.preventDefault(); // Häkchen zunächst nicht setzen, erst nach korrektem Code
+  const neuerZustand = !this.checked;
+  const eingabe = prompt('Zugangscode zum Ändern der Standort-Funktion:');
+  if(eingabe === null) return; // abgebrochen
+  if(eingabe === STANDORT_PASSWORT){
+    this.checked = neuerZustand;
+    localStorage.setItem('ts_standort_uebertragen', neuerZustand ? '1' : '0');
+    aktualisiereStandortHinweis();
+  } else {
+    alert('Falscher Zugangscode – Standort-Funktion wurde nicht geändert.');
+  }
+});
+function aktualisiereMedienStatus(){
+  const an = localStorage.getItem('ts_bilder_speichern') === '1';
+  const el = document.getElementById('medienStatus');
+  el.textContent = an
+    ? 'Fotos & Unterschrift werden beim Absenden zentral gespeichert.'
+    : 'Fotos & Unterschrift bleiben nur im lokalen PDF (nicht in der Datenbank).';
+  el.className = 'pdf-status' + (an ? ' ok' : '');
+}
+document.getElementById('bilderSpeichernToggle').addEventListener('change', e => {
+  localStorage.setItem('ts_bilder_speichern', e.target.checked ? '1' : '0');
+  aktualisiereMedienStatus();
+});
+aktualisiereMedienStatus();
+document.getElementById('closeAdmin').addEventListener('click', () => adminModal.style.display = 'none');
+
+function renderTechList(){
+  const listEl = document.getElementById('techList');
+  const listArr = getTechListe();
+  listEl.innerHTML = listArr.map((name, i) => `
+    <div style="display:flex;align-items:center;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--line);">
+      <span>${name}</span>
+      <button class="icon-btn rmTech" data-i="${i}" style="width:30px;height:30px;font-size:14px;">×</button>
+    </div>
+  `).join('');
+  listEl.querySelectorAll('.rmTech').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const i = parseInt(btn.dataset.i);
+      const arr = getTechListe();
+      arr.splice(i, 1);
+      saveTechListe(arr);
+      renderTechList();
+    });
+  });
+}
+document.getElementById('addTechBtn').addEventListener('click', () => {
+  const input = document.getElementById('newTechName');
+  const name = input.value.trim();
+  if(!name) return;
+  const arr = getTechListe();
+  if(!arr.includes(name)){ arr.push(name); saveTechListe(arr); }
+  input.value = '';
+  renderTechList();
+});
+</script>
+</body>
+</html>

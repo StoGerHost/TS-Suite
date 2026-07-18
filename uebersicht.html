@@ -1,0 +1,629 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Berichtsübersicht — Blueprint</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+<style>
+  :root{
+    --bg:#0e1318; --panel:#161d24; --panel-2:#1b232b; --line:#28333d;
+    --blue:#4a90b8; --blue-dim:#2e4a5a; --amber:#e8934a; --text:#e7edf2; --muted:#8394a1;
+    --ok:#5c9e7c; --danger:#c9604f; --radius:2px;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0; min-height:100vh;
+    background:
+      linear-gradient(var(--bg),var(--bg)),
+      repeating-linear-gradient(0deg, rgba(74,144,184,0.05) 0 1px, transparent 1px 28px),
+      repeating-linear-gradient(90deg, rgba(74,144,184,0.05) 0 1px, transparent 1px 28px);
+    color:var(--text); font-family:"IBM Plex Sans","Segoe UI",Arial,sans-serif;
+  }
+  .mono{font-family:"IBM Plex Mono","Courier New",monospace;}
+  input, select{
+    background:var(--panel-2); border:1px solid var(--line); color:var(--text);
+    padding:10px 11px; border-radius:var(--radius); font-size:14.5px; font-family:inherit;
+  }
+  input:focus, select:focus{outline:none; border-color:var(--blue);}
+  button{font-family:inherit; cursor:pointer;}
+
+  #gate{
+    position:fixed; inset:0; background:var(--bg); z-index:50;
+    display:flex; align-items:center; justify-content:center; padding:20px;
+  }
+  #gate .box{
+    background:var(--panel); border:1px solid var(--line); border-radius:var(--radius);
+    padding:32px 26px; max-width:360px; width:100%; text-align:center;
+  }
+  #gate .eyebrow{font-family:"IBM Plex Mono",monospace; font-size:11px; letter-spacing:.14em; text-transform:uppercase; color:var(--blue); margin:0 0 8px;}
+  #gate h1{font-size:20px; margin:0 0 20px;}
+  #gate input{width:100%; margin-bottom:12px; text-align:center;}
+  #gate button{
+    width:100%; background:var(--amber); color:#1a1208; border:none; padding:12px;
+    border-radius:var(--radius); font-weight:600; font-family:"IBM Plex Mono",monospace;
+  }
+  #gate .err{color:var(--danger); font-size:12.5px; margin-top:10px; min-height:16px;}
+
+  header{padding:20px 18px 16px; border-bottom:1px solid var(--line); position:sticky; top:0; background:rgba(14,19,24,0.94); backdrop-filter:blur(6px); z-index:5;}
+  .eyebrow{font-family:"IBM Plex Mono",monospace; font-size:11px; letter-spacing:.14em; text-transform:uppercase; color:var(--blue); margin:0 0 6px;}
+  h1{font-size:20px; margin:0; font-weight:600;}
+
+  main{max-width:960px; margin:0 auto; padding:18px;}
+
+  .filters{
+    display:grid; grid-template-columns:1fr; gap:10px; margin-bottom:18px;
+    background:var(--panel); border:1px solid var(--line); border-radius:var(--radius); padding:16px;
+  }
+  @media(min-width:640px){
+    .filters{grid-template-columns:1.6fr 1fr 1fr 0.8fr 0.8fr;}
+  }
+  .filters label{font-size:11px; color:var(--muted); display:block; margin-bottom:4px;}
+  .filters input, .filters select{width:100%;}
+
+  .meta-row{display:flex; justify-content:space-between; align-items:center; margin-bottom:14px; font-size:13px; color:var(--muted);}
+  #refreshBtn{background:transparent; border:1px solid var(--line); color:var(--blue); padding:7px 12px; border-radius:var(--radius); font-size:12.5px;}
+  #refreshBtn:hover{border-color:var(--blue);}
+
+  .card{
+    background:var(--panel); border:1px solid var(--line); border-radius:var(--radius);
+    margin-bottom:10px; overflow:hidden;
+  }
+  .card-head{
+    padding:14px 16px; cursor:pointer; display:flex; justify-content:space-between; align-items:center; gap:12px;
+  }
+  .card-head:hover{background:var(--panel-2);}
+  .card-title-txt{font-size:15px; font-weight:600;}
+  .card-sub{font-size:12.5px; color:var(--muted); margin-top:3px;}
+  .badge{
+    font-family:"IBM Plex Mono",monospace; font-size:10.5px; padding:3px 8px; border-radius:20px;
+    white-space:nowrap; flex-shrink:0;
+  }
+  .badge.beendet{background:rgba(92,158,124,0.15); color:var(--ok); border:1px solid rgba(92,158,124,0.4);}
+  .badge.fortgesetzt{background:rgba(232,147,74,0.15); color:var(--amber); border:1px solid rgba(232,147,74,0.4);}
+
+  .card-body{display:none; padding:0 16px 16px; border-top:1px solid var(--line);}
+  .card-body.open{display:block;}
+  .detail-grid{display:grid; grid-template-columns:1fr; gap:10px; margin:14px 0; font-size:13.5px;}
+  @media(min-width:560px){ .detail-grid{grid-template-columns:1fr 1fr;} }
+  .detail-grid dt{color:var(--muted); font-size:11px; text-transform:uppercase; letter-spacing:.05em; margin-bottom:2px;}
+  .detail-grid dd{margin:0 0 10px;}
+  .section-label{font-family:"IBM Plex Mono",monospace; font-size:11px; letter-spacing:.08em; text-transform:uppercase; color:var(--amber); margin:16px 0 8px;}
+  .zeit-line{font-size:13px; margin-bottom:3px;}
+  .mat-list{margin:0; padding-left:18px; font-size:13.5px;}
+  .pdf-btn{
+    background:var(--amber); color:#1a1208; border:none; padding:9px 16px; border-radius:var(--radius);
+    font-weight:600; font-family:"IBM Plex Mono",monospace; font-size:12.5px; margin-top:14px;
+  }
+  .pdf-btn:hover{background:#f3a361;}
+
+  .state{text-align:center; color:var(--muted); padding:40px 20px; font-size:14px;}
+  .state.err{color:var(--danger);}
+  .db-status{display:inline-flex; align-items:center; gap:6px; font-size:10.5px; color:var(--muted); font-family:"IBM Plex Mono",monospace; cursor:pointer; white-space:nowrap;}
+  .db-dot{width:8px; height:8px; border-radius:50%; display:inline-block; background:var(--muted); flex-shrink:0;}
+  .db-dot.green{background:var(--ok); box-shadow:0 0 6px rgba(92,158,124,0.7);}
+  .db-dot.yellow{background:#e0c34a; box-shadow:0 0 6px rgba(224,195,74,0.7);}
+  .db-dot.red{background:var(--danger); box-shadow:0 0 6px rgba(201,96,79,0.7);}
+</style>
+</head>
+<body>
+
+<div id="gate">
+  <div class="box">
+    <p class="eyebrow">Blueprint · TS-Suite</p>
+    <h1>Berichtsübersicht</h1>
+    <input type="password" id="pwInput" placeholder="Zugangscode" autocomplete="off">
+    <button id="pwBtn">Anmelden</button>
+    <div class="err" id="pwErr"></div>
+  </div>
+</div>
+
+<div id="appContent" style="display:none;">
+  <header>
+    <div style="display:flex; justify-content:space-between; align-items:flex-start; max-width:960px; margin:0 auto;">
+      <div>
+        <p class="eyebrow">Blueprint · TS-Suite</p>
+        <h1>Berichtsübersicht</h1>
+      </div>
+      <div style="display:flex; flex-direction:column; align-items:flex-end; gap:8px;">
+        <a href="index.html" style="color:var(--muted); font-size:12.5px; text-decoration:underline; white-space:nowrap;">← Zurück zur Startseite</a>
+        <span class="db-status" id="dbStatus" title="Zum Neu-Prüfen antippen">
+          <span class="db-dot" id="dbDot"></span>
+          <span id="dbLabel">prüfe ...</span>
+        </span>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    <div class="filters">
+      <div>
+        <label>Suche (Kunde, Bauvorhaben)</label>
+        <input type="text" id="fSuche" placeholder="z. B. Karlsruhe, Fraunhofer...">
+      </div>
+      <div>
+        <label>VAN/VAT-Nummer</label>
+        <input type="text" id="fVanVat" placeholder="z. B. VAT1058533">
+      </div>
+      <div>
+        <label>Techniker</label>
+        <select id="fTechniker"><option value="">Alle</option></select>
+      </div>
+      <div>
+        <label>Von</label>
+        <input type="date" id="fVon">
+      </div>
+      <div>
+        <label>Bis</label>
+        <input type="date" id="fBis">
+      </div>
+    </div>
+
+    <div class="meta-row">
+      <span id="ergebnisCount">–</span>
+      <button id="refreshBtn">↻ Aktualisieren</button>
+    </div>
+
+    <div id="listContainer">
+      <div class="state" id="loadingState">Lade Berichte ...</div>
+    </div>
+  </main>
+</div>
+
+<script>
+/* ============================================================
+   KONFIGURATION — gleiche Werte wie im Arbeitsbericht-Formular
+   ============================================================ */
+const SUPABASE_URL = 'https://guuywhrzygcnpzrnnlsw.supabase.co';
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imd1dXl3aHJ6eWdjbnB6cm5ubHN3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODM3MjcyOTIsImV4cCI6MjA5OTMwMzI5Mn0.tvPfk5j6mXNG2YcYl4cUR-rF-T3QWdTGuOZ8SHRSv2U';
+const ZUGANGSCODE = 'sto7808'; // <- hier den gewünschten Zugangscode ändern
+
+function supabaseHeaders(){
+  return { 'apikey': SUPABASE_ANON_KEY, 'Authorization': 'Bearer ' + SUPABASE_ANON_KEY };
+}
+
+document.getElementById('pwBtn').addEventListener('click', checkPassword);
+document.getElementById('pwInput').addEventListener('keydown', e => { if(e.key === 'Enter') checkPassword(); });
+function checkPassword(){
+  const val = document.getElementById('pwInput').value;
+  if(val === ZUGANGSCODE){
+    document.getElementById('gate').style.display = 'none';
+    document.getElementById('appContent').style.display = 'block';
+    sessionStorage.setItem('ts_uebersicht_auth', '1');
+    ladeBerichte();
+    pruefeDbStatus();
+  } else {
+    document.getElementById('pwErr').textContent = 'Falscher Zugangscode.';
+  }
+}
+if(sessionStorage.getItem('ts_uebersicht_auth') === '1'){
+  document.getElementById('gate').style.display = 'none';
+  document.getElementById('appContent').style.display = 'block';
+  ladeBerichte();
+  pruefeDbStatus();
+}
+
+/* ---------- DB-Status-Ampel ---------- */
+async function pruefeDbStatus(){
+  const dot = document.getElementById('dbDot');
+  const label = document.getElementById('dbLabel');
+  dot.className = 'db-dot';
+  label.textContent = 'prüfe ...';
+
+  try{
+    const start = Date.now();
+    const res = await fetch(`${SUPABASE_URL}/rest/v1/berichte?select=id&limit=1`, { headers: supabaseHeaders() });
+    const dauer = Date.now() - start;
+    if(res.ok){
+      if(dauer > 3000){
+        dot.classList.add('yellow');
+        label.textContent = 'langsam (' + Math.round(dauer/1000) + 's)';
+      } else {
+        dot.classList.add('green');
+        label.textContent = 'verbunden';
+      }
+    } else {
+      dot.classList.add('yellow');
+      label.textContent = 'Fehler (' + res.status + ')';
+    }
+  } catch(err){
+    dot.classList.add('red');
+    label.textContent = 'nicht erreichbar';
+  }
+}
+document.getElementById('dbStatus').addEventListener('click', pruefeDbStatus);
+setInterval(() => { if(document.getElementById('appContent').style.display !== 'none') pruefeDbStatus(); }, 120000);
+
+let alleBerichte = [];
+
+async function ladeBerichte(){
+  const listEl = document.getElementById('listContainer');
+  listEl.innerHTML = '<div class="state" id="loadingState">Lade Berichte ...</div>';
+  try{
+    const res = await fetch(`${SUPABASE_URL}/rest/v1/berichte?select=*&order=created_at.desc`, { headers: supabaseHeaders() });
+    if(!res.ok) throw new Error('HTTP ' + res.status);
+    alleBerichte = await res.json();
+    befuelleTechnikerFilter();
+    renderListe();
+  } catch(err){
+    console.error(err);
+    listEl.innerHTML = `<div class="state err">Berichte konnten nicht geladen werden (${err.message}). Prüfe Internetverbindung und Supabase-Zugangsdaten.</div>`;
+  }
+}
+document.getElementById('refreshBtn').addEventListener('click', ladeBerichte);
+
+function befuelleTechnikerFilter(){
+  const sel = document.getElementById('fTechniker');
+  const namen = new Set();
+  alleBerichte.forEach(b => {
+    if(b.techniker) namen.add(b.techniker);
+    ((b.daten && b.daten.zeiterfassung) || []).forEach(z => { if(z.techniker) namen.add(z.techniker); });
+  });
+  const current = sel.value;
+  sel.innerHTML = '<option value="">Alle</option>' + [...namen].sort().map(n => `<option value="${n}">${n}</option>`).join('');
+  sel.value = current;
+}
+
+['fSuche','fVanVat','fTechniker','fVon','fBis'].forEach(id => {
+  document.getElementById(id).addEventListener('input', renderListe);
+});
+
+function gefiltert(){
+  const suche = document.getElementById('fSuche').value.trim().toLowerCase();
+  const vanVat = document.getElementById('fVanVat').value.trim().toLowerCase();
+  const techniker = document.getElementById('fTechniker').value;
+  const von = document.getElementById('fVon').value;
+  const bis = document.getElementById('fBis').value;
+
+  return alleBerichte.filter(b => {
+    if(suche){
+      const hay = [b.kunde, b.bauvorhaben, b.techniker].join(' ').toLowerCase();
+      if(!hay.includes(suche)) return false;
+    }
+    if(vanVat){
+      const nr = (b.angebotsnr || '').toLowerCase();
+      if(!nr.includes(vanVat)) return false;
+    }
+    if(techniker){
+      const namen = [b.techniker, ...(((b.daten && b.daten.zeiterfassung) || []).map(z => z.techniker))];
+      if(!namen.includes(techniker)) return false;
+    }
+    if(von || bis){
+      const datum = (b.created_at || '').slice(0,10);
+      if(von && datum < von) return false;
+      if(bis && datum > bis) return false;
+    }
+    return true;
+  });
+}
+
+function renderListe(){
+  const list = gefiltert();
+  document.getElementById('ergebnisCount').textContent = `${list.length} von ${alleBerichte.length} Berichten`;
+  const container = document.getElementById('listContainer');
+
+  if(!alleBerichte.length){
+    container.innerHTML = '<div class="state">Noch keine Berichte in der Datenbank.</div>';
+    return;
+  }
+  if(!list.length){
+    container.innerHTML = '<div class="state">Keine Berichte für diese Filter gefunden.</div>';
+    return;
+  }
+
+  container.innerHTML = list.map((b, i) => {
+    const d = b.daten || {};
+    const statusClass = d.status === 'fortgesetzt' ? 'fortgesetzt' : 'beendet';
+    const statusLabel = d.status === 'fortgesetzt' ? 'Wird fortgesetzt' : 'Beendet';
+    const datumFmt = b.created_at ? new Date(b.created_at).toLocaleDateString('de-DE') : '-';
+    return `
+      <div class="card">
+        <div class="card-head" data-idx="${i}">
+          <div>
+            <div class="card-title-txt">${esc(b.bauvorhaben || b.kunde || 'Ohne Bauvorhaben')}</div>
+            <div class="card-sub">${esc(b.kunde || '-')} · ${esc(b.angebotsnr || 'ohne Nr.')} · ${esc(b.techniker || '-')} · ${datumFmt}</div>
+          </div>
+          <span class="badge ${statusClass}">${statusLabel}</span>
+        </div>
+        <div class="card-body" id="body_${i}"></div>
+      </div>
+    `;
+  }).join('');
+
+  container.querySelectorAll('.card-head').forEach(head => {
+    head.addEventListener('click', () => {
+      const idx = head.dataset.idx;
+      const body = document.getElementById('body_' + idx);
+      const isOpen = body.classList.contains('open');
+      container.querySelectorAll('.card-body.open').forEach(b => b.classList.remove('open'));
+      if(!isOpen){
+        body.innerHTML = renderDetail(list[idx]);
+        body.classList.add('open');
+        initKarte(list[idx]);
+        const btn = body.querySelector('.pdf-btn');
+        btn.addEventListener('click', async () => {
+          const original = btn.textContent;
+          btn.textContent = 'Erzeuge PDF ...';
+          btn.disabled = true;
+          try{
+            await erzeugePdf(list[idx]);
+          } catch(err){
+            console.error('PDF-Erzeugung fehlgeschlagen:', err);
+            alert('PDF konnte nicht erzeugt werden: ' + err.message);
+          } finally {
+            btn.textContent = original;
+            btn.disabled = false;
+          }
+        });
+      }
+    });
+  });
+}
+
+function esc(s){ return (s || '').toString().replace(/[<>&]/g, c => ({'<':'&lt;','>':'&gt;','&':'&amp;'}[c])); }
+
+/* Grüner Pin statt Leaflets Standard-Blau/Rot */
+const gruenerPin = L.icon({
+  iconUrl: 'data:image/svg+xml;utf8,' + encodeURIComponent(
+    `<svg xmlns="http://www.w3.org/2000/svg" width="25" height="41" viewBox="0 0 25 41">
+      <path fill="#5c9e7c" stroke="#0e1318" stroke-width="1" d="M12.5 0C5.6 0 0 5.6 0 12.5c0 9.4 12.5 28.5 12.5 28.5S25 21.9 25 12.5C25 5.6 19.4 0 12.5 0z"/>
+      <circle cx="12.5" cy="12.5" r="5" fill="#0e1318"/>
+    </svg>`
+  ),
+  iconSize: [25, 41],
+  iconAnchor: [12, 41],
+  popupAnchor: [0, -38]
+});
+
+function initKarte(b){
+  const d = b.daten || {};
+  if(!d.standort) return;
+  const el = document.getElementById('karte-' + b.id);
+  if(!el) return;
+  try{
+    const map = L.map(el, { scrollWheelZoom: false }).setView([d.standort.lat, d.standort.lng], 15);
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      attribution: '© OpenStreetMap',
+      maxZoom: 19
+    }).addTo(map);
+    L.marker([d.standort.lat, d.standort.lng], { icon: gruenerPin }).addTo(map);
+    // Leaflet berechnet die Kartengröße manchmal falsch, wenn der Container
+    // gerade erst sichtbar wurde (display:none -> block). Kurzer Nachstoß behebt das.
+    setTimeout(() => map.invalidateSize(), 100);
+  } catch(err){
+    console.error('Karte konnte nicht geladen werden:', err);
+    el.innerHTML = '<div style="padding:12px; font-size:12px; color:var(--danger);">Karte konnte nicht geladen werden (' + err.message + ')</div>';
+  }
+}
+
+function renderDetail(b){
+  const d = b.daten || {};
+  const zeitHtml = (d.zeiterfassung || []).map(z => {
+    const tage = (z.tage || []).map(t => {
+      const std = parseFloat((t.stunden||'').toString().replace(',','.')) || 0;
+      const datumFmt = t.datum ? t.datum.split('-').reverse().join('.') : '-';
+      return `<div class="zeit-line">${datumFmt} — ${std.toString().replace('.',',')} Std.${t.wegepauschale ? ' · Wegepauschale' : ''}</div>`;
+    }).join('');
+    return `<div style="margin-bottom:8px;"><strong>${esc(z.techniker)}${z.primary ? ' (Gerät)' : ''}</strong>${tage}</div>`;
+  }).join('') || '<div class="zeit-line">Keine Zeiterfassung erfasst.</div>';
+
+  const matHtml = (d.material_checkliste && d.material_checkliste.length)
+    ? `<ul class="mat-list">${d.material_checkliste.map(m => `<li>${esc(m)}</li>`).join('')}</ul>`
+    : '';
+
+  return `
+    <dl class="detail-grid">
+      <div><dt>Kunde</dt><dd>${esc(b.kunde) || '-'}</dd></div>
+      <div><dt>Bauvorhaben</dt><dd>${esc(b.bauvorhaben) || '-'}</dd></div>
+      <div><dt>Angebots-/Auftragsnr.</dt><dd>${esc(b.angebotsnr) || '-'}</dd></div>
+      <div><dt>Techniker (Gerät)</dt><dd>${esc(b.techniker) || '-'}</dd></div>
+      <div><dt>Ansprechpartner</dt><dd>${esc(d.ansprechpartner) || '-'}</dd></div>
+      <div><dt>Telefon</dt><dd>${esc(d.telefon) || '-'}</dd></div>
+      <div><dt>E-Mail</dt><dd>${esc(d.email) || '-'}</dd></div>
+      ${d.lieferanschrift ? `<div><dt>Lieferanschrift</dt><dd>${esc(d.lieferanschrift)}</dd></div>` : ''}
+      ${d.standort ? `<div><dt>Standort beim Absenden</dt><dd><a href="https://maps.google.com/?q=${d.standort.lat},${d.standort.lng}" target="_blank" style="color:var(--blue);">${d.standort.lat.toFixed(5)}, ${d.standort.lng.toFixed(5)}</a> <span style="color:var(--muted);font-size:11px;">(±${d.standort.genauigkeit_m}m)</span></dd></div>` : ''}
+    </dl>
+
+    <p class="section-label">Kartenausschnitt</p>
+    ${d.standort
+      ? `<div id="karte-${b.id}" style="width:100%; height:220px; border:1px solid var(--line); border-radius:2px;"></div>`
+      : '<div style="font-size:12.5px; color:var(--muted);">Kein Standort für diesen Bericht erfasst (Standort-Funktion war beim Absenden aus, oder der Techniker hat den Browser-Zugriff abgelehnt).</div>'}
+
+    <p class="section-label">Zeiterfassung</p>
+    ${zeitHtml}
+
+    <p class="section-label">Tätigkeitsbeschreibung</p>
+    <div style="font-size:13.5px; white-space:pre-wrap;">${esc(d.taetigkeit) || '-'}</div>
+
+    ${d.interner_bericht ? `<p class="section-label">Interner Bericht (nicht für den Kunden)</p><div style="font-size:13.5px; white-space:pre-wrap;">${esc(d.interner_bericht)}</div>` : ''}
+    ${d.hinweis ? `<p class="section-label">Hinweis</p><div style="font-size:13.5px; white-space:pre-wrap;">${esc(d.hinweis)}</div>` : ''}
+
+    ${matHtml ? `<p class="section-label">Materialverbrauch</p>${matHtml}` : ''}
+    ${d.material_freitext ? `<div style="font-size:13.5px; margin-top:6px; white-space:pre-wrap;">${esc(d.material_freitext)}</div>` : ''}
+
+    <p class="section-label">Unterschrift</p>
+    <div style="font-size:13.5px;">
+      ${d.kein_abnehmer_vor_ort
+        ? 'Unterschriftsberechtigter nicht vor Ort'
+        : `${esc(d.kundenname) || 'kein Name erfasst'}${d.abnehmer_funktion ? ' — ' + esc(d.abnehmer_funktion) : ''}
+           ${d.unterschrift_url ? `<br><img src="${esc(d.unterschrift_url)}" style="max-width:220px;background:#fff;border-radius:2px;margin-top:8px;">` : `<br><span style="color:var(--muted);font-size:12px;">Keine Unterschrift in der Datenbank gespeichert (Speichern-Schalter war aus).</span>`}`}
+    </div>
+
+    <p class="section-label">Fotos</p>
+    ${(d.foto_urls && d.foto_urls.length) ? `
+      <div style="display:grid; grid-template-columns:repeat(auto-fill, minmax(90px,1fr)); gap:8px;">
+        ${d.foto_urls.map(u => `<a href="${esc(u)}" target="_blank"><img src="${esc(u)}" style="width:100%; aspect-ratio:1; object-fit:cover; border-radius:2px; border:1px solid var(--line);"></a>`).join('')}
+      </div>
+    ` : '<div style="font-size:12.5px; color:var(--muted);">Keine Fotos in der Datenbank gespeichert (Speichern-Schalter war aus, oder es wurden keine Fotos aufgenommen).</div>'}
+
+    <button class="pdf-btn">PDF neu erzeugen</button>
+  `;
+}
+
+function formatAusDataUrl(dataUrl){
+  const m = dataUrl.match(/^data:image\/(\w+);/);
+  if(!m) return 'JPEG';
+  const typ = m[1].toLowerCase();
+  if(typ === 'png') return 'PNG';
+  if(typ === 'webp') return 'WEBP';
+  if(typ === 'gif') return 'GIF';
+  return 'JPEG';
+}
+
+async function bildAlsDataUrl(url){
+  const res = await fetch(url);
+  if(!res.ok) throw new Error('HTTP ' + res.status + ' beim Laden von ' + url);
+  const blob = await res.blob();
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(reader.result);
+    reader.onerror = reject;
+    reader.readAsDataURL(blob);
+  });
+}
+
+async function erzeugePdf(b){
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF({unit:'mm', format:'a4'});
+  const margin = 16, pageW = 210;
+  let y = 20;
+  const d = b.daten || {};
+
+  doc.setFont('helvetica','bold'); doc.setFontSize(16);
+  doc.text('Arbeitsbericht', margin, y); y += 10;
+
+  doc.setFont('helvetica','normal'); doc.setFontSize(10);
+  const felder = [
+    ['Kunde', b.kunde],
+    ['Bauvorhaben', b.bauvorhaben],
+    ['Angebots-/Auftragsnr.', b.angebotsnr],
+    ['Erstellt am', b.created_at ? new Date(b.created_at).toLocaleString('de-DE') : '-'],
+    ['Techniker', b.techniker],
+  ];
+  felder.forEach(([label, value]) => {
+    doc.setFont('helvetica','bold'); doc.text(label + ':', margin, y);
+    doc.setFont('helvetica','normal'); doc.text(value || '-', margin + 55, y);
+    y += 6.5;
+  });
+  if(d.lieferanschrift){
+    doc.setFont('helvetica','bold'); doc.text('Lieferanschrift:', margin, y);
+    doc.setFont('helvetica','normal');
+    const lines = doc.splitTextToSize(d.lieferanschrift, pageW - margin - 55 - margin);
+    doc.text(lines, margin + 55, y);
+    y += Math.max(6.5, lines.length * 5);
+  }
+  y += 4;
+
+  doc.setFont('helvetica','bold'); doc.setFontSize(12);
+  doc.text('Zeiterfassung', margin, y); y += 7;
+  doc.setFontSize(10);
+  (d.zeiterfassung || []).forEach(z => {
+    doc.setFont('helvetica','bold');
+    doc.text(z.techniker + (z.primary ? ' (Gerät)' : ''), margin, y); y += 5.5;
+    doc.setFont('helvetica','normal');
+    (z.tage || []).forEach(t => {
+      const std = parseFloat((t.stunden||'').toString().replace(',','.')) || 0;
+      const datumFmt = t.datum ? t.datum.split('-').reverse().join('.') : '-';
+      doc.text(`  ${datumFmt}   ${std.toString().replace('.',',')} Std.${t.wegepauschale ? '  ·  Wegepauschale' : ''}`, margin, y);
+      y += 5.5;
+    });
+  });
+  y += 6;
+
+  if(y > 250){ doc.addPage(); y = 20; }
+  doc.setFont('helvetica','bold'); doc.setFontSize(12);
+  doc.text('Tätigkeitsbeschreibung', margin, y); y += 7;
+  doc.setFont('helvetica','normal'); doc.setFontSize(10);
+  const taetLines = doc.splitTextToSize(d.taetigkeit || '-', pageW - margin*2);
+  doc.text(taetLines, margin, y); y += taetLines.length * 5 + 6;
+  doc.setFont('helvetica','bold');
+  doc.text('Status: ' + (d.status === 'fortgesetzt' ? 'Arbeiten werden fortgesetzt' : 'Arbeiten beendet'), margin, y);
+  y += 10;
+
+  if(d.interner_bericht){
+    if(y > 250){ doc.addPage(); y = 20; }
+    doc.setFont('helvetica','bold'); doc.setFontSize(12);
+    doc.text('Interner Bericht (nicht für den Kunden)', margin, y); y += 7;
+    doc.setFont('helvetica','normal'); doc.setFontSize(10);
+    const ibLines = doc.splitTextToSize(d.interner_bericht, pageW - margin*2);
+    doc.text(ibLines, margin, y); y += ibLines.length * 5 + 8;
+  }
+
+  if(d.hinweis){
+    if(y > 250){ doc.addPage(); y = 20; }
+    doc.setFont('helvetica','bold'); doc.setFontSize(12);
+    doc.text('Hinweis', margin, y); y += 7;
+    doc.setFont('helvetica','normal'); doc.setFontSize(10);
+    const hLines = doc.splitTextToSize(d.hinweis, pageW - margin*2);
+    doc.text(hLines, margin, y); y += hLines.length * 5 + 8;
+  }
+
+  if(y > 250){ doc.addPage(); y = 20; }
+  doc.setFont('helvetica','bold'); doc.setFontSize(12);
+  doc.text('Materialverbrauch', margin, y); y += 7;
+  doc.setFont('helvetica','normal'); doc.setFontSize(10);
+  const matBlocks = [...((d.material_checkliste || []).map(m => '• ' + m))];
+  if(d.material_freitext) matBlocks.push(...d.material_freitext.split('\n').filter(Boolean));
+  const matLines = doc.splitTextToSize(matBlocks.length ? matBlocks.join('\n') : '-', pageW - margin*2);
+  doc.text(matLines, margin, y); y += matLines.length * 5 + 8;
+
+  if(y > 250){ doc.addPage(); y = 20; }
+  doc.setFont('helvetica','bold'); doc.setFontSize(12);
+  doc.text('Kundenunterschrift', margin, y); y += 7;
+  doc.setFont('helvetica','normal'); doc.setFontSize(10);
+  if(d.kein_abnehmer_vor_ort){
+    doc.setFont('helvetica','italic');
+    doc.text('Unterschriftsberechtigter nicht vor Ort', margin, y);
+    y += 10;
+  } else {
+    if(d.unterschrift_url){
+      try{
+        const sigData = await bildAlsDataUrl(d.unterschrift_url);
+        doc.addImage(sigData, 'PNG', margin, y, 70, 32);
+        y += 36;
+      } catch(err){
+        console.error('Unterschrift konnte nicht geladen werden:', err);
+        doc.text('(Unterschrift konnte nicht geladen werden)', margin, y); y += 8;
+      }
+    } else {
+      doc.text('(Unterschrift nicht in der Datenbank gespeichert)', margin, y, {maxWidth: pageW - margin*2});
+      y += 10;
+    }
+    doc.text('Name: ' + (d.kundenname || '-'), margin, y); y += 6;
+    if(d.abnehmer_funktion){ doc.text('Funktion: ' + d.abnehmer_funktion, margin, y); y += 6; }
+  }
+
+  if(d.foto_urls && d.foto_urls.length){
+    if(y > 230){ doc.addPage(); y = 20; }
+    doc.setFont('helvetica','bold'); doc.setFontSize(12);
+    doc.text('Fotos', margin, y); y += 7;
+    let x = margin;
+    const imgW = 55, imgH = 55, gap = 6;
+    let fehlerAnzahl = 0;
+    for(const url of d.foto_urls){
+      if(x + imgW > pageW - margin){ x = margin; y += imgH + gap; }
+      if(y + imgH > 280){ doc.addPage(); y = 20; x = margin; }
+      try{
+        const data = await bildAlsDataUrl(url);
+        doc.addImage(data, formatAusDataUrl(data), x, y, imgW, imgH);
+      } catch(err){
+        console.error('Foto konnte nicht geladen werden:', url, err);
+        fehlerAnzahl++;
+      }
+      x += imgW + gap;
+    }
+    if(fehlerAnzahl){
+      y += imgH + 10;
+      doc.setFont('helvetica','italic'); doc.setFontSize(9);
+      doc.text(`${fehlerAnzahl} von ${d.foto_urls.length} Foto(s) konnten nicht geladen werden.`, margin, y);
+    }
+  }
+
+  const filename = `Arbeitsbericht_${(b.angebotsnr || 'ohne-nr').replace(/[^a-zA-Z0-9\-]/g,'')}_neu.pdf`;
+  doc.save(filename);
+}
+</script>
+</body>
+</html>
