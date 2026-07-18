@@ -194,6 +194,29 @@ nav button{flex:1;display:flex;flex-direction:column;align-items:center;
 nav button svg{width:22px;height:22px;stroke:currentColor;fill:none;
   stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
 nav button.aktiv{color:var(--tuerkis)}
+.stn-filter{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:12px}
+.stn-chip{font-family:var(--mono);font-size:.72rem;padding:7px 12px;border:1px solid var(--border);
+  border-radius:99px;background:var(--panel);color:var(--dim);cursor:pointer}
+.stn-chip.aktiv{border-color:var(--blau);color:var(--text);background:rgba(58,123,213,.15)}
+.stn-range{display:flex;gap:8px;margin-bottom:14px}
+.stn-range input{flex:1;font-size:.85rem}
+.stn-ma{background:var(--panel);border:1px solid var(--border);border-radius:12px;margin-bottom:10px;overflow:hidden}
+.stn-ma summary{list-style:none;padding:12px 14px;cursor:pointer;-webkit-tap-highlight-color:transparent}
+.stn-ma summary::-webkit-details-marker{display:none}
+.stn-kopf{display:flex;justify-content:space-between;align-items:baseline;gap:10px}
+.stn-name{font-weight:600}
+.stn-summe{font-family:var(--mono);color:var(--tuerkis);font-size:1.05rem;white-space:nowrap}
+.stn-meta{font-family:var(--mono);font-size:.68rem;color:var(--dim);margin-top:3px}
+.stn-balken{height:5px;background:var(--panel2);border-radius:99px;margin-top:8px;overflow:hidden}
+.stn-balken i{display:block;height:100%;background:linear-gradient(90deg,var(--blau),var(--tuerkis));border-radius:99px}
+.stn-tage{border-top:1px solid var(--border);padding:6px 14px 10px}
+.stn-tag{display:flex;gap:10px;align-items:baseline;padding:7px 0;border-bottom:1px solid var(--border);font-size:.82rem}
+.stn-tag:last-child{border-bottom:none}
+.stn-tag .d{font-family:var(--mono);color:var(--dim);font-size:.72rem;white-space:nowrap}
+.stn-tag .h{font-family:var(--mono);color:var(--text);white-space:nowrap;margin-left:auto}
+.stn-tag .bv{color:var(--dim);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0}
+.stn-gesamt{display:flex;justify-content:space-between;font-family:var(--mono);font-size:.8rem;
+  color:var(--dim);padding:10px 4px 2px}
 nav .badge{position:absolute;transform:translate(14px,-26px);background:var(--rot);
   color:#fff;font-size:.62rem;border-radius:99px;min-width:16px;height:16px;
   display:flex;align-items:center;justify-content:center;padding:0 4px}
@@ -407,7 +430,8 @@ const routen = {
   unzugeordnet: () => zeigUnzugeordnet(),
   wv          : () => zeigWV(),
   artikel     : () => zeigArtikel(),
-  preise      : () => zeigPreisliste()
+  preise      : () => zeigPreisliste(),
+  stunden     : () => zeigStunden()
 };
 function navigiere(hash){ location.hash = hash; }
 async function route(){
@@ -1877,12 +1901,160 @@ async function zuordnenNeuerKunde(kontaktId){
   }catch(e){ toast('Fehler: ' + e.message.slice(0,80)); }
 }
 
+/* ================= ANSICHT: STUNDEN-AUSWERTUNG ================= */
+/* Datenquelle: Tabelle `berichte` (Arbeitsbericht). Die Zeiten liegen in
+   daten.zeiterfassung = [{techniker, primary, tage:[{datum, stunden, wegepauschale}]}].
+   `stunden` ist Freitext vom Techniker — wird tolerant geparst (Komma/Punkt). */
+let stnPreset = 'monat';
+let stnVon = null, stnBis = null;
+
+function stnHeute(){ return new Date().toISOString().slice(0,10); }
+function stnMonatsanfang(offset = 0){
+  const d = new Date(); d.setDate(1); d.setMonth(d.getMonth() + offset);
+  return d.toISOString().slice(0,10);
+}
+function stnMonatsende(offset = 0){
+  const d = new Date(); d.setDate(1); d.setMonth(d.getMonth() + offset + 1); d.setDate(0);
+  return d.toISOString().slice(0,10);
+}
+function stnPresetGrenzen(p){
+  if(p === 'monat')       return [stnMonatsanfang(0),  stnMonatsende(0)];
+  if(p === 'letzter')     return [stnMonatsanfang(-1), stnMonatsende(-1)];
+  if(p === 'jahr')        return [stnHeute().slice(0,4) + '-01-01', stnHeute().slice(0,4) + '-12-31'];
+  return [null, null]; // alles
+}
+function parseStunden(v){
+  if(v === null || v === undefined) return NaN;
+  const n = parseFloat(String(v).trim().replace(',', '.'));
+  return isFinite(n) && n >= 0 && n <= 24 ? n : NaN;
+}
+function fmtStd(n){
+  return (Math.round(n * 100) / 100).toLocaleString('de-DE', { maximumFractionDigits: 2 });
+}
+function fmtTag(iso){
+  if(!iso) return '—';
+  const [j, m, t] = iso.split('-');
+  return `${t}.${m}.${j.slice(2)}`;
+}
+
+async function zeigStunden(){
+  const v = $('#view');
+  v.innerHTML = `
+    <div class="stn-filter" id="stnChips">
+      ${[['monat','Dieser Monat'],['letzter','Letzter Monat'],['jahr','Dieses Jahr'],['alles','Alles'],['eigen','Zeitraum …']]
+        .map(([k, t]) => `<button class="stn-chip ${stnPreset === k ? 'aktiv' : ''}" data-p="${k}">${t}</button>`).join('')}
+    </div>
+    <div class="stn-range" id="stnRange" style="display:${stnPreset === 'eigen' ? 'flex' : 'none'}">
+      <input type="date" id="stnVon" value="${stnVon || stnMonatsanfang(0)}">
+      <input type="date" id="stnBis" value="${stnBis || stnHeute()}">
+    </div>
+    <div id="stnErgebnis"><div class="leer">Lade Arbeitsberichte …</div></div>`;
+
+  $('#stnChips').addEventListener('click', e => {
+    const b = e.target.closest('[data-p]'); if(!b) return;
+    stnPreset = b.dataset.p;
+    document.querySelectorAll('.stn-chip').forEach(c => c.classList.toggle('aktiv', c.dataset.p === stnPreset));
+    $('#stnRange').style.display = stnPreset === 'eigen' ? 'flex' : 'none';
+    renderStunden();
+  });
+  ['stnVon', 'stnBis'].forEach(id => $('#' + id).addEventListener('change', () => {
+    stnVon = $('#stnVon').value; stnBis = $('#stnBis').value; renderStunden();
+  }));
+
+  try{
+    cache.berichte = await sb('berichte?select=id,angebotsnr,bauvorhaben,kunde,daten,created_at&order=created_at.desc');
+    setStatus(true, cache.berichte.length + ' Berichte');
+  }catch(e){
+    $('#stnErgebnis').innerHTML = `<div class="hinweis fehler">Berichte konnten nicht geladen werden:<br>
+      <span style="font-family:var(--mono);font-size:.75rem">${esc(e.message.slice(0,120))}</span></div>`;
+    return;
+  }
+  renderStunden();
+}
+
+function renderStunden(){
+  const ziel = $('#stnErgebnis');
+  if(!cache.berichte){ return; }
+  let von, bis;
+  if(stnPreset === 'eigen'){
+    von = $('#stnVon') ? $('#stnVon').value : stnVon;
+    bis = $('#stnBis') ? $('#stnBis').value : stnBis;
+  } else {
+    [von, bis] = stnPresetGrenzen(stnPreset);
+  }
+
+  const ma = {}; // name -> Aggregat
+  let ohneDatum = 0, unlesbar = 0;
+
+  for(const b of cache.berichte){
+    const ze = (b.daten && Array.isArray(b.daten.zeiterfassung)) ? b.daten.zeiterfassung : [];
+    for(const block of ze){
+      const name = (block.techniker || '').trim() || '(ohne Name)';
+      const key = name.toLowerCase(); // gleiche Person trotz abweichender Schreibweise zusammenfassen
+      for(const row of (block.tage || [])){
+        if(!row.datum){ ohneDatum++; continue; }
+        if(von && row.datum < von) continue;
+        if(bis && row.datum > bis) continue;
+        const h = parseStunden(row.stunden);
+        if(isNaN(h)){ unlesbar++; continue; }
+        if(!ma[key]) ma[key] = { name, stunden: 0, tage: 0, wegep: 0, berichte: new Set(), zeilen: [] };
+        const m = ma[key];
+        m.stunden += h; m.tage++;
+        if(row.wegepauschale) m.wegep++;
+        m.berichte.add(b.id);
+        m.zeilen.push({ datum: row.datum, h, wegep: !!row.wegepauschale,
+          bv: b.bauvorhaben || b.kunde || b.angebotsnr || '—' });
+      }
+    }
+  }
+
+  const liste = Object.values(ma).sort((a, z) => z.stunden - a.stunden);
+  if(!liste.length){
+    ziel.innerHTML = '<div class="leer">Keine Arbeitszeiten im gewählten Zeitraum.</div>';
+    return;
+  }
+  const max = Math.max(...liste.map(m => m.stunden), 0.001);
+  const gesamt = liste.reduce((a, m) => a + m.stunden, 0);
+  const gesamtWegep = liste.reduce((a, m) => a + m.wegep, 0);
+
+  ziel.innerHTML = liste.map(m => `
+    <details class="stn-ma">
+      <summary>
+        <div class="stn-kopf">
+          <span class="stn-name">${esc(m.name)}</span>
+          <span class="stn-summe">${fmtStd(m.stunden)} h</span>
+        </div>
+        <div class="stn-meta">${m.berichte.size} Bericht${m.berichte.size === 1 ? '' : 'e'} ·
+          ${m.tage} Tag${m.tage === 1 ? '' : 'e'} · ${m.wegep} Wegepauschale${m.wegep === 1 ? '' : 'n'}</div>
+        <div class="stn-balken"><i style="width:${Math.round(m.stunden / max * 100)}%"></i></div>
+      </summary>
+      <div class="stn-tage">
+        ${m.zeilen.sort((a, z) => z.datum.localeCompare(a.datum)).map(r => `
+          <div class="stn-tag">
+            <span class="d">${fmtTag(r.datum)}</span>
+            <span class="bv">${esc(r.bv)}${r.wegep ? ' · WP' : ''}</span>
+            <span class="h">${fmtStd(r.h)} h</span>
+          </div>`).join('')}
+      </div>
+    </details>`).join('') + `
+    <div class="stn-gesamt">
+      <span>Gesamt (${liste.length} Mitarbeiter)</span>
+      <span>${fmtStd(gesamt)} h · ${gesamtWegep} WP</span>
+    </div>` +
+    ((ohneDatum || unlesbar) ? `<div class="stn-gesamt" style="color:var(--rot)">
+      <span>Nicht auswertbar übersprungen</span>
+      <span>${ohneDatum ? ohneDatum + '× ohne Datum ' : ''}${unlesbar ? unlesbar + '× Stunden unlesbar' : ''}</span>
+    </div>` : '');
+}
+
 /* ================= NAVIGATION + START ================= */
+
 const NAV = [
   ['kunden',  'Kunden',        '<circle cx="12" cy="8" r="4"/><path d="M4 21v-1a8 8 0 0 1 16 0v1"/>'],
   ['wv',      'Wiedervorlagen','<rect x="4" y="5" width="16" height="16" rx="2"/><path d="M8 3v4M16 3v4M4 11h16"/>'],
   ['artikel', 'Artikel',       '<path d="M21 8l-9-5-9 5 9 5 9-5zM3 8v8l9 5 9-5V8"/><path d="M12 13v8"/>'],
-  ['preise',  'Preise',        '<path d="M3 3v7.586a2 2 0 0 0 .586 1.414l9 9a2 2 0 0 0 2.828 0l6-6a2 2 0 0 0 0-2.828l-9-9A2 2 0 0 0 10.586 3H3z"/><circle cx="8" cy="8" r="1.5"/>']
+  ['preise',  'Preise',        '<path d="M3 3v7.586a2 2 0 0 0 .586 1.414l9 9a2 2 0 0 0 2.828 0l6-6a2 2 0 0 0 0-2.828l-9-9A2 2 0 0 0 10.586 3H3z"/><circle cx="8" cy="8" r="1.5"/>'],
+  ['stunden', 'Stunden',       '<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>']
 ];
 $('#nav').innerHTML = NAV.map(([ziel, txt, icon]) => `
   <button data-ziel="${ziel}" onclick="navigiere('#/${ziel}')">
