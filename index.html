@@ -157,6 +157,22 @@
     .beta-stamp{opacity:.85!important;transform:translateY(-50%) rotate(-11deg) scale(1)!important;filter:none!important;}
     html{scroll-behavior:auto;}
   }
+
+  /* Kontakt-Schnellsuche */
+  .lookup{max-width:520px;border:1px solid var(--line-30);background:var(--surface);padding:20px 22px;}
+  .lookup__label{display:block;font-family:var(--font-mono);font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--accent);margin-bottom:10px;}
+  .lookup__row{display:flex;gap:8px;}
+  .lookup__row input{flex:1;background:var(--bg);border:1px solid var(--line-35);color:var(--ink);padding:10px 12px;font-size:14px;font-family:inherit;}
+  .lookup__row input:focus{outline:none;border-color:var(--accent);}
+  .lookup__row button{background:var(--accent);color:var(--bg);border:none;padding:10px 16px;font-weight:600;font-family:var(--font-mono);font-size:13px;cursor:pointer;}
+  .lookup__row button:hover{background:var(--accent-dark);}
+  .lookup__results{margin-top:12px;font-size:13px;}
+  .lookup-item{background:var(--bg);border:1px solid var(--line-25);padding:10px 12px;margin-bottom:8px;}
+  .lookup-item .bv{font-weight:600;margin-bottom:2px;}
+  .lookup-item .kd{color:var(--ink-dim,#8394a1);font-size:12px;margin-bottom:6px;opacity:.8;}
+  .lookup-item a.tel{color:var(--accent);text-decoration:none;font-family:var(--font-mono);font-size:13px;}
+  .lookup-item a.tel:hover{text-decoration:underline;}
+  .lookup-state{color:var(--ink);opacity:.6;font-size:12.5px;margin-top:10px;}
 </style>
 </head>
 <body>
@@ -181,8 +197,8 @@
     <div class="hero__in">
       <div>
         <span class="eyebrow">Software für Tür &amp; Zutrittskontrolle</span>
-        <h1 id="hero-title">Fünf Werkzeuge, ein System &mdash; vom Aufmaß bis zum Kabelplan.</h1>
-        <p>Alle Programme, die im Türgeschäft täglich gebraucht werden. Lokal im Browser — keine Daten verlassen das Gerät.</p>
+        <h1 id="hero-title">Zehn Werkzeuge, ein System &mdash; vom Aufmaß bis zum Arbeitsbericht.</h1>
+        <p>Alle Programme, die im Türgeschäft täglich gebraucht werden. Konfiguratoren laufen lokal im Browser — Arbeitsberichte und CRM synchronisieren über die zentrale Datenbank.</p>
         <div class="cta-row">
           <a class="btn btn--primary" href="#programme">Programme ansehen</a>
         </div>
@@ -227,9 +243,9 @@
     <div class="sec-head">
       <div>
         <span class="eyebrow">Die Programme</span>
-        <h2 style="margin-top:6px;">Fünf Werkzeuge, ein System.</h2>
+        <h2 style="margin-top:6px;">Zehn Werkzeuge, ein System.</h2>
       </div>
-      <span class="meta">lokal im Browser · offline</span>
+      <span class="meta">Konfiguratoren offline · Berichte &amp; CRM mit Sync</span>
     </div>
 
     <p class="subgroup-label"><span class="subgroup-mark" aria-hidden="true"></span>Tür-Konfiguratoren</p>
@@ -282,6 +298,42 @@
         </a>
     </div>
 
+    <p class="subgroup-label subgroup-label--spaced"><span class="subgroup-mark" aria-hidden="true"></span>Bericht &amp; Kunde</p>
+    <div class="grid grid--3">
+        <a class="card card--noshot" href="arbeitsbericht.html">
+          <span class="card__body">
+            <span class="card__corner" aria-hidden="true"></span>
+            <span class="card__tag">Service · Baustelle</span>
+            <span class="card__name">Arbeitsbericht</span>
+            <p class="card__desc">Auftrag vor Ort erfassen: Zeiten, Material, Fotos, GPS und Kundenunterschrift — abschließen und als PDF exportieren.</p>
+            <span class="card__spec">PDF-Import · Foto · Unterschrift · Sync</span>
+            <span class="card__open">Öffnen <span aria-hidden="true">→</span></span>
+          </span>
+        </a>
+
+        <a class="card card--noshot" href="uebersicht.html">
+          <span class="card__body">
+            <span class="card__corner" aria-hidden="true"></span>
+            <span class="card__tag">Service · Büro</span>
+            <span class="card__name">Berichtsübersicht</span>
+            <p class="card__desc">Alle eingegangenen Arbeitsberichte im Büro sichten: Filter, Karte mit GPS-Pins, Fotogalerie und PDF-Neuerzeugung.</p>
+            <span class="card__spec">Passwortgeschützt · Karte · PDF</span>
+            <span class="card__open">Öffnen <span aria-hidden="true">→</span></span>
+          </span>
+        </a>
+
+        <a class="card card--noshot" href="crm.html">
+          <span class="card__body">
+            <span class="card__corner" aria-hidden="true"></span>
+            <span class="card__tag">Kunde · CRM</span>
+            <span class="card__name">CRM</span>
+            <p class="card__desc">Kunden, Ansprechpartner, Aktivitäten und Wiedervorlagen pflegen — direkt verzahnt mit Kontakten und Arbeitsberichten.</p>
+            <span class="card__spec">Aktivitäten · Wiedervorlagen · Trello</span>
+            <span class="card__open">Öffnen <span aria-hidden="true">→</span></span>
+          </span>
+        </a>
+    </div>
+
     <p class="subgroup-label subgroup-label--spaced"><span class="subgroup-mark" aria-hidden="true"></span>ZuKo Zutrittskontrolle</p>
     <div class="grid grid--3">
         <a class="card" href="zuko-planungstool.html">
@@ -321,6 +373,15 @@
         </a>
     </div>
 
+    <p class="subgroup-label subgroup-label--spaced"><span class="subgroup-mark" aria-hidden="true"></span>Schnellsuche</p>
+    <div class="lookup" id="kontakt-lookup">
+      <label class="lookup__label" for="lookupInput">Ansprechpartner &amp; Telefon suchen</label>
+      <div class="lookup__row">
+        <input type="text" id="lookupInput" placeholder="Bauvorhaben, Kunde oder Name..." autocomplete="off">
+        <button id="lookupBtn" type="button">Suchen</button>
+      </div>
+      <div class="lookup__results" id="lookupResults"></div>
+    </div>
 
   </section>
 
@@ -353,8 +414,53 @@
 
 <footer class="foot">
   <span>© 2026 TS-Suite</span>
-  <span>Drehtür · Schiebetür · ZuKo Planungstool · Kabelplan-Generator · Bauteil-Editor</span>
+  <span>Drehtür · Schiebetür · Aufmaß · Arbeitsbericht · CRM · ZuKo</span>
 </footer>
 
+<script>
+/* Kontakt-Schnellsuche — Supabase kontakte-Tabelle (übernommen aus der alten Arbeitsbericht-Startseite) */
+const SUPABASE_URL = 'https://guuywhrzygcnpzrnnlsw.supabase.co';
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imd1dXl3aHJ6eWdjbnB6cm5ubHN3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODM3MjcyOTIsImV4cCI6MjA5OTMwMzI5Mn0.tvPfk5j6mXNG2YcYl4cUR-rF-T3QWdTGuOZ8SHRSv2U';
+
+function supabaseHeaders(){
+  return { 'apikey': SUPABASE_ANON_KEY, 'Authorization': 'Bearer ' + SUPABASE_ANON_KEY };
+}
+function esc(s){ return (s || '').toString().replace(/[<>&]/g, c => ({'<':'&lt;','>':'&gt;','&':'&amp;'}[c])); }
+
+async function sucheKontakt(){
+  const term = document.getElementById('lookupInput').value.trim();
+  const resultsEl = document.getElementById('lookupResults');
+  if(!term){ resultsEl.innerHTML = ''; return; }
+
+  resultsEl.innerHTML = '<div class="lookup-state">Suche ...</div>';
+  try{
+    const filter = `bauvorhaben.ilike.*${term}*,kunde.ilike.*${term}*,ansprechpartner.ilike.*${term}*`;
+    const res = await fetch(
+      `${SUPABASE_URL}/rest/v1/kontakte?or=(${encodeURIComponent(filter)})&select=*&order=updated_at.desc&limit=10`,
+      { headers: supabaseHeaders() }
+    );
+    if(!res.ok) throw new Error('HTTP ' + res.status);
+    const rows = await res.json();
+
+    if(!rows.length){
+      resultsEl.innerHTML = '<div class="lookup-state">Kein Treffer gefunden.</div>';
+      return;
+    }
+    resultsEl.innerHTML = rows.map(r => `
+      <div class="lookup-item">
+        <div class="bv">${esc(r.bauvorhaben) || 'Ohne Bauvorhaben'}</div>
+        <div class="kd">${esc(r.kunde) || '-'} · ${esc(r.ansprechpartner) || 'kein Ansprechpartner erfasst'}</div>
+        ${r.telefon ? `<a class="tel" href="tel:${esc(r.telefon).replace(/\s+/g,'')}">📞 ${esc(r.telefon)}</a>` : '<span class="lookup-state" style="margin:0;">keine Telefonnummer erfasst</span>'}
+        ${r.email ? `<br><a class="tel" href="mailto:${esc(r.email)}">✉️ ${esc(r.email)}</a>` : ''}
+      </div>
+    `).join('');
+  } catch(err){
+    console.error(err);
+    resultsEl.innerHTML = '<div class="lookup-state" style="color:#c9604f;">Suche fehlgeschlagen (' + err.message + ').</div>';
+  }
+}
+document.getElementById('lookupBtn').addEventListener('click', sucheKontakt);
+document.getElementById('lookupInput').addEventListener('keydown', e => { if(e.key === 'Enter') sucheKontakt(); });
+</script>
 </body>
 </html>

@@ -1333,7 +1333,9 @@ async function wvAnTrelloAusfuehren(wvId, gewaehlteBauvorhabenId){
   // Klammern werden von encodeURIComponent nicht escaped, könnten aber ein
   // Markdown-Link vorzeitig beenden — zur Sicherheit selbst kodieren.
   const berichtQuery = berichtParams.toString().replace(/\(/g, '%28').replace(/\)/g, '%29');
-  const berichtLink = `https://stogerhost.github.io/Arbeitsbericht/arbeitsbericht.html?${berichtQuery}`;
+  // Absolute URL relativ zum eigenen Standort bauen — Arbeitsbericht liegt jetzt im selben Verzeichnis.
+  // So funktioniert der Link in Trello egal wo die Suite gehostet ist (GitHub Pages, lokal, anderer Server).
+  const berichtLink = new URL('arbeitsbericht.html', location.href).href + `?${berichtQuery}`;
   const desc = [hinweisText, kontaktZeile, `[Arbeitsbericht ausgefüllt öffnen](${berichtLink})`].filter(Boolean).join('\n\n');
   // Monatsanfang/-ende aus dem Fälligkeitsdatum für Start-/Fälligkeitsfeld der Trello-Karte
   let start = null, due = null;
