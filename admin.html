@@ -2,7 +2,10 @@
 <html lang="de">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="STOBER Admin">
 <meta name="theme-color" content="#0a0a0c">
 <title>STOBER Werkzeuge — Admin</title>
 <style>
@@ -30,19 +33,23 @@
     --font-mono:ui-monospace,'JetBrains Mono','SFMono-Regular',Consolas,Menlo,monospace;
   }
   *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
+  html{-webkit-text-size-adjust:100%;}
   body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--font-display);line-height:1.55;
-    -webkit-font-smoothing:antialiased;min-height:100vh;padding-bottom:60px;
+    -webkit-font-smoothing:antialiased;min-height:100vh;
+    padding-bottom:calc(60px + env(safe-area-inset-bottom,0px));
+    padding-left:env(safe-area-inset-left,0px);padding-right:env(safe-area-inset-right,0px);
     background-image:linear-gradient(rgba(255,255,255,.03) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.03) 1px,transparent 1px);
     background-size:34px 34px;}
   input,button{font-family:inherit;}
+  button,input,label,.toggle{touch-action:manipulation;}
   a{color:inherit;}
 
   .stober-backbar{position:sticky;top:0;z-index:99999;display:flex;align-items:center;gap:10px;
-    background:#0a0a0c;color:#e9edf2;padding:10px 16px;
+    background:#0a0a0c;color:#e9edf2;padding:10px 16px;padding-top:calc(10px + env(safe-area-inset-top,0px));
     font:600 12px/1.4 var(--font-mono);letter-spacing:.03em;border-bottom:1px solid var(--line-35);flex-wrap:wrap;}
   .stober-backbar__link{color:#e9edf2;text-decoration:none;display:inline-flex;align-items:center;gap:6px;
     transition:color .15s ease;white-space:nowrap;}
-  .stober-backbar__link:hover{color:var(--accent);}
+  @media(hover:hover){ .stober-backbar__link:hover{color:var(--accent);} }
   .stober-backbar__slash{color:var(--ink-40);}
   .stober-backbar__current{color:var(--accent);font-weight:700;}
 
@@ -56,10 +63,13 @@
   @media(max-width:480px){.wrap{padding:18px 14px;}}
 
   .tabs{display:flex;gap:10px;margin-bottom:20px;}
-  .tab-btn{flex:1;padding:12px 10px;border-radius:2px;border:1px solid var(--line-30);background:var(--surface);
+  .tab-btn{flex:1;padding:12px 6px;border-radius:2px;border:1px solid var(--line-30);background:var(--surface);
     font:700 12.5px var(--font-mono);letter-spacing:.03em;text-transform:uppercase;color:var(--ink-60);cursor:pointer;
-    transition:.15s;}
+    min-height:44px;transition:.15s;}
   .tab-btn.active{border-color:var(--accent);color:var(--accent);background:var(--surface-hover);}
+  @media(max-width:480px){
+    .tab-btn{font-size:10.5px;padding:12px 4px;letter-spacing:0;}
+  }
 
   .panel{display:none;}
   .panel.active{display:block;}
@@ -70,22 +80,25 @@
 
   .row{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px;}
   .row input{flex:1;min-width:120px;padding:11px 12px;border:1px solid var(--line-30);border-radius:2px;
-    background:var(--bg);color:var(--ink);font-size:14px;outline:none;transition:border-color .15s;}
+    background:var(--bg);color:var(--ink);font-size:16px;min-height:44px;outline:none;transition:border-color .15s;}
   .row input::placeholder{color:var(--ink-40);}
   .row input:focus{border-color:var(--accent);}
 
   .btn{padding:11px 16px;border:1px solid transparent;border-radius:2px;background:var(--accent);color:var(--bg);
-    font:700 12.5px var(--font-mono);letter-spacing:.02em;cursor:pointer;white-space:nowrap;transition:filter .15s,border-color .15s,color .15s,background .15s;}
-  .btn:hover{filter:brightness(1.1);}
+    font:700 12.5px var(--font-mono);letter-spacing:.02em;cursor:pointer;white-space:nowrap;min-height:44px;
+    transition:filter .15s,border-color .15s,color .15s,background .15s;}
+  @media(hover:hover){
+    .btn:hover{filter:brightness(1.1);}
+    .btn.ghost:hover{border-color:var(--accent);color:var(--accent);}
+  }
   .btn.ghost{background:transparent;color:var(--ink-70);border-color:var(--line-30);}
-  .btn.ghost:hover{border-color:var(--accent);color:var(--accent);}
   .btn.danger{background:var(--danger);color:#1a0d0b;}
-  .btn.small{padding:6px 10px;font-size:11px;}
+  .btn.small{padding:8px 12px;font-size:11.5px;min-height:40px;}
 
   table{width:100%;border-collapse:collapse;font-size:13px;}
   th{text-align:left;padding:8px 6px;color:var(--ink-40);font:600 10.5px var(--font-mono);text-transform:uppercase;
     letter-spacing:.05em;border-bottom:1px solid var(--line-25);}
-  td{padding:9px 6px;border-bottom:1px solid var(--line-20);vertical-align:middle;color:var(--ink-80);}
+  td{padding:9px 6px;border-bottom:1px solid var(--line-20);vertical-align:middle;color:var(--ink-80);word-break:break-word;}
   tr:last-child td{border-bottom:none;}
   .mono{font-family:var(--font-mono);font-size:11.5px;color:var(--ink-45);}
   .src-tag{font-size:10px;font-weight:700;padding:2px 8px;border-radius:20px;letter-spacing:.03em;font-family:var(--font-mono);
@@ -95,18 +108,18 @@
   .src-leer{background:rgba(224,90,78,.14);color:var(--danger);}
   .src-standard{background:rgba(233,237,242,.08);color:var(--ink-45);}
 
-  .toggle{position:relative;display:inline-block;width:40px;height:22px;flex-shrink:0;cursor:pointer;}
+  .toggle{position:relative;display:inline-block;width:48px;height:28px;flex-shrink:0;cursor:pointer;}
   .toggle input{position:absolute;opacity:0;width:100%;height:100%;margin:0;cursor:pointer;}
   .toggle .track{position:absolute;inset:0;background:var(--bg);border:1.5px solid var(--line-30);border-radius:2px;transition:.15s;}
-  .toggle .track::before{content:'';position:absolute;top:2px;left:2px;width:14px;height:14px;background:var(--ink-45);border-radius:1px;transition:.15s;}
+  .toggle .track::before{content:'';position:absolute;top:3px;left:3px;width:18px;height:18px;background:var(--ink-45);border-radius:1px;transition:.15s;}
   .toggle input:checked ~ .track{background:rgba(58,123,213,.15);border-color:var(--accent);}
-  .toggle input:checked ~ .track::before{transform:translateX(16px);background:var(--accent);}
+  .toggle input:checked ~ .track::before{transform:translateX(20px);background:var(--accent);}
 
   .empty{color:var(--ink-40);font-size:13px;padding:14px 4px;text-align:center;}
 
   .search{margin-bottom:16px;}
   .search input{width:100%;padding:12px 14px;border:1px solid var(--line-30);border-radius:2px;
-    background:var(--bg);color:var(--ink);font-size:14px;outline:none;}
+    background:var(--bg);color:var(--ink);font-size:16px;min-height:44px;outline:none;}
   .search input:focus{border-color:var(--accent);}
   .search input::placeholder{color:var(--ink-40);}
 
@@ -115,10 +128,20 @@
   .subgroup-head{font:600 11px var(--font-mono);text-transform:uppercase;letter-spacing:.05em;color:var(--ink-40);
     margin:14px 0 6px;}
 
-  .art-row input{width:120px;padding:7px 9px;border:1px solid var(--line-25);border-radius:2px;
-    background:var(--bg);color:var(--ink);font-size:12.5px;}
+  .art-row input{width:130px;padding:9px 10px;border:1px solid var(--line-25);border-radius:2px;
+    background:var(--bg);color:var(--ink);font-size:16px;min-height:42px;}
   .art-row td:first-child{max-width:260px;}
   .key-label{font-weight:600;font-size:12.5px;color:var(--ink);}
+
+  /* ── iPhone: Artikelzeilen als gestapelte Karten statt 4-Spalten-Tabelle ── */
+  @media(max-width:600px){
+    .art-row,.art-row tbody{display:block;width:100%;}
+    .art-row tr{display:block;border:1px solid var(--line-20);padding:12px;margin-bottom:10px;background:var(--surface-alt);}
+    .art-row td{display:block;border-bottom:none;padding:3px 0;max-width:none !important;}
+    .art-row input{width:100%;}
+    .art-row td:last-child{display:flex;gap:8px;white-space:normal !important;padding-top:8px;}
+    .art-row td:last-child .btn{flex:1;}
+  }
 
   .export-row{display:flex;gap:8px;margin-top:16px;flex-wrap:wrap;}
 
@@ -144,7 +167,7 @@
   #admin-gate-box p{font-size:12px;color:var(--ink-60);line-height:1.5;margin-bottom:18px;}
   .gate-pw-wrap{display:flex;gap:8px;}
   .gate-pw-wrap input{flex:1;padding:11px 12px;border-radius:2px;border:1.5px solid var(--line-30);
-    background:var(--bg);color:var(--ink);font-size:15px;font-family:var(--font-mono);letter-spacing:.15em;
+    background:var(--bg);color:var(--ink);font-size:16px;min-height:44px;font-family:var(--font-mono);letter-spacing:.15em;
     text-align:center;outline:none;}
   .gate-pw-wrap input:focus{border-color:var(--glow);box-shadow:0 0 0 3px rgba(94,234,212,.18);}
   .gate-pw-wrap button{padding:11px 16px;border-radius:2px;border:none;background:var(--accent);
@@ -155,6 +178,7 @@
 </style>
 </head>
 <body>
+<script src="ts-auth.js" data-gate data-title="Admin — Artikelnummern & MA-Codes"></script>
 
 <div id="admin-gate">
   <div id="admin-gate-box">
@@ -214,8 +238,8 @@
       <p class="hint">Gilt sofort &ndash; aber nur auf diesem Gerät/Browser. Für alle Geräte dauerhaft: unten
         exportieren und den Inhalt in <span class="mono">ma-codes.json</span> im Repository übernehmen.</p>
       <div class="row">
-        <input id="new-code" type="text" inputmode="numeric" maxlength="10" placeholder="Code, z.B. 78090">
-        <input id="new-name" type="text" placeholder="Name, z.B. Max Mustermann">
+        <input id="new-code" type="text" inputmode="numeric" maxlength="10" placeholder="Code, z.B. 78090" autocomplete="off" enterkeyhint="next">
+        <input id="new-name" type="text" placeholder="Name, z.B. Max Mustermann" autocomplete="off" enterkeyhint="done">
         <button class="btn" onclick="addCode()">+ Hinzufügen</button>
       </div>
     </div>
@@ -370,6 +394,13 @@ fetch('ma-codes.json',{cache:'no-store'})
   .then(function(json){ MA_CENTRAL=json; renderCodes(); })
   .catch(function(){ renderCodes(); });
 
+document.getElementById('new-name').addEventListener('keydown', function(e){
+  if(e.key==='Enter') addCode();
+});
+document.getElementById('new-code').addEventListener('keydown', function(e){
+  if(e.key==='Enter') document.getElementById('new-name').focus();
+});
+
 // ═══════════════════ ARTIKELNUMMERN ═══════════════════
 var ART_LOCAL_KEY='stober_artikel';
 var ART_CENTRAL={};
@@ -396,7 +427,7 @@ function effectiveValue(fullKey, centralVal){
 function renderArtikel(){
   var q = document.getElementById('art-search').value.trim().toLowerCase();
   var container = document.getElementById('artikel-groups');
-  container.innerHTML = '';
+  var out = [];
 
   Object.keys(ART_GROUPED).forEach(function(tool){
     var toolHasMatch = false;
@@ -433,12 +464,10 @@ function renderArtikel(){
       toolHtml += '</tbody></table>';
     });
 
-    if(toolHasMatch) container.innerHTML += toolHtml;
+    if(toolHasMatch) out.push(toolHtml);
   });
 
-  if(!container.innerHTML){
-    container.innerHTML = '<p class="empty">Keine Treffer.</p>';
-  }
+  container.innerHTML = out.length ? out.join('') : '<p class="empty">Keine Treffer.</p>';
 }
 
 function saveArtikelRow(btn){
@@ -556,19 +585,20 @@ function effectiveVisibility(prefix){
 function renderSichtbarkeit(){
   var tbody = document.querySelector('#tbl-sichtbarkeit tbody');
   var local = loadLocalSicht();
-  tbody.innerHTML = '';
+  var rows = [];
   SICHT_ORDER.forEach(function(prefix){
     var eff = effectiveVisibility(prefix);
     var srcClass = eff.src==='lokal' ? 'src-lokal' : (eff.src==='zentral' ? 'src-zentral' : 'src-standard');
     var srcLabel = eff.src==='lokal' ? 'Lokal' : (eff.src==='zentral' ? 'Zentral' : 'Standard');
     var hasLocal = local[prefix]!==undefined;
-    tbody.innerHTML += '<tr>'+
+    rows.push('<tr>'+
       '<td><div class="key-label">'+esc(MARKEN_LABEL[prefix]||prefix)+'</div></td>'+
       '<td><span class="src-tag '+srcClass+'">'+srcLabel+'</span></td>'+
       '<td><label class="toggle"><input type="checkbox" data-prefix="'+prefix+'" '+(eff.val?'checked':'')+' onchange="toggleSichtbarkeit(this)"><span class="track"></span></label></td>'+
       '<td>'+(hasLocal?'<button class="btn ghost small" onclick="resetSichtbarkeitRow(\''+prefix+'\')">&#8635;</button>':'')+'</td>'+
-      '</tr>';
+      '</tr>');
   });
+  tbody.innerHTML = rows.join('');
 }
 function toggleSichtbarkeit(input){
   var prefix = input.dataset.prefix;

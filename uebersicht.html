@@ -109,6 +109,7 @@
 </style>
 </head>
 <body>
+<script src="ts-auth.js"></script>
 
 <div id="gate">
   <div class="box">
@@ -188,17 +189,20 @@ document.getElementById('pwBtn').addEventListener('click', checkPassword);
 document.getElementById('pwInput').addEventListener('keydown', e => { if(e.key === 'Enter') checkPassword(); });
 function checkPassword(){
   const val = document.getElementById('pwInput').value;
-  if(val === ZUGANGSCODE){
+  // Gültig: bisheriger Zugangscode ODER Suite-Passwörter (Master / eigenes Passwort via ts-auth.js)
+  const ok = (val === ZUGANGSCODE) || (window.TSAuth && TSAuth.verify(val));
+  if(ok){
     document.getElementById('gate').style.display = 'none';
     document.getElementById('appContent').style.display = 'block';
     sessionStorage.setItem('ts_uebersicht_auth', '1');
+    if(window.TSAuth) TSAuth.markUnlocked(); // Freigabe gilt dann auch für CRM & Admin
     ladeBerichte();
     pruefeDbStatus();
   } else {
     document.getElementById('pwErr').textContent = 'Falscher Zugangscode.';
   }
 }
-if(sessionStorage.getItem('ts_uebersicht_auth') === '1'){
+if(sessionStorage.getItem('ts_uebersicht_auth') === '1' || (window.TSAuth && TSAuth.isUnlocked())){
   document.getElementById('gate').style.display = 'none';
   document.getElementById('appContent').style.display = 'block';
   ladeBerichte();
