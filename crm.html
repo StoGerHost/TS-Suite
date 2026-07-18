@@ -526,6 +526,7 @@ async function zeigKundeMaster(id){
       </div>
       <div class="rumpf">
         <h3>${esc(ku.name)}</h3>
+        ${(ku.strasse || ku.plz || ku.ort) ? `<div class="sub">${esc([ku.strasse, [ku.plz, ku.ort].filter(Boolean).join(' ')].filter(Boolean).join(', '))}</div>` : ''}
         ${ku.notiz ? `<div class="sub">${esc(ku.notiz)}</div>` : ''}
       </div>
     </div>
@@ -1700,6 +1701,11 @@ function modalNeuerKunde(){
     <label>Name</label><input id="nkName" placeholder="z.B. Stadt Karlsruhe, Gebäudewirtschaft">
     <label>Telefon</label><input id="nkTel" type="tel" inputmode="tel">
     <label>E-Mail</label><input id="nkMail" type="email" inputmode="email">
+    <label>Straße</label><input id="nkStrasse" placeholder="z.B. Zähringerstr. 61">
+    <div style="display:flex;gap:10px">
+      <div style="flex:0 0 32%"><label>PLZ</label><input id="nkPlz" inputmode="numeric"></div>
+      <div style="flex:1"><label>Ort</label><input id="nkOrt"></div>
+    </div>
     <label>Notiz</label><textarea id="nkNotiz" style="min-height:64px"></textarea>
     <div class="btnzeile">
       <button class="btn sekundaer" onclick="modalZu()">Abbrechen</button>
@@ -1714,6 +1720,9 @@ async function speichereNeuerKunde(){
       name,
       telefon: $('#nkTel').value.trim() || null,
       email:   $('#nkMail').value.trim() || null,
+      strasse: $('#nkStrasse').value.trim() || null,
+      plz:     $('#nkPlz').value.trim() || null,
+      ort:     $('#nkOrt').value.trim() || null,
       notiz:   $('#nkNotiz').value.trim() || null
     })});
     cache.kunden = null; modalZu(); toast('Kunde angelegt ✓');
@@ -1729,6 +1738,13 @@ function modalKundeBearbeiten(kundeId){
     <label>Name</label><input id="keName" value="${esc(ku.name)}">
     <label>Telefon</label><input id="keTel" type="tel" inputmode="tel" value="${esc(ku.telefon)}">
     <label>E-Mail</label><input id="keMail" type="email" inputmode="email" value="${esc(ku.email)}">
+    <label>Straße</label><input id="keStrasse" value="${esc(ku.strasse)}" placeholder="z.B. Zähringerstr. 61">
+    <div style="display:flex;gap:10px">
+      <div style="flex:0 0 32%"><label>PLZ</label>
+        <input id="kePlz" value="${esc(ku.plz)}" inputmode="numeric"></div>
+      <div style="flex:1"><label>Ort</label>
+        <input id="keOrt" value="${esc(ku.ort)}"></div>
+    </div>
     <label>Notiz</label><textarea id="keNotiz" style="min-height:64px">${esc(ku.notiz)}</textarea>
     <div class="btnzeile">
       <button class="btn sekundaer" onclick="modalZu()">Abbrechen</button>
@@ -1769,6 +1785,9 @@ async function speichereKundeBearbeiten(kundeId){
       name,
       telefon: $('#keTel').value.trim() || null,
       email:   $('#keMail').value.trim() || null,
+      strasse: $('#keStrasse').value.trim() || null,
+      plz:     $('#kePlz').value.trim() || null,
+      ort:     $('#keOrt').value.trim() || null,
       notiz:   $('#keNotiz').value.trim() || null
     })});
     cache.kunden = null; modalZu(); toast('Gespeichert ✓'); route();
