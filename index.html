@@ -489,8 +489,10 @@ async function sucheKontakt(){
   resultsEl.innerHTML = '<div class="lookup-state">Suche ...</div>';
   try{
     const filter = `bauvorhaben.ilike.*${term}*,kunde.ilike.*${term}*,ansprechpartner.ilike.*${term}*`;
+    /* Telefon/E-Mail liegen seit dem CRM-Umbau in kunden bzw. crm_ansprechpartner
+       — beide werden per PostgREST-Embedding mitgeladen. */
     const res = await fetch(
-      `${SUPABASE_URL}/rest/v1/kontakte?or=(${encodeURIComponent(filter)})&select=*&order=updated_at.desc&limit=10`,
+      `${SUPABASE_URL}/rest/v1/kontakte?or=(${encodeURIComponent(filter)})&select=*,kunden(name,telefon,email),crm_ansprechpartner(name,telefon,email)&order=updated_at.desc&limit=10`,
       { headers: supabaseHeaders() }
     );
     if(!res.ok) throw new Error('HTTP ' + res.status);
@@ -500,14 +502,23 @@ async function sucheKontakt(){
       resultsEl.innerHTML = '<div class="lookup-state">Kein Treffer gefunden.</div>';
       return;
     }
-    resultsEl.innerHTML = rows.map(r => `
+    resultsEl.innerHTML = rows.map(r => {
+      /* Beste verfügbare Quelle je Feld: kontakte -> kunden -> crm_ansprechpartner */
+      const aps     = Array.isArray(r.crm_ansprechpartner) ? r.crm_ansprechpartner : [];
+      const apTel   = aps.find(a => a.telefon);
+      const apMail  = aps.find(a => a.email);
+      const apName  = r.ansprechpartner || (aps[0] && aps[0].name) || '';
+      const telefon = r.telefon || (r.kunden && r.kunden.telefon) || (apTel && apTel.telefon) || '';
+      const email   = r.email   || (r.kunden && r.kunden.email)   || (apMail && apMail.email) || '';
+      const telQuelle = !r.telefon && apTel && telefon === apTel.telefon ? ` (${esc(apTel.name)})` : '';
+      return `
       <div class="lookup-item">
         <div class="bv">${esc(r.bauvorhaben) || 'Ohne Bauvorhaben'}</div>
-        <div class="kd">${esc(r.kunde) || '-'} · ${esc(r.ansprechpartner) || 'kein Ansprechpartner erfasst'}</div>
-        ${r.telefon ? `<a class="tel" href="tel:${esc(r.telefon).replace(/\s+/g,'')}">📞 ${esc(r.telefon)}</a>` : '<span class="lookup-state" style="margin:0;">keine Telefonnummer erfasst</span>'}
-        ${r.email ? `<br><a class="tel" href="mailto:${esc(r.email)}">✉️ ${esc(r.email)}</a>` : ''}
-      </div>
-    `).join('');
+        <div class="kd">${esc(r.kunde) || (r.kunden && esc(r.kunden.name)) || '-'} · ${esc(apName) || 'kein Ansprechpartner erfasst'}</div>
+        ${telefon ? `<a class="tel" href="tel:${esc(telefon).replace(/\s+/g,'')}">📞 ${esc(telefon)}${telQuelle}</a>` : '<span class="lookup-state" style="margin:0;">keine Telefonnummer erfasst</span>'}
+        ${email ? `<br><a class="tel" href="mailto:${esc(email)}">✉️ ${esc(email)}</a>` : ''}
+      </div>`;
+    }).join('');
   } catch(err){
     console.error(err);
     resultsEl.innerHTML = '<div class="lookup-state" style="color:#c9604f;">Suche fehlgeschlagen (' + err.message + ').</div>';
