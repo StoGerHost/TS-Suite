@@ -215,6 +215,25 @@ nav button.aktiv{color:var(--tuerkis)}
 .stn-tag .d{font-family:var(--mono);color:var(--dim);font-size:.72rem;white-space:nowrap}
 .stn-tag .h{font-family:var(--mono);color:var(--text);white-space:nowrap;margin-left:auto}
 .stn-tag .bv{color:var(--dim);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0}
+.ausw-kpis{display:grid;grid-template-columns:repeat(2,1fr);gap:8px;margin-bottom:12px}
+.ausw-kpi{background:var(--panel);border:1px solid var(--border);border-radius:12px;padding:11px 12px}
+.ausw-kpi b{display:block;font-family:var(--mono);font-size:1.15rem;color:var(--text)}
+.ausw-kpi span{font-family:var(--mono);font-size:.66rem;color:var(--dim);text-transform:uppercase;letter-spacing:.05em}
+.ausw-kpi.rot b{color:var(--rot)}
+.ausw-kpi.gelb b{color:#e0c34a}
+.ausw-abschnitt{font-family:var(--mono);font-size:.72rem;color:var(--dim);text-transform:uppercase;
+  letter-spacing:.08em;margin:6px 2px 10px}
+.ausw-sub{display:block;text-transform:none;letter-spacing:0;margin-top:2px;color:var(--dim);opacity:.8}
+.wrt-zeile{display:flex;gap:12px;width:100%;text-align:left;background:var(--panel);
+  border:1px solid var(--border);border-radius:12px;padding:11px 13px;margin-bottom:8px;
+  color:var(--text);font-size:.85rem;line-height:1.45;-webkit-tap-highlight-color:transparent}
+.wrt-zeile .wrt-wann{font-family:var(--mono);font-size:.72rem;color:var(--dim);white-space:nowrap;min-width:58px}
+.wrt-zeile .wrt-was{color:var(--dim);min-width:0}
+.wrt-zeile .wrt-was b{color:var(--text)}
+.wrt-zeile.rot{border-color:rgba(201,96,79,.55)}
+.wrt-zeile.rot .wrt-wann{color:var(--rot)}
+.wrt-zeile.gelb{border-color:rgba(224,195,74,.45)}
+.wrt-zeile.gelb .wrt-wann{color:#e0c34a}
 .stn-gesamt{display:flex;justify-content:space-between;font-family:var(--mono);font-size:.8rem;
   color:var(--dim);padding:10px 4px 2px}
 nav .badge{position:absolute;transform:translate(14px,-26px);background:var(--rot);
@@ -431,16 +450,19 @@ const routen = {
   wv          : () => zeigWV(),
   artikel     : () => zeigArtikel(),
   preise      : () => zeigPreisliste(),
-  stunden     : () => zeigStunden()
+  auswertung  : sub => zeigAuswertung(sub),
+  stunden     : () => zeigAuswertung('stunden')   // alte Route bleibt gültig
 };
 function navigiere(hash){ location.hash = hash; }
 async function route(){
   const [ , seite = 'kunden', param ] = location.hash.split('/');
   const fn = routen[seite] || routen.kunden;
   const kundenTab = ['kunden','kunde','bauvorhaben','unzugeordnet'].includes(seite);
+  const auswTab = ['auswertung','stunden'].includes(seite);
   document.querySelectorAll('nav button').forEach(b =>
     b.classList.toggle('aktiv', b.dataset.ziel === seite ||
-      (kundenTab && b.dataset.ziel === 'kunden')));
+      (kundenTab && b.dataset.ziel === 'kunden') ||
+      (auswTab && b.dataset.ziel === 'auswertung')));
   try{ await fn(param); }
   catch(e){
     $('#view').innerHTML = `<div class="hinweis fehler">Verbindung fehlgeschlagen:<br>
@@ -1901,6 +1923,217 @@ async function zuordnenNeuerKunde(kontaktId){
   }catch(e){ toast('Fehler: ' + e.message.slice(0,80)); }
 }
 
+/* ================= ANSICHT: AUSWERTUNGEN (Stunden · Wartung · Material) ================= */
+let auswSub = 'stunden';
+
+async function zeigAuswertung(sub){
+  if(sub && ['stunden','wartung','material'].includes(sub)) auswSub = sub;
+  const v = $('#view');
+  v.innerHTML = `
+    <div class="stn-filter" id="auswSubChips">
+      ${[['stunden','Stunden'],['wartung','Wartung'],['material','Ersatzteile']]
+        .map(([k, t]) => `<button class="stn-chip ${auswSub === k ? 'aktiv' : ''}" data-s="${k}">${t}</button>`).join('')}
+    </div>
+    <div id="auswInhalt"><div class="leer">Lade …</div></div>`;
+  $('#auswSubChips').addEventListener('click', e => {
+    const b = e.target.closest('[data-s]'); if(!b || b.dataset.s === auswSub) return;
+    navigiere('#/auswertung/' + b.dataset.s);
+  });
+  if(auswSub === 'wartung')       await zeigWartungAusw();
+  else if(auswSub === 'material') await zeigMaterialAusw();
+  else                            await zeigStunden();
+}
+
+/* ---------- Unter-Auswertung: WARTUNG ---------- */
+/* Fälligkeiten über ALLE Kunden (Stichtag heute) + Wartungsumsatz p.a. aus den
+   Vertragspositionen + durchgeführte Wartungen (crm_aktivitaeten, typ=wartung, 12 Monate). */
+async function zeigWartungAusw(){
+  const v = $('#auswInhalt');
+  v.innerHTML = '<div class="leer">Lade Wartungsverträge …</div>';
+  const vor12M = new Date(); vor12M.setMonth(vor12M.getMonth() - 12);
+  let vertraege, positionen, akts;
+  try{
+    [vertraege, positionen, , akts] = await Promise.all([
+      sb(`${KONFIG.TAB_WARTUNG}?select=*`),
+      sb(`${KONFIG.TAB_WARTUNGSPOS}?select=*`),
+      holeKunden(),
+      sb(`${KONFIG.TAB_AKT}?typ=eq.wartung&erstellt_am=gte.${vor12M.toISOString()}&select=erstellt_von,erstellt_am&order=erstellt_am.desc`)
+    ]);
+  }catch(e){
+    v.innerHTML = `<div class="hinweis fehler">Wartungsdaten konnten nicht geladen werden:<br>
+      <span style="font-family:var(--mono);font-size:.75rem">${esc(e.message.slice(0,120))}</span></div>`;
+    return;
+  }
+  const vertragVon = {}; vertraege.forEach(w => vertragVon[w.id] = w);
+  const kundeName = id => {
+    const k = (cache.kunden || []).find(k => String(k.id) === String(id));
+    return k ? k.name : '(Kunde ' + id + ')';
+  };
+  const in30 = (() => { const d = new Date(); d.setDate(d.getDate() + 30); return d.toISOString().slice(0,10); })();
+
+  const zeilen = [];
+  let umsatzPa = 0, aktiv = 0, ueberfaellig = 0, faellig30 = 0;
+  for(const p of positionen){
+    const w = vertragVon[p.vertrag_id]; if(!w) continue;
+    const f = wartungsFaelligkeit(p, w);
+    if(f.status === 'beendet' || f.status === 'kuenftig') continue;
+    aktiv++;
+    const ep = positionEndpreis(p);
+    if(ep != null && p.intervall_monate) umsatzPa += ep * (p.stueckzahl || 1) * (12 / p.intervall_monate);
+    const sofort = f.status === 'faellig' && !f.datum;
+    if(f.status === 'faellig') ueberfaellig++;
+    else if(f.datum && f.datum <= in30) faellig30++;
+    zeilen.push({ p, w, f, sort: sofort ? '0000-00-00' : (f.datum || '9999-99-99') });
+  }
+  zeilen.sort((a, z) => a.sort.localeCompare(z.sort));
+
+  // Durchgeführt (12 Monate) je Mitarbeiterkürzel
+  const durch = {}; (akts || []).forEach(a => {
+    const k = (a.erstellt_von || '—').trim().toUpperCase() || '—';
+    durch[k] = (durch[k] || 0) + 1;
+  });
+  const durchStr = Object.entries(durch).sort((a, z) => z[1] - a[1])
+    .map(([k, n]) => `${esc(k)} ${n}×`).join(' · ') || 'keine erfasst';
+  const planStunden = (ueberfaellig + faellig30) * 2; // Standard: 2 h je Wartungseinsatz
+
+  v.innerHTML = `
+    <div class="ausw-kpis">
+      <div class="ausw-kpi rot"><b>${ueberfaellig}</b><span>überfällig</span></div>
+      <div class="ausw-kpi gelb"><b>${faellig30}</b><span>fällig ≤ 30 Tage</span></div>
+      <div class="ausw-kpi"><b>${aktiv}</b><span>aktive Positionen</span></div>
+      <div class="ausw-kpi"><b>${umsatzPa ? umsatzPa.toLocaleString('de-DE',{maximumFractionDigits:0}) + ' €' : '—'}</b><span>Wartungsumsatz p.a.</span></div>
+    </div>
+    <div class="stn-gesamt"><span>Planungsaufwand offen (2 h/Einsatz)</span><span>~ ${planStunden} h</span></div>
+    <div class="stn-gesamt"><span>Durchgeführt (12 Monate)</span><span>${durchStr}</span></div>
+    ${zeilen.length ? zeilen.map(({p, w, f}) => `
+      <button class="wrt-zeile ${f.status === 'faellig' ? 'rot' : (f.datum && f.datum <= in30 ? 'gelb' : '')}"
+        onclick="navigiere('#/kunde/${w.kunde_id}')">
+        <span class="wrt-wann">${f.datum ? fmtTag(f.datum) : 'sofort'}</span>
+        <span class="wrt-was"><b>${esc(kundeName(w.kunde_id))}</b><br>
+          ${esc(p.bezeichnung)}${(p.stueckzahl || 1) > 1 ? ' × ' + p.stueckzahl : ''}
+          · alle ${p.intervall_monate} Mon. · zuletzt ${p.letzte_wartung ? fmtTag(p.letzte_wartung) : 'nie'}</span>
+      </button>`).join('')
+      : '<div class="leer">Keine aktiven Wartungspositionen.</div>'}`;
+  setStatus(true, aktiv + ' Wartungspositionen');
+}
+
+/* ---------- Unter-Auswertung: ERSATZTEILE / MATERIAL ---------- */
+/* Quelle 1: Arbeitsberichte — daten.material_checkliste + material_freitext
+   (Häufigkeit je Einsatz; Mengen/Preise werden im Bericht nicht erfasst).
+   Quelle 2: Artikel, die an CRM-Aktivitäten angeheftet wurden (artikel.json-Nummern).
+   Zeitraumfilter nutzt dieselben Chips/Grenzen wie die Stunden-Auswertung. */
+async function zeigMaterialAusw(){
+  const v = $('#auswInhalt');
+  v.innerHTML = `
+    <div class="stn-filter" id="matChips">
+      ${[['monat','Dieser Monat'],['letzter','Letzter Monat'],['jahr','Dieses Jahr'],['alles','Alles'],['eigen','Zeitraum …']]
+        .map(([k, t]) => `<button class="stn-chip ${stnPreset === k ? 'aktiv' : ''}" data-p="${k}">${t}</button>`).join('')}
+    </div>
+    <div class="stn-range" id="matRange" style="display:${stnPreset === 'eigen' ? 'flex' : 'none'}">
+      <input type="date" id="matVon" value="${stnVon || stnMonatsanfang(0)}">
+      <input type="date" id="matBis" value="${stnBis || stnHeute()}">
+    </div>
+    <div id="matErgebnis"><div class="leer">Lade Arbeitsberichte …</div></div>`;
+  $('#matChips').addEventListener('click', e => {
+    const b = e.target.closest('[data-p]'); if(!b) return;
+    stnPreset = b.dataset.p;
+    document.querySelectorAll('#matChips .stn-chip').forEach(c => c.classList.toggle('aktiv', c.dataset.p === stnPreset));
+    $('#matRange').style.display = stnPreset === 'eigen' ? 'flex' : 'none';
+    renderMaterial();
+  });
+  ['matVon', 'matBis'].forEach(id => $('#' + id).addEventListener('change', () => {
+    stnVon = $('#matVon').value; stnBis = $('#matBis').value; renderMaterial();
+  }));
+  try{
+    if(!cache.berichte)
+      cache.berichte = await sb('berichte?select=id,angebotsnr,bauvorhaben,kunde,daten,created_at&order=created_at.desc');
+    cache.aktArtikel = await sb(`${KONFIG.TAB_AKT}?artikel=not.is.null&select=artikel,erstellt_am`);
+  }catch(e){
+    $('#matErgebnis').innerHTML = `<div class="hinweis fehler">Daten konnten nicht geladen werden:<br>
+      <span style="font-family:var(--mono);font-size:.75rem">${esc(e.message.slice(0,120))}</span></div>`;
+    return;
+  }
+  renderMaterial();
+}
+
+function renderMaterial(){
+  const ziel = $('#matErgebnis'); if(!ziel) return;
+  let von, bis;
+  if(stnPreset === 'eigen'){ von = $('#matVon').value; bis = $('#matBis').value; }
+  else { [von, bis] = stnPresetGrenzen(stnPreset); }
+  const imZeitraum = iso => {
+    const d = (iso || '').slice(0, 10);
+    if(von && d < von) return false;
+    if(bis && d > bis) return false;
+    return true;
+  };
+
+  // --- Material aus Arbeitsberichten (Bericht-Datum = created_at) ---
+  const mat = {};
+  let berichteMit = 0;
+  for(const b of (cache.berichte || [])){
+    if(!imZeitraum(b.created_at)) continue;
+    const d = b.daten || {};
+    const posten = [
+      ...(Array.isArray(d.material_checkliste) ? d.material_checkliste : []),
+      ...((d.material_freitext || '').split('\n').map(x => x.trim()).filter(Boolean))
+    ];
+    if(!posten.length) continue;
+    berichteMit++;
+    const proBericht = new Set(); // gleiche Position im selben Bericht nur 1× je Einsatz zählen
+    for(const label of posten){
+      const key = label.trim().toLowerCase();
+      if(!key || proBericht.has(key)) continue;
+      proBericht.add(key);
+      if(!mat[key]) mat[key] = { label: label.trim(), n: 0, zuletzt: '', einsaetze: [] };
+      mat[key].n++;
+      const tag = (b.created_at || '').slice(0, 10);
+      if(tag > mat[key].zuletzt) mat[key].zuletzt = tag;
+      mat[key].einsaetze.push({ tag, bv: b.bauvorhaben || b.kunde || b.angebotsnr || '—' });
+    }
+  }
+  const matListe = Object.values(mat).sort((a, z) => z.n - a.n);
+  const matMax = Math.max(...matListe.map(m => m.n), 1);
+
+  // --- Artikel aus CRM-Aktivitäten ---
+  const art = {};
+  for(const a of (cache.aktArtikel || [])){
+    if(!imZeitraum(a.erstellt_am)) continue;
+    for(const x of (Array.isArray(a.artikel) ? a.artikel : [])){
+      const nr = (x.nr || '').trim(); if(!nr) continue;
+      if(!art[nr]) art[nr] = { nr, key: x.key || '', n: 0 };
+      art[nr].n++;
+    }
+  }
+  const artListe = Object.values(art).sort((a, z) => z.n - a.n);
+
+  ziel.innerHTML = `
+    <div class="ausw-abschnitt">Verbautes Material aus Arbeitsberichten
+      <span class="ausw-sub">${berichteMit} Berichte mit Material · Häufigkeit je Einsatz, keine Mengen</span></div>
+    ${matListe.length ? matListe.map(m => `
+      <details class="stn-ma">
+        <summary>
+          <div class="stn-kopf">
+            <span class="stn-name">${esc(m.label)}</span>
+            <span class="stn-summe">${m.n}×</span>
+          </div>
+          <div class="stn-meta">zuletzt ${fmtTag(m.zuletzt)}</div>
+          <div class="stn-balken"><i style="width:${Math.round(m.n / matMax * 100)}%"></i></div>
+        </summary>
+        <div class="stn-tage">
+          ${m.einsaetze.sort((a, z) => z.tag.localeCompare(a.tag)).slice(0, 30).map(e => `
+            <div class="stn-tag"><span class="d">${fmtTag(e.tag)}</span><span class="bv">${esc(e.bv)}</span></div>`).join('')}
+        </div>
+      </details>`).join('')
+      : '<div class="leer">Kein Material im gewählten Zeitraum.</div>'}
+    <div class="ausw-abschnitt" style="margin-top:18px">Artikel aus CRM-Aktivitäten</div>
+    ${artListe.length ? `<div class="artchips" style="padding:2px 2px 12px">
+        ${artListe.map(a => `<span class="chip">${esc(a.nr)}${a.key ? ' · ' + esc(a.key) : ''} — ${a.n}×</span>`).join('')}
+      </div>`
+      : '<div class="leer">Keine Artikel an Aktivitäten im Zeitraum.</div>'}`;
+  setStatus(true, matListe.length + ' Materialpositionen');
+}
+
 /* ================= ANSICHT: STUNDEN-AUSWERTUNG ================= */
 /* Datenquelle: Tabelle `berichte` (Arbeitsbericht). Die Zeiten liegen in
    daten.zeiterfassung = [{techniker, primary, tage:[{datum, stunden, wegepauschale}]}].
@@ -1938,7 +2171,7 @@ function fmtTag(iso){
 }
 
 async function zeigStunden(){
-  const v = $('#view');
+  const v = $('#auswInhalt');
   v.innerHTML = `
     <div class="stn-filter" id="stnChips">
       ${[['monat','Dieser Monat'],['letzter','Letzter Monat'],['jahr','Dieses Jahr'],['alles','Alles'],['eigen','Zeitraum …']]
@@ -2054,7 +2287,7 @@ const NAV = [
   ['wv',      'Wiedervorlagen','<rect x="4" y="5" width="16" height="16" rx="2"/><path d="M8 3v4M16 3v4M4 11h16"/>'],
   ['artikel', 'Artikel',       '<path d="M21 8l-9-5-9 5 9 5 9-5zM3 8v8l9 5 9-5V8"/><path d="M12 13v8"/>'],
   ['preise',  'Preise',        '<path d="M3 3v7.586a2 2 0 0 0 .586 1.414l9 9a2 2 0 0 0 2.828 0l6-6a2 2 0 0 0 0-2.828l-9-9A2 2 0 0 0 10.586 3H3z"/><circle cx="8" cy="8" r="1.5"/>'],
-  ['stunden', 'Stunden',       '<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>']
+  ['auswertung', 'Auswertung',  '<path d="M4 20V10M10 20V4M16 20v-8M21 20H3"/>']
 ];
 $('#nav').innerHTML = NAV.map(([ziel, txt, icon]) => `
   <button data-ziel="${ziel}" onclick="navigiere('#/${ziel}')">
