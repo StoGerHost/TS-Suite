@@ -14,6 +14,9 @@ const TENANT = {
   supabaseUrl : 'https://guuywhrzygcnpzrnnlsw.supabase.co',
   supabaseKey : 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imd1dXl3aHJ6eWdjbnB6cm5ubHN3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODM3MjcyOTIsImV4cCI6MjA5OTMwMzI5Mn0.tvPfk5j6mXNG2YcYl4cUR-rF-T3QWdTGuOZ8SHRSv2U',
 
+  /* --- Admin-Code (schützt sensible Schalter, z. B. GPS) --- */
+  adminCode : 'sto78O8',
+
   /* --- Storage-Buckets --- */
   bucketBerichte : 'berichte-medien',
   bucketAngebote : 'angebote',
