@@ -10,6 +10,7 @@
   <meta name="theme-color" content="#0a0a0c">
   <link rel="apple-touch-icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'%3E%3Crect width='512' height='512' rx='112' fill='%231A2D44'/%3E%3Crect x='60' y='60' width='32' height='392' rx='10' fill='%23D95E1F'/%3E%3Ctext x='115' y='310' font-family='Arial' font-weight='900' font-size='200' fill='white'%3EED%3C/text%3E%3C/svg%3E">
   <title>STOBER – Drehtür Konfigurator</title>
+<script src="config.js"></script>
 <style>
   :root{
     --bg:#0a0a0c;--panel:#111318;--primary:#e9edf2;--accent:#3a7bd5;
@@ -1485,8 +1486,31 @@ var MA_CODES_FALLBACK = {
 // überschreiben/löschen NIE die zentrale Liste aus ma-codes.json
 var MA_CODES_LOCAL_KEY = 'stober_ma_codes_local';
 function loadMAcodes(){
-  return fetch('ma-codes.json',{cache:'no-store'})
-    .then(function(r){ if(!r.ok) throw new Error('fetch failed'); return r.json(); })
+  /* Kaskade: 1. Datenbank (Edge Function, öffentliche Nur-Lese-Route)
+              2. letzter erfolgreicher DB-Stand aus dem Gerätecache
+              3. ma-codes.json aus dem Repo
+              4. eingebauter Fallback */
+  var FN_URL = (window.TENANT && TENANT.supabaseUrl)
+    ? TENANT.supabaseUrl + '/functions/v1/mitarbeiter?public=1' : null;
+  var CACHE_KEY = 'stober_ma_codes_db_cache';
+  var lade = FN_URL
+    ? fetch(FN_URL, {cache:'no-store'})
+        .then(function(r){ if(!r.ok) throw new Error('fn failed'); return r.json(); })
+        .then(function(json){
+          if(!json || typeof json !== 'object' || Array.isArray(json)) throw new Error('bad shape');
+          try{ localStorage.setItem(CACHE_KEY, JSON.stringify(json)); }catch(e){}
+          return json;
+        })
+    : Promise.reject(new Error('kein TENANT'));
+  return lade
+    .catch(function(){
+      try{
+        var c = JSON.parse(localStorage.getItem(CACHE_KEY) || 'null');
+        if(c && typeof c === 'object') return c;
+      }catch(e){}
+      return fetch('ma-codes.json',{cache:'no-store'})
+        .then(function(r){ if(!r.ok) throw new Error('fetch failed'); return r.json(); });
+    })
     .then(function(json){ applyCodes(json); })
     .catch(function(){ applyCodes(MA_CODES_FALLBACK); })
     .then(function(){ MA_CODES_LOADED=true; onMACodesLoaded(); });

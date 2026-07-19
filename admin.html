@@ -211,7 +211,7 @@
   <span class="ico" aria-hidden="true">&#9881;</span>
   <div>
     <h1>Admin-Bereich</h1>
-    <p>Mitarbeitercodes, Artikelnummern &amp; Sichtbarkeit &middot; lokal auf diesem Gerät</p>
+    <p>Mitarbeiter anlegen, Artikelnummern &amp; Sichtbarkeit &middot; lokal auf diesem Gerät</p>
   </div>
 </div>
 
@@ -226,40 +226,39 @@
 <div class="wrap">
 
   <div class="tabs">
-    <button class="tab-btn active" data-tab="codes">Mitarbeitercodes</button>
+    <button class="tab-btn active" data-tab="codes">Tool Mitarbeiter anlegen</button>
     <button class="tab-btn" data-tab="artikel">Artikelnummern</button>
     <button class="tab-btn" data-tab="sichtbarkeit">Sichtbarkeit</button>
   </div>
 
-  <!-- ═══════════ TAB: MITARBEITERCODES ═══════════ -->
+  <!-- ═══════════ TAB: MITARBEITER (Datenbank) ═══════════ -->
   <div class="panel active" id="panel-codes">
 
     <div class="card">
-      <h2>Neuen Code hinzufügen</h2>
-      <p class="hint">Gilt sofort &ndash; aber nur auf diesem Gerät/Browser. Für alle Geräte dauerhaft: unten
-        exportieren und den Inhalt in <span class="mono">ma-codes.json</span> im Repository übernehmen.</p>
+      <h2>Neuen Mitarbeiter anlegen</h2>
+      <p class="hint">Legt in einem Schritt das Login-Konto <b>und</b> das Kürzel an — zentral in der
+        Datenbank, sofort auf allen Geräten.</p>
       <div class="row">
-        <input id="new-code" type="text" inputmode="numeric" maxlength="10" placeholder="Code, z.B. 78090" autocomplete="off" enterkeyhint="next">
-        <input id="new-name" type="text" placeholder="Name, z.B. Max Mustermann" autocomplete="off" enterkeyhint="done">
-        <button class="btn" onclick="addCode()">+ Hinzufügen</button>
+        <input id="ma-email" type="email" placeholder="E-Mail (Login)" autocomplete="off" enterkeyhint="next">
+        <input id="ma-pw" type="text" placeholder="Start-Passwort" autocomplete="off" enterkeyhint="next">
       </div>
+      <div class="row" style="margin-top:8px">
+        <input id="ma-code" type="text" inputmode="numeric" maxlength="10" placeholder="Kürzel, z.B. 78090" autocomplete="off" enterkeyhint="next">
+        <input id="ma-name" type="text" placeholder="Name, z.B. Max Mustermann" autocomplete="off" enterkeyhint="done">
+        <button class="btn" id="ma-add-btn" onclick="maAnlegen()">+ Anlegen</button>
+      </div>
+      <p class="hint" id="ma-status" style="margin-top:8px"></p>
     </div>
 
     <div class="card">
-      <h2>Lokal auf diesem Gerät</h2>
-      <p class="hint">Diese Codes ergänzen die zentrale Liste, nur hier im Browser.</p>
-      <table id="tbl-local"><thead><tr><th>Code</th><th>Name</th><th></th></tr></thead><tbody></tbody></table>
-      <p class="empty" id="local-empty" style="display:none">Noch keine lokalen Codes angelegt.</p>
+      <h2>Mitarbeiter (Datenbank)</h2>
+      <p class="hint">Konten samt Kürzel. Deaktivierte können sich nicht mehr anmelden und
+        erscheinen nicht mehr in den Konfiguratoren.</p>
+      <table id="tbl-ma"><thead><tr><th>Kürzel</th><th>Name</th><th>E-Mail</th><th></th></tr></thead><tbody></tbody></table>
+      <p class="empty" id="ma-empty" style="display:none">Laden fehlgeschlagen oder keine Mitarbeiter vorhanden.</p>
       <div class="export-row">
-        <button class="btn ghost" onclick="exportCodes()">Als ma-codes.json exportieren</button>
+        <button class="btn ghost" onclick="exportCodes()">Als ma-codes.json exportieren (Offline-Fallback)</button>
       </div>
-    </div>
-
-    <div class="card">
-      <h2>Zentral (ma-codes.json)</h2>
-      <p class="hint">Fest im Repository hinterlegt &ndash; hier nur les- und durchsuchbar.</p>
-      <table id="tbl-central"><thead><tr><th>Code</th><th>Name</th></tr></thead><tbody></tbody></table>
-      <p class="empty" id="central-empty" style="display:none">ma-codes.json konnte nicht geladen werden.</p>
     </div>
 
   </div>
@@ -334,70 +333,91 @@ function toast(msg){
   window._toastTimer=setTimeout(function(){t.classList.remove('show');},2200);
 }
 
-// ═══════════════════ MITARBEITERCODES ═══════════════════
-var MA_LOCAL_KEY='stober_ma_codes_local';
-var MA_CENTRAL={};
+// ═══════════════════ MITARBEITER (Datenbank via Edge Function) ═══════════════════
+var MA_FN_URL = TENANT.supabaseUrl + '/functions/v1/mitarbeiter';
+var MA_LISTE = [];
 
-function loadLocalCodes(){
-  try{ return JSON.parse(localStorage.getItem(MA_LOCAL_KEY)||'{}'); }catch(e){ return {}; }
+function maHeaders(){
+  return {
+    'Authorization': 'Bearer ' + ((window.TSAuth && TSAuth.getToken()) || TENANT.supabaseKey),
+    'apikey': TENANT.supabaseKey,
+    'Content-Type': 'application/json'
+  };
 }
-function saveLocalCodes(obj){ localStorage.setItem(MA_LOCAL_KEY, JSON.stringify(obj)); }
+function maStatus(txt){ document.getElementById('ma-status').textContent = txt || ''; }
 
-function renderCodes(){
-  var local = loadLocalCodes();
-  var localKeys = Object.keys(local).sort();
-  var tb = document.querySelector('#tbl-local tbody'); tb.innerHTML='';
-  document.getElementById('local-empty').style.display = localKeys.length ? 'none' : 'block';
-  localKeys.forEach(function(code){
-    var tr=document.createElement('tr');
-    tr.innerHTML = '<td class="mono">'+esc(code)+'</td><td>'+esc(local[code])+'</td>'+
-      '<td style="text-align:right"><button class="btn danger small" onclick="removeCode(\''+esc(code)+'\')">Entfernen</button></td>';
+function ladeMitarbeiter(){
+  fetch(MA_FN_URL, { headers: maHeaders() })
+    .then(function(r){ if(!r.ok) throw new Error('HTTP ' + r.status); return r.json(); })
+    .then(function(liste){ MA_LISTE = liste; renderMitarbeiter(); })
+    .catch(function(err){
+      console.error(err);
+      MA_LISTE = [];
+      renderMitarbeiter();
+      toast('Mitarbeiterliste konnte nicht geladen werden — Function deployed?');
+    });
+}
+function renderMitarbeiter(){
+  var tb = document.querySelector('#tbl-ma tbody'); tb.innerHTML = '';
+  document.getElementById('ma-empty').style.display = MA_LISTE.length ? 'none' : 'block';
+  MA_LISTE.forEach(function(m){
+    var tr = document.createElement('tr');
+    if(!m.aktiv) tr.style.opacity = '.45';
+    tr.innerHTML = '<td class="mono">' + esc(m.kuerzel || '—') + '</td>' +
+      '<td>' + esc(m.name || '—') + (m.aktiv ? '' : ' <span class="mono">(deaktiviert)</span>') + '</td>' +
+      '<td class="mono" style="font-size:12px">' + esc(m.email || '') + '</td>' +
+      '<td style="text-align:right;white-space:nowrap">' +
+        '<button class="btn ghost small" onclick="maBearbeiten(\'' + m.id + '\')">Ändern</button> ' +
+        (m.aktiv
+          ? '<button class="btn danger small" onclick="maAktiv(\'' + m.id + '\', false)">Deaktivieren</button>'
+          : '<button class="btn small" onclick="maAktiv(\'' + m.id + '\', true)">Aktivieren</button>') +
+      '</td>';
     tb.appendChild(tr);
   });
-
-  var centralKeys = Object.keys(MA_CENTRAL).sort();
-  var tbc = document.querySelector('#tbl-central tbody'); tbc.innerHTML='';
-  document.getElementById('central-empty').style.display = centralKeys.length ? 'none' : 'block';
-  centralKeys.forEach(function(code){
-    var tr=document.createElement('tr');
-    tr.innerHTML = '<td class="mono">'+esc(code)+'</td><td>'+esc(MA_CENTRAL[code])+'</td>';
-    tbc.appendChild(tr);
-  });
 }
-
-function addCode(){
-  var code=document.getElementById('new-code').value.trim();
-  var name=document.getElementById('new-name').value.trim();
-  if(!code || !name){ toast('Bitte Code und Name eingeben'); return; }
-  if(MA_CENTRAL[code]){ toast('Code existiert bereits zentral: '+MA_CENTRAL[code]); return; }
-  var local=loadLocalCodes();
-  local[code]=name;
-  saveLocalCodes(local);
-  document.getElementById('new-code').value='';
-  document.getElementById('new-name').value='';
-  renderCodes();
-  toast('Code hinzugefügt (lokal auf diesem Gerät)');
+function maAnlegen(){
+  var email = document.getElementById('ma-email').value.trim();
+  var pw    = document.getElementById('ma-pw').value;
+  var code  = document.getElementById('ma-code').value.trim();
+  var name  = document.getElementById('ma-name').value.trim();
+  if(!email || !pw || !code || !name){ toast('Bitte alle vier Felder ausfüllen'); return; }
+  var btn = document.getElementById('ma-add-btn'); btn.disabled = true;
+  maStatus('Lege an ...');
+  fetch(MA_FN_URL, { method:'POST', headers: maHeaders(),
+    body: JSON.stringify({ email: email, password: pw, kuerzel: code, name: name }) })
+    .then(function(r){ return r.json().then(function(j){ return { ok: r.ok, j: j }; }); })
+    .then(function(res){
+      btn.disabled = false;
+      if(!res.ok){ maStatus(''); toast(res.j.error || 'Anlegen fehlgeschlagen'); return; }
+      ['ma-email','ma-pw','ma-code','ma-name'].forEach(function(id){ document.getElementById(id).value = ''; });
+      maStatus('Angelegt — Zugangsdaten dem Mitarbeiter mitteilen.');
+      ladeMitarbeiter();
+    })
+    .catch(function(){ btn.disabled = false; maStatus(''); toast('Netzwerkfehler'); });
 }
-function removeCode(code){
-  var local=loadLocalCodes();
-  delete local[code];
-  saveLocalCodes(local);
-  renderCodes();
-  toast('Code entfernt');
+function maBearbeiten(id){
+  var m = MA_LISTE.find(function(x){ return x.id === id; });
+  if(!m) return;
+  var code = prompt('Kürzel:', m.kuerzel || ''); if(code === null) return;
+  var name = prompt('Name:', m.name || ''); if(name === null) return;
+  fetch(MA_FN_URL, { method:'PATCH', headers: maHeaders(),
+    body: JSON.stringify({ id: id, kuerzel: code.trim(), name: name.trim() }) })
+    .then(function(r){ if(!r.ok) throw 0; ladeMitarbeiter(); toast('Gespeichert'); })
+    .catch(function(){ toast('Speichern fehlgeschlagen'); });
+}
+function maAktiv(id, aktiv){
+  if(!aktiv && !confirm('Mitarbeiter deaktivieren? Er kann sich dann nicht mehr anmelden.')) return;
+  fetch(MA_FN_URL, { method:'PATCH', headers: maHeaders(),
+    body: JSON.stringify({ id: id, aktiv: aktiv }) })
+    .then(function(r){ if(!r.ok) throw 0; ladeMitarbeiter(); toast(aktiv ? 'Aktiviert' : 'Deaktiviert'); })
+    .catch(function(){ toast('Änderung fehlgeschlagen'); });
 }
 function exportCodes(){
-  var merged=Object.assign({}, MA_CENTRAL, loadLocalCodes());
+  var merged = {};
+  MA_LISTE.forEach(function(m){ if(m.aktiv && m.kuerzel) merged[m.kuerzel] = m.name || m.email || ''; });
   downloadJSON(merged, 'ma-codes.json');
 }
-
-fetch('ma-codes.json',{cache:'no-store'})
-  .then(function(r){ if(!r.ok) throw new Error('fetch failed'); return r.json(); })
-  .then(function(json){ MA_CENTRAL=json; renderCodes(); })
-  .catch(function(){ renderCodes(); });
-
-document.getElementById('new-name').addEventListener('keydown', function(e){
-  if(e.key==='Enter') addCode();
-});
+ladeMitarbeiter();
 document.getElementById('new-code').addEventListener('keydown', function(e){
   if(e.key==='Enter') document.getElementById('new-name').focus();
 });

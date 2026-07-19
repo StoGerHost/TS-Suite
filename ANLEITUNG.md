@@ -1,77 +1,134 @@
-# TS-Suite — Mandanten-Setup (Option A: ein Deployment pro Kunde)
+# TS-Suite — Anleitung: Neuen Kunden aufsetzen
 
-## Was wurde umgebaut
+Stand: 19.07.2026 · gilt ab der Supabase-Auth-Umstellung
 
-Alle kundenspezifischen Werte liegen jetzt in **einer einzigen Datei: `config.js`**.
-Die vier Kern-Dateien (`index.html`, `arbeitsbericht.html`, `uebersicht.html`, `crm.html`)
-binden sie im `<head>` ein und lesen alles aus dem `TENANT`-Objekt:
+## Wie das System aufgebaut ist
 
-| Wert | vorher | jetzt |
-|---|---|---|
-| Supabase-URL + anon key | 4× hart codiert | `TENANT.supabaseUrl` / `TENANT.supabaseKey` |
-| Zugangscode `sto7808` | 2× hart codiert | `TENANT.zugangscode` |
-| Bucket `berichte-medien` | arbeitsbericht.html | `TENANT.bucketBerichte` |
-| Bucket `angebote` | crm.html (2×) | `TENANT.bucketAngebote` |
-| Techniker-Vorbelegung | arbeitsbericht.html | `TENANT.techniker` |
-| Stober-Logo (Base64) | index.html | `TENANT.logoDataUrl` |
+Jeder Kunde bekommt eine **komplett eigene Instanz**:
 
-Zusätzlich gibt es `TENANT.features` als Feature-Flags für spätere Paket-Unterschiede
-(Basis vs. Pro) — aktuell noch ohne Wirkung, aber der Platz dafür ist reserviert.
+- ein eigenes **GitHub-Repo** (Kopie des Templates `StoGerHost/TS-Suite`),
+  ausgeliefert über GitHub Pages
+- ein eigenes **Supabase-Projekt** (Datenbank + Storage + Nutzer-Logins)
+- genau **eine** kundenspezifische Datei: `config.js` (Name, Logo, Supabase-
+  Zugangsdaten, Admin-Code, Techniker, Feature-Flags)
 
-**Wichtig:** Die Dateien wurden vom Stand des `main`-Branch (heute) umgestellt.
-Falls du lokal neuere, noch nicht gepushte Änderungen hast, erst pushen und den
-Umbau auf dem aktuellen Stand wiederholen — sonst überschreibst du deine Arbeit.
+Alle anderen Dateien sind bei allen Kunden identisch und werden zentral über
+das Template gepflegt. Der Zugriff auf Daten läuft über Supabase Auth: Jeder
+Mitarbeiter hat ein eigenes Login (E-Mail + Passwort), die Anmeldung gilt
+dauerhaft pro Gerät.
 
-## Einmalig: Template einrichten
+## Voraussetzungen (einmalig)
 
-1. Umgebaute Dateien ins bestehende Repo committen und testen (siehe Checkliste unten).
-2. Auf GitHub: **Settings → Template repository** aktivieren.
-3. Fertig — das Repo ist jetzt gleichzeitig deine eigene Instanz und die Vorlage.
+Für die automatische Routine (Weg A) brauchst du einen PC oder Mac mit:
 
-## Neuen Kunden anlegen (Ziel: unter 30 Minuten)
+- **Git** — https://git-scm.com
+- **GitHub CLI** — https://cli.github.com, danach einmalig `gh auth login`
 
-1. **Repo:** „Use this template" → `ts-suite-kundenname`, GitHub Pages aktivieren.
-2. **Supabase:** Neues Projekt anlegen, `setup.sql` im SQL-Editor ausführen
-   (siehe unten), beide Storage-Buckets anlegen (`berichte-medien`, `angebote`).
-3. **config.js** im neuen Repo anpassen: Name, Logo, Supabase-URL + anon key,
-   Zugangscode, Techniker-Namen.
-4. Einmal alle vier Seiten durchklicken (Checkliste unten).
+Ohne PC geht es auch komplett manuell vom iPad (Weg B).
 
-## setup.sql erzeugen (aus deinem bestehenden Projekt)
+---
 
-Damit du das Schema nicht abtippen musst, exportiere es aus dem laufenden Projekt:
+## Weg A: Automatische Installationsroutine (PC/Mac)
 
-```bash
-npx supabase db dump --db-url "postgresql://postgres:[DB-PASSWORT]@db.guuywhrzygcnpzrnnlsw.supabase.co:5432/postgres" --schema public -f setup.sql
-```
+1. `neuer-kunde.bat` (Windows, Doppelklick — `neuer-kunde.ps1` muss daneben
+   liegen) oder `./neuer-kunde.sh` (Mac/Linux) starten.
+2. Die Routine fragt ab: Kundenname, Repo-Kurzname, Untertitel, Supabase-URL
+   und anon key, Admin-Code, Techniker-Namen.
+   (Supabase-Daten können leer bleiben und später in der `config.js`
+   nachgetragen werden, falls das Projekt noch nicht existiert.)
+3. Sie erzeugt automatisch: Kunden-Repo aus dem Template, fertige
+   `config.js`, ersten Push, GitHub Pages.
+4. Danach die angezeigten **Supabase-Restschritte** abarbeiten
+   (siehe „Supabase einrichten" unten).
 
-(DB-Passwort: Supabase Dashboard → Project Settings → Database.)
-Die `setup.sql` ins Template-Repo legen — dann ist sie bei jedem Kunden dabei.
-Storage-Buckets und deren Policies musst du im Dashboard je Projekt anlegen,
-die exportiert der Dump nicht.
+Dauer: ca. 10 Minuten plus Supabase-Klickarbeit.
 
-## Updates verteilen
+## Weg B: Manuell (auch vom iPad)
 
-**Eiserne Regel: Fixes IMMER zuerst im Template, nie direkt im Kunden-Repo.**
+1. **Repo:** github.com → Template-Repo `TS-Suite` öffnen →
+   „Use this template" → Name `ts-suite-kundenname` → erstellen.
+2. **Pages:** Im neuen Repo Settings → Pages → Branch `main`, Ordner `/` →
+   Save. Die Seite liegt dann unter
+   `https://<account>.github.io/ts-suite-kundenname/`.
+3. **config.js** im neuen Repo direkt auf GitHub bearbeiten
+   (Stift-Symbol) und alle Werte anpassen — siehe Feld-Referenz unten.
+4. **Supabase einrichten** (nächster Abschnitt).
 
-Dann: `./update-kunden.sh` (Skript liegt bei, Kunden-Repos oben eintragen).
-Es zieht `template/main` in jedes Kunden-Repo und stellt sicher, dass die
-kundeneigene `config.js` dabei niemals überschrieben wird.
+## Supabase einrichten (bei beiden Wegen)
 
-Kundenwünsche nur über `config.js` / Feature-Flags lösen, nie über
-Code-Abweichungen im Kunden-Repo — sonst laufen die Stände auseinander.
+Im Dashboard (https://supabase.com/dashboard):
 
-## Test-Checkliste nach dem Umbau
+1. **Neues Projekt** anlegen (Name = Kundenname, Region EU).
+   Free-Tier erlaubt 2 aktive Projekte, danach ~25 $/Monat pro Projekt.
+2. **Schema:** SQL-Editor öffnen, kompletten Inhalt der `setup.sql` aus dem
+   Repo einfügen, Run. Legt alle Tabellen, Constraints und die
+   Auth-Policies an (Zugriff nur für angemeldete Nutzer).
+3. **Storage:** Zwei Buckets anlegen, beide **public**:
+   `berichte-medien` und `angebote`.
+4. **Nutzer:** Authentication → Users → „Add user" für jeden Mitarbeiter:
+   E-Mail + Passwort vergeben, **„Auto Confirm User" anhaken**.
+   Ohne Nutzer kommt niemand an die Daten.
+5. **Zugangsdaten in config.js:** Project Settings → API →
+   „Project URL" und „anon public"-Key kopieren und in die `config.js`
+   des Kunden-Repos eintragen (falls nicht schon über die Routine erledigt).
+6. **Mitarbeiter-Function:** Edge Functions → „Deploy a new function" →
+   Name `mitarbeiter` → Inhalt von `mitarbeiter-function.ts` einfügen →
+   Deploy. Danach in den Function-Einstellungen **„Enforce JWT
+   verification" ausschalten** (die Funktion prüft Anmeldungen selbst).
+   Über sie legt das Admin-Tool Konto + Kürzel in einem Schritt an;
+   die Konfiguratoren beziehen die Kürzel daraus (mit Gerätecache und
+   `ma-codes.json` als Offline-Fallback).
+7. Optional (nur wenn der Kunde Trello nutzt): Edge Function
+   `create-trello-card` deployen und in `config.js` `features.trello: true`
+   setzen.
 
-- [ ] `index.html`: Logo sichtbar, Kontakt-Schnellsuche liefert Treffer
-- [ ] `arbeitsbericht.html`: Bauvorhaben-Liste lädt, Foto-Upload funktioniert, PDF-Erzeugung OK
-- [ ] `uebersicht.html`: Zugangscode `sto7808` funktioniert, Berichte + Fotos laden
-- [ ] `crm.html`: Kunden/Aktivitäten laden, Angebots-Upload funktioniert, Trello-Karte anlegen OK
-- [ ] Browser-Konsole: keine `TENANT is not defined`-Fehler
+## config.js — Feld-Referenz
 
-## Offene Punkte (Phase 1, nächste Schritte)
+| Feld | Bedeutung |
+|---|---|
+| `name` | Firmenname, erscheint u. a. als Logo-Alt-Text |
+| `untertitel` | Zeile unter dem Namen auf der Startseite |
+| `logoDataUrl` | Logo als Base64-Data-URL oder Pfad (z. B. `assets/logo.png`) |
+| `supabaseUrl` / `supabaseKey` | Project URL + anon key des Kundenprojekts |
+| `adminCode` | Code für sensible Schalter (aktuell: GPS im Arbeitsbericht). Steht im Klartext in der Datei — Komfortschutz, kein Geheimnis |
+| `bucketBerichte` / `bucketAngebote` | Storage-Bucket-Namen (Standard lassen) |
+| `techniker` | Vorbelegung der Techniker-Liste im Arbeitsbericht |
+| `features` | Flags für Kundenpakete (crm, konfiguratoren, trello) |
 
-1. **Supabase Auth** statt Zugangscode — Pflicht vor dem ersten Fremdkunden.
-   `TENANT.zugangscode` ist nur die Brücke bis dahin.
-2. **setup.sql** erzeugen und ins Template legen (Befehl oben).
-3. **Export-Funktion** (CSV/PDF-Gesamtexport) als Kaufargument.
+## Test-Checkliste (vor Übergabe an den Kunden)
+
+- [ ] Startseite lädt, Logo und Name stimmen
+- [ ] Login-Fenster erscheint auf: Arbeitsbericht, Berichtsübersicht, CRM, Admin
+- [ ] Anmeldung mit einem angelegten Nutzer funktioniert; nach Neuladen
+      bleibt man angemeldet
+- [ ] Gegenprobe im privaten Tab ohne Login: keine Daten abrufbar
+- [ ] Arbeitsbericht: Bauvorhaben-Liste lädt, Foto-Upload klappt,
+      PDF-Erzeugung klappt, GPS-Schalter verlangt den Admin-Code
+- [ ] Berichtsübersicht: Berichte + Fotos + Karte laden
+- [ ] CRM: Kunden laden, Angebots-Upload klappt
+- [ ] Startseiten-Suche: ohne Login Hinweis „bitte anmelden",
+      mit Login Treffer inkl. Telefonnummer
+- [ ] Backbar „← STOBER Werkzeuge" oben auf allen Unterseiten
+
+## Updates an alle Kunden verteilen
+
+**Eiserne Regel: Fixes IMMER zuerst im Template-Repo, nie direkt im
+Kunden-Repo.** Kundenwünsche nur über `config.js`/Feature-Flags lösen.
+
+Verteilen per `./update-kunden.sh` (Kunden-Repos im Skript eintragen).
+Das Skript zieht `template/main` in jedes Kunden-Repo und stellt sicher,
+dass die kundeneigene `config.js` nie überschrieben wird.
+
+## Wenn etwas klemmt
+
+- **Schwarzer Bildschirm auf einer geschützten Seite:** Fast immer Cache —
+  im privaten Tab prüfen. Sonst Browser-Konsole: Meldung
+  „config.js muss VOR ts-auth.js eingebunden sein" heißt, die Einbinde-
+  Reihenfolge im HTML stimmt nicht.
+- **„E-Mail oder Passwort falsch" trotz korrekter Daten:** Nutzer im
+  Dashboard prüfen — ohne „Auto Confirm" ist das Konto noch nicht aktiv.
+- **Daten laden nicht nach Policy-Umstellung:** Nutzer angemeldet? Token
+  abgelaufen? Einmal ab- und wieder anmelden (TSAuth.logout() in der
+  Konsole oder Website-Daten löschen).
+- **Notfall-Rückweg:** Auskommentierter Block am Ende der
+  `auth-policies.sql` stellt den offenen Zustand wieder her.
