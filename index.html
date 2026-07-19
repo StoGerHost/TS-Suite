@@ -477,7 +477,8 @@ const SUPABASE_ANON_KEY = TENANT.supabaseKey;
 })();
 
 function supabaseHeaders(){
-  return { 'apikey': SUPABASE_ANON_KEY, 'Authorization': 'Bearer ' + SUPABASE_ANON_KEY };
+  const t = (window.TSAuth && TSAuth.getToken()) || SUPABASE_ANON_KEY;
+  return { 'apikey': SUPABASE_ANON_KEY, 'Authorization': 'Bearer ' + t };
 }
 function esc(s){ return (s || '').toString().replace(/[<>&]/g, c => ({'<':'&lt;','>':'&gt;','&':'&amp;'}[c])); }
 
@@ -488,6 +489,11 @@ async function sucheKontakt(){
 
   resultsEl.innerHTML = '<div class="lookup-state">Suche ...</div>';
   try{
+    if(window.TSAuth && !TSAuth.isUnlocked()){
+      resultsEl.innerHTML = '<div class="lookup-state">Für die Suche bitte anmelden. ' +
+        '<a href="#" onclick="TSAuth.showGate(\'Anmelden\');return false;" style="color:var(--accent);">Jetzt anmelden</a></div>';
+      return;
+    }
     const filter = `bauvorhaben.ilike.*${term}*,kunde.ilike.*${term}*,ansprechpartner.ilike.*${term}*`;
     /* Telefon/E-Mail liegen seit dem CRM-Umbau in kunden bzw. crm_ansprechpartner
        — beide werden per PostgREST-Embedding mitgeladen. */

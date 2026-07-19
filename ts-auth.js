@@ -1,200 +1,193 @@
 /* ============================================================
-   TS-Suite · Gemeinsamer Zugangsschutz (ts-auth.js)
+   TS-Suite · Zugangsschutz mit Supabase Auth (ts-auth.js)
    ------------------------------------------------------------
-   Einbindung mit automatischem Gate (Overlay bis zur Freigabe):
+   Echte Anmeldung mit E-Mail + Passwort (Konten werden im
+   Supabase-Dashboard unter Authentication > Users angelegt).
+   Die Sitzung bleibt pro Gerät dauerhaft angemeldet
+   (Refresh-Token, verwaltet von supabase-js).
+
+   Einbindung mit automatischem Gate (Overlay bis zum Login):
+     <script src="config.js"></script>
      <script src="ts-auth.js" data-gate data-title="CRM"></script>
 
-   Einbindung nur als Prüf-API (z.B. Berichtsübersicht mit
-   eigenem Gate):
+   Einbindung nur als API (z. B. Startseiten-Suche):
      <script src="ts-auth.js"></script>
-     -> window.TSAuth.verify(pw), .markUnlocked(), .isUnlocked()
 
-   Freigabe-Logik:
-   - Master-Passwort (fest hinterlegt, als Hash) ODER
-   - eigenes Passwort (vom Nutzer festgelegt, Hash in localStorage
-     DIESES Geräts/Browsers)
-   - Eine Freigabe gilt für die laufende Browser-Sitzung in allen
-     geschützten Bereichen (sessionStorage).
+   API:
+     TSAuth.isUnlocked()  -> true, wenn angemeldet
+     TSAuth.getToken()    -> Access-Token (JWT) oder null
+     TSAuth.showGate(t)   -> Login-Overlay manuell öffnen
+     TSAuth.logout()      -> Abmelden (Seite lädt neu)
+     TSAuth.ready         -> Promise, aufgelöst nach Session-Prüfung
+   Events (auf document):
+     'tsauth:login'       -> nach erfolgreichem frischem Login
 
-   Eigenes Passwort festlegen/ändern: direkt im Gate über
-   "Eigenes Passwort festlegen / ändern" — dazu muss das Master-
-   oder das bisherige eigene Passwort eingegeben werden.
-
-   HINWEIS ZUR SICHERHEIT: Das ist ein clientseitiger Komfort-
-   schutz gegen versehentlichen Zugriff, kein echter Schutz der
-   Daten — die liegen weiterhin hinter dem Supabase-Anon-Key.
+   Kompatibilität zur alten Version:
+     TSAuth.verify()/markUnlocked() existieren noch, tun aber
+     nichts mehr — der alte Zugangscode ist abgelöst.
    ============================================================ */
 (function () {
   'use strict';
 
-  // Master-Passwort als Doppel-Hash (djb2/sdbm-Variante).
-  // Akzeptiert werden beide Schreibweisen: sto78O8 (großes O) und sto7808 (Null).
-  var MASTER_HASHES = ['73ed1bf5-9868d17b', '73ed20aa-9868cf20'];
+  if (!window.TENANT) {
+    console.error('ts-auth.js: config.js muss VOR ts-auth.js eingebunden sein.');
+    return;
+  }
 
-  var LS_CUSTOM = 'tsSuiteCustomPwHash'; // eigenes Passwort (Hash, pro Gerät)
-  var SS_OK = 'tsSuiteAuthOk';           // Sitzungs-Freigabe für alle Bereiche
+  var CDN = 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js';
+  var scriptTag = document.currentScript;
+  var wantGate = scriptTag && scriptTag.hasAttribute('data-gate');
+  var gateTitle = (scriptTag && scriptTag.getAttribute('data-title')) || 'TS-Suite';
 
-  function hash(str) {
-    var h1 = 5381, h2 = 52711;
-    for (var i = 0; i < str.length; i++) {
-      var c = str.charCodeAt(i);
-      h1 = ((h1 * 33) ^ c) >>> 0;
-      h2 = ((h2 * 37) ^ c) >>> 0;
+  var client = null;
+  var readyResolve;
+  var ready = new Promise(function (res) { readyResolve = res; });
+
+  /* ---------- Token synchron aus localStorage lesen ----------
+     supabase-js legt die Session unter sb-<ref>-auth-token ab.
+     So ist der Token sofort verfügbar, noch bevor das CDN-
+     Skript geladen ist — wichtig für früh startende fetches. */
+  function storageKey() {
+    try {
+      var ref = new URL(TENANT.supabaseUrl).hostname.split('.')[0];
+      return 'sb-' + ref + '-auth-token';
+    } catch (e) { return null; }
+  }
+  function getToken() {
+    try {
+      var raw = localStorage.getItem(storageKey());
+      if (!raw) return null;
+      var s = JSON.parse(raw);
+      return (s && s.access_token) || null;
+    } catch (e) { return null; }
+  }
+  function isUnlocked() { return !!getToken(); }
+
+  /* ---------- supabase-js laden und Client bauen ---------- */
+  function loadLib() {
+    return new Promise(function (res, rej) {
+      if (window.supabase && window.supabase.createClient) return res();
+      var s = document.createElement('script');
+      s.src = CDN;
+      s.onload = res;
+      s.onerror = function () { rej(new Error('supabase-js konnte nicht geladen werden')); };
+      document.head.appendChild(s);
+    });
+  }
+
+  function initClient() {
+    return loadLib().then(function () {
+      client = window.supabase.createClient(TENANT.supabaseUrl, TENANT.supabaseKey, {
+        auth: { persistSession: true, autoRefreshToken: true, storageKey: storageKey() }
+      });
+      return client.auth.getSession();
+    }).then(function () {
+      readyResolve();
+    }).catch(function (err) {
+      console.error('ts-auth.js:', err);
+      readyResolve();
+    });
+  }
+
+  /* ---------- Login-Overlay ---------- */
+  var overlay = null;
+
+  function buildOverlay() {
+    if (overlay) return overlay;
+    var css =
+      '#tsAuthGate{position:fixed;inset:0;z-index:99999;display:flex;align-items:center;justify-content:center;' +
+      'background:#0a0a0c;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;}' +
+      '#tsAuthGate .ta-box{width:min(92vw,360px);border:1px solid #26303c;background:#101318;padding:26px 24px;}' +
+      '#tsAuthGate .ta-eyebrow{font-family:ui-monospace,Menlo,monospace;font-size:11px;letter-spacing:.08em;' +
+      'text-transform:uppercase;color:#3a7bd5;margin:0 0 6px;}' +
+      '#tsAuthGate h1{color:#e8edf2;font-size:20px;margin:0 0 16px;}' +
+      '#tsAuthGate input{display:block;width:100%;box-sizing:border-box;background:#0a0a0c;border:1px solid #2c3540;' +
+      'color:#e8edf2;padding:11px 12px;font-size:15px;margin-bottom:10px;}' +
+      '#tsAuthGate input:focus{outline:none;border-color:#3a7bd5;}' +
+      '#tsAuthGate button{width:100%;background:#3a7bd5;color:#0a0a0c;border:none;padding:11px 0;font-weight:600;' +
+      'font-size:14px;cursor:pointer;}' +
+      '#tsAuthGate button:disabled{opacity:.6;}' +
+      '#tsAuthGate .ta-err{color:#c9604f;font-size:13px;min-height:18px;margin-top:10px;}';
+    var st = document.createElement('style');
+    st.textContent = css;
+    document.head.appendChild(st);
+
+    overlay = document.createElement('div');
+    overlay.id = 'tsAuthGate';
+    overlay.innerHTML =
+      '<div class="ta-box">' +
+      '  <p class="ta-eyebrow">Blueprint · TS-Suite</p>' +
+      '  <h1>' + gateTitle.replace(/[<>&]/g, '') + '</h1>' +
+      '  <input type="email" id="taEmail" placeholder="E-Mail" autocomplete="username" inputmode="email">' +
+      '  <input type="password" id="taPw" placeholder="Passwort" autocomplete="current-password">' +
+      '  <button id="taBtn">Anmelden</button>' +
+      '  <div class="ta-err" id="taErr"></div>' +
+      '</div>';
+    document.body.appendChild(overlay);
+
+    var btn = overlay.querySelector('#taBtn');
+    var mail = overlay.querySelector('#taEmail');
+    var pw = overlay.querySelector('#taPw');
+    var errEl = overlay.querySelector('#taErr');
+
+    function doLogin() {
+      var e = mail.value.trim(), p = pw.value;
+      if (!e || !p) { errEl.textContent = 'Bitte E-Mail und Passwort eingeben.'; return; }
+      btn.disabled = true;
+      errEl.textContent = '';
+      ready.then(function () {
+        if (!client) throw new Error('Keine Verbindung zum Anmeldedienst.');
+        return client.auth.signInWithPassword({ email: e, password: p });
+      }).then(function (r) {
+        if (r && r.error) throw r.error;
+        try { document.dispatchEvent(new CustomEvent('tsauth:login')); } catch (ev) {}
+        /* Frischer Login: Seite neu laden, damit alle Daten-
+           Abfragen von Anfang an mit dem Token laufen. */
+        location.reload();
+      }).catch(function (err) {
+        btn.disabled = false;
+        var msg = (err && err.message) || 'Anmeldung fehlgeschlagen.';
+        if (/invalid login credentials/i.test(msg)) msg = 'E-Mail oder Passwort falsch.';
+        errEl.textContent = msg;
+      });
     }
-    return h1.toString(16) + '-' + h2.toString(16);
+    btn.addEventListener('click', doLogin);
+    pw.addEventListener('keydown', function (ev) { if (ev.key === 'Enter') doLogin(); });
+    mail.addEventListener('keydown', function (ev) { if (ev.key === 'Enter') pw.focus(); });
+    return overlay;
   }
 
-  function customHash() {
-    try { return localStorage.getItem(LS_CUSTOM) || null; } catch (e) { return null; }
+  function showGate(title) {
+    if (title) gateTitle = title;
+    var run = function () { buildOverlay().style.display = 'flex'; };
+    if (document.body) run(); else document.addEventListener('DOMContentLoaded', run);
+  }
+  function hideGate() { if (overlay) overlay.style.display = 'none'; }
+
+  function logout() {
+    var done = function () {
+      try { localStorage.removeItem(storageKey()); } catch (e) {}
+      location.reload();
+    };
+    ready.then(function () {
+      if (client) return client.auth.signOut();
+    }).then(done).catch(done);
   }
 
-  function verify(pw) {
-    if (!pw) return false;
-    var h = hash(pw);
-    if (MASTER_HASHES.indexOf(h) !== -1) return true;
-    var c = customHash();
-    return !!c && h === c;
-  }
-
-  function isUnlocked() {
-    try { return sessionStorage.getItem(SS_OK) === '1'; } catch (e) { return false; }
-  }
-
-  function markUnlocked() {
-    try { sessionStorage.setItem(SS_OK, '1'); } catch (e) {}
-  }
-
-  function setCustom(currentPw, newPw) {
-    if (!verify(currentPw)) return { ok: false, msg: 'Aktuelles Passwort ist falsch.' };
-    if (!newPw || newPw.length < 4) return { ok: false, msg: 'Neues Passwort: mindestens 4 Zeichen.' };
-    try { localStorage.setItem(LS_CUSTOM, hash(newPw)); } catch (e) {
-      return { ok: false, msg: 'Speichern nicht möglich (localStorage gesperrt).' };
-    }
-    return { ok: true, msg: 'Eigenes Passwort gespeichert — gilt auf diesem Gerät für alle geschützten Bereiche.' };
-  }
-
-  function removeCustom(currentPw) {
-    if (!verify(currentPw)) return { ok: false, msg: 'Aktuelles Passwort ist falsch.' };
-    try { localStorage.removeItem(LS_CUSTOM); } catch (e) {}
-    return { ok: true, msg: 'Eigenes Passwort entfernt — es gilt wieder nur das Master-Passwort.' };
-  }
-
+  /* ---------- Öffentliche API ---------- */
   window.TSAuth = {
-    verify: verify,
+    ready: ready,
     isUnlocked: isUnlocked,
-    markUnlocked: markUnlocked,
-    setCustom: setCustom,
-    removeCustom: removeCustom,
-    hasCustom: function () { return !!customHash(); }
+    getToken: getToken,
+    showGate: showGate,
+    hideGate: hideGate,
+    logout: logout,
+    /* Kompatibilität zur alten Version: */
+    verify: function () { console.warn('TSAuth.verify(): abgelöst durch Supabase Auth.'); return false; },
+    markUnlocked: function () {}
   };
 
-  /* ---------------- Automatisches Gate (data-gate) ---------------- */
-  var script = document.currentScript;
-  if (!script || !script.hasAttribute('data-gate')) return;
-  if (isUnlocked()) return;
-
-  var title = script.getAttribute('data-title') || document.title || 'Geschützter Bereich';
-
-  // Sofort-Verdeckung: verhindert kurzes Aufblitzen des Inhalts, bevor das Gate steht
-  var preHide = document.createElement('style');
-  preHide.id = 'tsAuthPreHide';
-  preHide.textContent = 'body > :not(#tsAuthGate){visibility:hidden !important;}';
-  (document.head || document.documentElement).appendChild(preHide);
-
-  function buildGate() {
-    var css = '' +
-      '#tsAuthGate{position:fixed;inset:0;z-index:2147483000;background:#0a0a0c;display:flex;align-items:center;justify-content:center;padding:24px;font-family:"Inter","IBM Plex Sans","Segoe UI",system-ui,sans-serif;color:#e9edf2;}' +
-      '#tsAuthGate *{box-sizing:border-box;}' +
-      '#tsAuthGate .ta-box{width:100%;max-width:400px;background:#111318;border:1px solid rgba(58,123,213,.3);padding:30px 26px;}' +
-      '#tsAuthGate .ta-eyebrow{font-family:"JetBrains Mono",ui-monospace,Consolas,monospace;font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:#3a7bd5;margin:0 0 8px;font-weight:600;}' +
-      '#tsAuthGate h1{font-size:20px;margin:0 0 18px;font-weight:700;}' +
-      '#tsAuthGate input{width:100%;background:#0a0a0c;border:1px solid rgba(58,123,213,.35);color:#e9edf2;padding:11px 12px;font-size:15px;font-family:inherit;margin-bottom:10px;}' +
-      '#tsAuthGate input:focus{outline:none;border-color:#3a7bd5;}' +
-      '#tsAuthGate button{width:100%;background:#3a7bd5;color:#0a0a0c;border:none;padding:12px;font-weight:600;font-family:"JetBrains Mono",ui-monospace,monospace;font-size:14px;cursor:pointer;}' +
-      '#tsAuthGate button:hover{background:#2f66b3;}' +
-      '#tsAuthGate .ta-err{color:#c9604f;font-size:13px;min-height:18px;margin-top:10px;}' +
-      '#tsAuthGate .ta-ok{color:#5c9e7c;font-size:13px;min-height:18px;margin-top:10px;}' +
-      '#tsAuthGate .ta-toggle{display:inline-block;margin-top:16px;color:#8394a1;font-size:12.5px;text-decoration:underline;cursor:pointer;background:none;border:none;padding:0;width:auto;font-family:inherit;}' +
-      '#tsAuthGate .ta-toggle:hover{color:#3a7bd5;background:none;}' +
-      '#tsAuthGate .ta-setup{display:none;margin-top:16px;padding-top:16px;border-top:1px solid rgba(58,123,213,.2);}' +
-      '#tsAuthGate .ta-setup.ta-open{display:block;}' +
-      '#tsAuthGate .ta-hint{color:#8394a1;font-size:12px;line-height:1.5;margin:0 0 12px;}';
-
-    var style = document.createElement('style');
-    style.textContent = css;
-
-    var gate = document.createElement('div');
-    gate.id = 'tsAuthGate';
-    gate.innerHTML =
-      '<div class="ta-box">' +
-      '  <p class="ta-eyebrow">TS-Suite · Gesch\u00fctzter Bereich</p>' +
-      '  <h1></h1>' +
-      '  <input type="password" id="taPw" placeholder="Passwort" autocomplete="current-password">' +
-      '  <button type="button" id="taUnlock">Entsperren</button>' +
-      '  <div class="ta-err" id="taMsg"></div>' +
-      '  <button type="button" class="ta-toggle" id="taToggle">Eigenes Passwort festlegen / \u00e4ndern</button>' +
-      '  <div class="ta-setup" id="taSetup">' +
-      '    <p class="ta-hint">Legt ein eigenes Passwort fest, das auf <strong>diesem Ger\u00e4t</strong> zus\u00e4tzlich zum Master-Passwort alle gesch\u00fctzten Bereiche \u00f6ffnet.</p>' +
-      '    <input type="password" id="taCur" placeholder="Master- oder bisheriges eigenes Passwort" autocomplete="off">' +
-      '    <input type="password" id="taNew1" placeholder="Neues Passwort (min. 4 Zeichen)" autocomplete="new-password">' +
-      '    <input type="password" id="taNew2" placeholder="Neues Passwort wiederholen" autocomplete="new-password">' +
-      '    <button type="button" id="taSave">Eigenes Passwort speichern</button>' +
-      '  </div>' +
-      '</div>';
-
-    gate.querySelector('h1').textContent = title;
-
-    function msg(text, ok) {
-      var el = gate.querySelector('#taMsg');
-      el.textContent = text || '';
-      el.className = ok ? 'ta-ok' : 'ta-err';
-    }
-
-    function unlock() {
-      var val = gate.querySelector('#taPw').value;
-      if (verify(val)) {
-        markUnlocked();
-        gate.remove();
-        style.remove();
-        preHide.remove();
-        document.documentElement.style.overflow = '';
-      } else {
-        msg('Falsches Passwort.');
-      }
-    }
-
-    gate.querySelector('#taUnlock').addEventListener('click', unlock);
-    gate.querySelector('#taPw').addEventListener('keydown', function (e) { if (e.key === 'Enter') unlock(); });
-
-    gate.querySelector('#taToggle').addEventListener('click', function () {
-      gate.querySelector('#taSetup').classList.toggle('ta-open');
-    });
-
-    gate.querySelector('#taSave').addEventListener('click', function () {
-      var cur = gate.querySelector('#taCur').value;
-      var n1 = gate.querySelector('#taNew1').value;
-      var n2 = gate.querySelector('#taNew2').value;
-      if (n1 !== n2) { msg('Die neuen Passw\u00f6rter stimmen nicht \u00fcberein.'); return; }
-      var res = setCustom(cur, n1);
-      msg(res.msg, res.ok);
-      if (res.ok) {
-        gate.querySelector('#taCur').value = '';
-        gate.querySelector('#taNew1').value = '';
-        gate.querySelector('#taNew2').value = '';
-        gate.querySelector('#taSetup').classList.remove('ta-open');
-        gate.querySelector('#taPw').value = n1; // direkt entsperrbereit
-      }
-    });
-
-    document.documentElement.style.overflow = 'hidden';
-    document.head.appendChild(style);
-    document.body.appendChild(gate);
-    setTimeout(function () { var i = gate.querySelector('#taPw'); if (i) i.focus(); }, 50);
-  }
-
-  if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', buildGate);
-  } else {
-    buildGate();
-  }
+  /* ---------- Start ---------- */
+  initClient();
+  if (wantGate && !isUnlocked()) showGate();
 })();

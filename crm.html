@@ -356,7 +356,7 @@ async function sb(pfad, opts = {}){
     ...opts,
     headers: {
       'apikey': KONFIG.SUPABASE_KEY,
-      'Authorization': `Bearer ${KONFIG.SUPABASE_KEY}`,
+      'Authorization': `Bearer ${(window.TSAuth && TSAuth.getToken()) || KONFIG.SUPABASE_KEY}`,
       'Content-Type': 'application/json',
       'Prefer': opts.method === 'POST' || opts.method === 'PATCH' ? 'return=representation' : '',
       ...(opts.headers || {})
@@ -378,7 +378,7 @@ async function ladeAngebotDateiHoch(pfad, file){
   const res = await fetch(`${KONFIG.SUPABASE_URL}/storage/v1/object/${TENANT.bucketAngebote}/${pfad}`, {
     method: 'POST',
     headers: {
-      'Authorization': 'Bearer ' + KONFIG.SUPABASE_KEY,
+      'Authorization': 'Bearer ' + ((window.TSAuth && TSAuth.getToken()) || KONFIG.SUPABASE_KEY),
       'apikey': KONFIG.SUPABASE_KEY,
       'Content-Type': file.type || 'application/octet-stream',
       'x-upsert': 'true'
@@ -1421,7 +1421,7 @@ async function wvAnTrelloAusfuehren(wvId, gewaehlteBauvorhabenId){
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': 'Bearer ' + KONFIG.SUPABASE_KEY,
+        'Authorization': 'Bearer ' + ((window.TSAuth && TSAuth.getToken()) || KONFIG.SUPABASE_KEY),
         'apikey': KONFIG.SUPABASE_KEY
       },
       body: JSON.stringify({ name, desc, auftrag, pdfBase64, start, due })

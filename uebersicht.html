@@ -110,17 +110,7 @@
 </style>
 </head>
 <body>
-<script src="ts-auth.js"></script>
-
-<div id="gate">
-  <div class="box">
-    <p class="eyebrow">Blueprint · TS-Suite</p>
-    <h1>Berichtsübersicht</h1>
-    <input type="password" id="pwInput" placeholder="Zugangscode" autocomplete="off">
-    <button id="pwBtn">Anmelden</button>
-    <div class="err" id="pwErr"></div>
-  </div>
-</div>
+<script src="ts-auth.js" data-gate data-title="Berichtsübersicht"></script>
 
 <div id="appContent" style="display:none;">
   <header>
@@ -180,31 +170,15 @@
    ============================================================ */
 const SUPABASE_URL = TENANT.supabaseUrl;
 const SUPABASE_ANON_KEY = TENANT.supabaseKey;
-const ZUGANGSCODE = TENANT.zugangscode; // zentral in config.js
 
 function supabaseHeaders(){
-  return { 'apikey': SUPABASE_ANON_KEY, 'Authorization': 'Bearer ' + SUPABASE_ANON_KEY };
+  const t = (window.TSAuth && TSAuth.getToken()) || SUPABASE_ANON_KEY;
+  return { 'apikey': SUPABASE_ANON_KEY, 'Authorization': 'Bearer ' + t };
 }
 
-document.getElementById('pwBtn').addEventListener('click', checkPassword);
-document.getElementById('pwInput').addEventListener('keydown', e => { if(e.key === 'Enter') checkPassword(); });
-function checkPassword(){
-  const val = document.getElementById('pwInput').value;
-  // Gültig: bisheriger Zugangscode ODER Suite-Passwörter (Master / eigenes Passwort via ts-auth.js)
-  const ok = (val === ZUGANGSCODE) || (window.TSAuth && TSAuth.verify(val));
-  if(ok){
-    document.getElementById('gate').style.display = 'none';
-    document.getElementById('appContent').style.display = 'block';
-    sessionStorage.setItem('ts_uebersicht_auth', '1');
-    if(window.TSAuth) TSAuth.markUnlocked(); // Freigabe gilt dann auch für CRM & Admin
-    ladeBerichte();
-    pruefeDbStatus();
-  } else {
-    document.getElementById('pwErr').textContent = 'Falscher Zugangscode.';
-  }
-}
-if(sessionStorage.getItem('ts_uebersicht_auth') === '1' || (window.TSAuth && TSAuth.isUnlocked())){
-  document.getElementById('gate').style.display = 'none';
+/* Anmeldung übernimmt ts-auth.js (Supabase Auth). Ist eine Sitzung
+   vorhanden, wird die App direkt angezeigt — sonst blockt das Gate. */
+if(window.TSAuth && TSAuth.isUnlocked()){
   document.getElementById('appContent').style.display = 'block';
   ladeBerichte();
   pruefeDbStatus();

@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1">
 <title>Arbeitsbericht — Blueprint</title>
 <script src="config.js"></script>
+<script src="ts-auth.js" data-gate data-title="Arbeitsbericht"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <style>
@@ -1128,9 +1129,10 @@ const SUPABASE_ANON_KEY = TENANT.supabaseKey;
 const SUPABASE_CONFIGURED = !SUPABASE_URL.includes('DEIN-PROJEKT');
 
 function supabaseHeaders(extra){
+  const t = (window.TSAuth && TSAuth.getToken()) || SUPABASE_ANON_KEY;
   return Object.assign({
     'apikey': SUPABASE_ANON_KEY,
-    'Authorization': 'Bearer ' + SUPABASE_ANON_KEY,
+    'Authorization': 'Bearer ' + t,
     'Content-Type': 'application/json'
   }, extra || {});
 }
