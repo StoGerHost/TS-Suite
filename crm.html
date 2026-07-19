@@ -9,6 +9,18 @@
 <meta name="apple-mobile-web-app-title" content="CRM">
 <title>Blueprint · CRM</title>
 <script src="config.js"></script>
+<style>
+/* --- Einheitliche TS-Suite-Backbar (auf allen Seiten identisch) --- */
+.stober-backbar{position:sticky;top:0;z-index:9999;display:flex;align-items:center;gap:10px;
+  background:#0a0a0c;color:#e9edf2;padding:10px 16px;padding-top:calc(10px + env(safe-area-inset-top,0px));
+  font:600 12px/1.4 ui-monospace,Menlo,monospace;letter-spacing:.03em;
+  border-bottom:1px solid rgba(120,140,160,.35);flex-wrap:wrap;}
+.stober-backbar__link{color:#e9edf2;text-decoration:none;display:inline-flex;align-items:center;gap:6px;
+  transition:color .15s ease;white-space:nowrap;}
+@media(hover:hover){ .stober-backbar__link:hover{color:#3a7bd5;} }
+.stober-backbar__slash{color:rgba(233,237,242,.4);}
+.stober-backbar__current{color:#3a7bd5;font-weight:700;}
+</style>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <style>
 :root{
@@ -38,9 +50,9 @@ label{display:block;font-size:.78rem;color:var(--dim);margin:14px 0 6px;
 
 /* Kopfzeile */
 header{
-  position:sticky;top:0;z-index:20;background:rgba(10,10,12,.92);
+  position:sticky;top:calc(38px + env(safe-area-inset-top,0px));z-index:20;background:rgba(10,10,12,.92);
   backdrop-filter:blur(8px);border-bottom:1px solid var(--border);
-  padding:calc(10px + env(safe-area-inset-top)) 16px 10px;
+  padding:10px 16px;
   display:flex;align-items:center;gap:10px;
 }
 header .back-home{
@@ -275,8 +287,12 @@ nav .badge{position:absolute;transform:translate(14px,-26px);background:var(--ro
 <body>
 <script src="ts-auth.js" data-gate data-title="CRM"></script>
 
+<div class="stober-backbar">
+  <a href="index.html" class="stober-backbar__link">&larr; STOBER Werkzeuge</a>
+  <span class="stober-backbar__slash" aria-hidden="true">/</span>
+  <span class="stober-backbar__current">CRM</span>
+</div>
 <header>
-  <a class="back-home" href="index.html" aria-label="Zurück zur TS-Suite Startseite">←</a>
   <span class="logo">Blueprint · <b>CRM</b></span>
   <span class="status"><span class="dot" id="statusDot"></span><span id="statusTxt">–</span></span>
 </header>

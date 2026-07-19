@@ -5,6 +5,18 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Berichtsübersicht — Blueprint</title>
 <script src="config.js"></script>
+<style>
+/* --- Einheitliche TS-Suite-Backbar (auf allen Seiten identisch) --- */
+.stober-backbar{position:sticky;top:0;z-index:9999;display:flex;align-items:center;gap:10px;
+  background:#0a0a0c;color:#e9edf2;padding:10px 16px;padding-top:calc(10px + env(safe-area-inset-top,0px));
+  font:600 12px/1.4 ui-monospace,Menlo,monospace;letter-spacing:.03em;
+  border-bottom:1px solid rgba(120,140,160,.35);flex-wrap:wrap;}
+.stober-backbar__link{color:#e9edf2;text-decoration:none;display:inline-flex;align-items:center;gap:6px;
+  transition:color .15s ease;white-space:nowrap;}
+@media(hover:hover){ .stober-backbar__link:hover{color:#3a7bd5;} }
+.stober-backbar__slash{color:rgba(233,237,242,.4);}
+.stober-backbar__current{color:#3a7bd5;font-weight:700;}
+</style>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
@@ -110,6 +122,11 @@
 </style>
 </head>
 <body>
+<div class="stober-backbar">
+  <a href="index.html" class="stober-backbar__link">&larr; STOBER Werkzeuge</a>
+  <span class="stober-backbar__slash" aria-hidden="true">/</span>
+  <span class="stober-backbar__current">Berichtsübersicht</span>
+</div>
 <script src="ts-auth.js" data-gate data-title="Berichtsübersicht"></script>
 
 <div id="appContent" style="display:none;">
@@ -120,7 +137,6 @@
         <h1>Berichtsübersicht</h1>
       </div>
       <div style="display:flex; flex-direction:column; align-items:flex-end; gap:8px;">
-        <a href="index.html" style="color:var(--muted); font-size:12.5px; text-decoration:underline; white-space:nowrap;">← Zurück zur Startseite</a>
         <span class="db-status" id="dbStatus" title="Zum Neu-Prüfen antippen">
           <span class="db-dot" id="dbDot"></span>
           <span id="dbLabel">prüfe ...</span>
