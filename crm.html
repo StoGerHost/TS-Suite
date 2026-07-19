@@ -2091,26 +2091,30 @@ function renderMaterial(){
   for(const b of (cache.berichte || [])){
     if(!imZeitraum(b.created_at)) continue;
     const d = b.daten || {};
+    /* Positionen normalisieren: alt = String (Menge 1), neu = {bezeichnung, menge} */
     const posten = [
-      ...(Array.isArray(d.material_checkliste) ? d.material_checkliste : []),
-      ...((d.material_freitext || '').split('\n').map(x => x.trim()).filter(Boolean))
+      ...(Array.isArray(d.material_checkliste) ? d.material_checkliste : []).map(m =>
+        typeof m === 'string' ? { bez: m, menge: 1 } : { bez: (m && m.bezeichnung) || '', menge: (m && isFinite(m.menge)) ? m.menge : 1 }),
+      ...((d.material_freitext || '').split('\n').map(x => x.trim()).filter(Boolean).map(x => ({ bez: x, menge: 1 })))
     ];
     if(!posten.length) continue;
     berichteMit++;
     const proBericht = new Set(); // gleiche Position im selben Bericht nur 1× je Einsatz zählen
-    for(const label of posten){
-      const key = label.trim().toLowerCase();
+    for(const p of posten){
+      const key = p.bez.trim().toLowerCase();
       if(!key || proBericht.has(key)) continue;
       proBericht.add(key);
-      if(!mat[key]) mat[key] = { label: label.trim(), n: 0, zuletzt: '', einsaetze: [] };
+      if(!mat[key]) mat[key] = { label: p.bez.trim(), n: 0, summe: 0, zuletzt: '', einsaetze: [] };
       mat[key].n++;
+      mat[key].summe += p.menge;
       const tag = (b.created_at || '').slice(0, 10);
       if(tag > mat[key].zuletzt) mat[key].zuletzt = tag;
-      mat[key].einsaetze.push({ tag, bv: b.bauvorhaben || b.kunde || b.angebotsnr || '—' });
+      mat[key].einsaetze.push({ tag, bv: b.bauvorhaben || b.kunde || b.angebotsnr || '—', menge: p.menge });
     }
   }
-  const matListe = Object.values(mat).sort((a, z) => z.n - a.n);
-  const matMax = Math.max(...matListe.map(m => m.n), 1);
+  const matListe = Object.values(mat).sort((a, z) => z.summe - a.summe || z.n - a.n);
+  const matMax = Math.max(...matListe.map(m => m.summe), 1);
+  const fmtMenge = v => (Math.round(v * 100) / 100).toString().replace('.', ',');
 
   // --- Artikel aus CRM-Aktivitäten ---
   const art = {};
@@ -2126,20 +2130,20 @@ function renderMaterial(){
 
   ziel.innerHTML = `
     <div class="ausw-abschnitt">Verbautes Material aus Arbeitsberichten
-      <span class="ausw-sub">${berichteMit} Berichte mit Material · Häufigkeit je Einsatz, keine Mengen</span></div>
+      <span class="ausw-sub">${berichteMit} Berichte mit Material · Mengen summiert (ältere Berichte ohne Menge zählen 1)</span></div>
     ${matListe.length ? matListe.map(m => `
       <details class="stn-ma">
         <summary>
           <div class="stn-kopf">
             <span class="stn-name">${esc(m.label)}</span>
-            <span class="stn-summe">${m.n}×</span>
+            <span class="stn-summe">${fmtMenge(m.summe)} Stk</span>
           </div>
-          <div class="stn-meta">zuletzt ${fmtTag(m.zuletzt)}</div>
-          <div class="stn-balken"><i style="width:${Math.round(m.n / matMax * 100)}%"></i></div>
+          <div class="stn-meta">${m.n} Einsätze · zuletzt ${fmtTag(m.zuletzt)}</div>
+          <div class="stn-balken"><i style="width:${Math.round(m.summe / matMax * 100)}%"></i></div>
         </summary>
         <div class="stn-tage">
           ${m.einsaetze.sort((a, z) => z.tag.localeCompare(a.tag)).slice(0, 30).map(e => `
-            <div class="stn-tag"><span class="d">${fmtTag(e.tag)}</span><span class="bv">${esc(e.bv)}</span></div>`).join('')}
+            <div class="stn-tag"><span class="d">${fmtTag(e.tag)}</span><span class="bv">${esc(e.bv)}${e.menge && e.menge !== 1 ? ' · ' + fmtMenge(e.menge) + ' Stk' : ''}</span></div>`).join('')}
         </div>
       </details>`).join('')
       : '<div class="leer">Kein Material im gewählten Zeitraum.</div>'}

@@ -187,6 +187,12 @@
 const SUPABASE_URL = TENANT.supabaseUrl;
 const SUPABASE_ANON_KEY = TENANT.supabaseKey;
 
+/* Materialposition anzeigen — alt (String) und neu ({bezeichnung, menge}) */
+function matAnzeige(m){
+  if(typeof m === 'string') return m;
+  const menge = (m && m.menge != null && m.menge !== 1) ? m.menge + '× ' : '';
+  return menge + ((m && m.bezeichnung) || '');
+}
 function supabaseHeaders(){
   const t = (window.TSAuth && TSAuth.getToken()) || SUPABASE_ANON_KEY;
   return { 'apikey': SUPABASE_ANON_KEY, 'Authorization': 'Bearer ' + t };
@@ -405,7 +411,7 @@ function renderDetail(b){
   }).join('') || '<div class="zeit-line">Keine Zeiterfassung erfasst.</div>';
 
   const matHtml = (d.material_checkliste && d.material_checkliste.length)
-    ? `<ul class="mat-list">${d.material_checkliste.map(m => `<li>${esc(m)}</li>`).join('')}</ul>`
+    ? `<ul class="mat-list">${d.material_checkliste.map(m => `<li>${esc(matAnzeige(m))}</li>`).join('')}</ul>`
     : '';
 
   return `
@@ -559,7 +565,7 @@ async function erzeugePdf(b){
   doc.setFont('helvetica','bold'); doc.setFontSize(12);
   doc.text('Materialverbrauch', margin, y); y += 7;
   doc.setFont('helvetica','normal'); doc.setFontSize(10);
-  const matBlocks = [...((d.material_checkliste || []).map(m => '• ' + m))];
+  const matBlocks = [...((d.material_checkliste || []).map(m => '• ' + matAnzeige(m)))];
   if(d.material_freitext) matBlocks.push(...d.material_freitext.split('\n').filter(Boolean));
   const matLines = doc.splitTextToSize(matBlocks.length ? matBlocks.join('\n') : '-', pageW - margin*2);
   doc.text(matLines, margin, y); y += matLines.length * 5 + 8;

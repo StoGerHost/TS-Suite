@@ -417,7 +417,10 @@
 </div>
 
 <script>
-pdfjsLib.GlobalWorkerOptions.workerSrc = "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js";
+/* pdf.js kommt vom CDN — ohne Netz darf sein Fehlen nicht die ganze Seite lahmlegen. */
+if (window.pdfjsLib) {
+  pdfjsLib.GlobalWorkerOptions.workerSrc = "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js";
+}
 
 /* Harmlose pdf.js-Konsolenmeldung zur Fake-Worker-Initialisierung ausblenden,
    ohne andere Warnungen/Fehler zu unterdrücken. */
@@ -542,6 +545,10 @@ async function handlePdf(file){
   document.getElementById('lieferanschriftBlock').style.display = 'none';
   document.getElementById('toggleLieferanschrift').textContent = '+ abweichende Lieferanschrift';
 
+  if(!window.pdfjsLib){
+    alert('PDF-Import benötigt einmalig eine Internetverbindung (PDF-Bibliothek konnte nicht geladen werden). Seite mit Netz neu laden und erneut versuchen.');
+    return;
+  }
   try{
     const buf = await file.arrayBuffer();
     const loadingTask = pdfjsLib.getDocument({data: buf});
