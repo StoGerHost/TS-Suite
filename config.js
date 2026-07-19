@@ -18,9 +18,6 @@ const TENANT = {
   bucketBerichte : 'berichte-medien',
   bucketAngebote : 'angebote',
 
-  /* --- Zugang (Übergangslösung bis Supabase Auth) --- */
-  zugangscode : 'sto7808',
-
   /* --- Techniker-Vorbelegung im Arbeitsbericht --- */
   techniker : ['Marko', 'Techniker 2', 'Techniker 3'],
 

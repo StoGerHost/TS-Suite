@@ -230,7 +230,7 @@
         Standort beim Absenden mit übertragen
       </label>
       <div style="font-size:11.5px; color:var(--muted); margin-top:6px; line-height:1.4;">
-        Standardmäßig aktiv. Fragt beim Absenden eines Berichts den aktuellen GPS-Standort ab und speichert ihn mit. Der Browser fragt dafür explizit um Erlaubnis. Ausschalten und Wiedereinschalten erfordern jeweils den Zugangscode.
+        Standardmäßig aktiv. Fragt beim Absenden eines Berichts den aktuellen GPS-Standort ab und speichert ihn mit. Der Browser fragt dafür explizit um Erlaubnis. Ausschalten und Wiedereinschalten erfordern jeweils den Admin-Code. 
       </div>
     </div>
     <div style="border-top:1px solid var(--line);padding-top:14px;">
@@ -1582,19 +1582,18 @@ document.getElementById('adminBtn').addEventListener('click', () => {
   document.getElementById('standortToggle').checked = standortIstAktiv();
   adminModal.style.display = 'flex';
 });
-const STANDORT_PASSWORT = TENANT.zugangscode; // zentral in config.js
-
+/* GPS-Schalter ist zusätzlich zum Login mit dem Admin-Code geschützt. */
 document.getElementById('standortToggle').addEventListener('click', function(e){
-  e.preventDefault(); // Häkchen zunächst nicht setzen, erst nach korrektem Code
+  e.preventDefault(); // Häkchen erst nach korrektem Code setzen
   const neuerZustand = !this.checked;
-  const eingabe = prompt('Zugangscode zum Ändern der Standort-Funktion:');
+  const eingabe = prompt('Admin-Code zum Ändern der Standort-Funktion:');
   if(eingabe === null) return; // abgebrochen
-  if(eingabe === STANDORT_PASSWORT){
+  if(eingabe === TENANT.adminCode){
     this.checked = neuerZustand;
     localStorage.setItem('ts_standort_uebertragen', neuerZustand ? '1' : '0');
     aktualisiereStandortHinweis();
   } else {
-    alert('Falscher Zugangscode – Standort-Funktion wurde nicht geändert.');
+    alert('Falscher Admin-Code – Standort-Funktion wurde nicht geändert.');
   }
 });
 function aktualisiereMedienStatus(){
