@@ -7,11 +7,11 @@
    (Refresh-Token, verwaltet von supabase-js).
 
    Einbindung mit automatischem Gate (Overlay bis zum Login):
-     <script src="config.js"></script>
-     <script src="ts-auth.js" data-gate data-title="CRM"></script>
+     <script src="config.js"><\/script>
+     <script src="ts-auth.js" data-gate data-title="CRM"><\/script>
 
    Einbindung nur als API (z. B. Startseiten-Suche):
-     <script src="ts-auth.js"></script>
+     <script src="ts-auth.js"><\/script>
 
    API:
      TSAuth.isUnlocked()  -> true, wenn angemeldet
@@ -29,7 +29,7 @@
 (function () {
   'use strict';
 
-  if (!window.TENANT) {
+  if (typeof TENANT === 'undefined') {
     console.error('ts-auth.js: config.js muss VOR ts-auth.js eingebunden sein.');
     return;
   }
