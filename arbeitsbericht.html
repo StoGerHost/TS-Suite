@@ -1585,13 +1585,19 @@ document.getElementById('adminBtn').addEventListener('click', () => {
 /* GPS-Schalter ist zusätzlich zum Login mit dem Admin-Code geschützt. */
 document.getElementById('standortToggle').addEventListener('click', function(e){
   e.preventDefault(); // Häkchen erst nach korrektem Code setzen
-  const neuerZustand = !this.checked;
+  const toggle = this;
+  /* Wichtig: nicht this.checked auswerten — das ist während des Klicks
+     bereits umgeschaltet und wird durch preventDefault() nach dem
+     Handler wieder zurückgesetzt. Quelle der Wahrheit ist localStorage. */
+  const neuerZustand = !standortIstAktiv();
   const eingabe = prompt('Admin-Code zum Ändern der Standort-Funktion:');
   if(eingabe === null) return; // abgebrochen
   if(eingabe === TENANT.adminCode){
-    this.checked = neuerZustand;
     localStorage.setItem('ts_standort_uebertragen', neuerZustand ? '1' : '0');
     aktualisiereStandortHinweis();
+    /* Häkchen erst setzen, nachdem der Browser das preventDefault-
+       Rollback ausgeführt hat: */
+    setTimeout(function(){ toggle.checked = neuerZustand; }, 0);
   } else {
     alert('Falscher Admin-Code – Standort-Funktion wurde nicht geändert.');
   }
