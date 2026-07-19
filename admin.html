@@ -417,7 +417,8 @@ function exportCodes(){
   MA_LISTE.forEach(function(m){ if(m.aktiv && m.kuerzel) merged[m.kuerzel] = m.name || m.email || ''; });
   downloadJSON(merged, 'ma-codes.json');
 }
-ladeMitarbeiter();
+/* Erst laden, wenn ts-auth die Sitzung geprüft/erneuert hat: */
+(window.TSAuth && TSAuth.ready ? TSAuth.ready : Promise.resolve()).then(ladeMitarbeiter);
 document.getElementById('new-code').addEventListener('keydown', function(e){
   if(e.key==='Enter') document.getElementById('new-name').focus();
 });
