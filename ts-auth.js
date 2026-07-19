@@ -81,7 +81,14 @@
         auth: { persistSession: true, autoRefreshToken: true, storageKey: storageKey() }
       });
       return client.auth.getSession();
-    }).then(function () {
+    }).then(function (res) {
+      var session = res && res.data ? res.data.session : null;
+      if (!session && getToken()) {
+        /* Gespeicherte Sitzung ist abgelaufen und nicht mehr erneuerbar:
+           Karteileiche entfernen und (im Gate-Modus) neu anmelden lassen. */
+        try { localStorage.removeItem(storageKey()); } catch (e) {}
+        if (wantGate) showGate();
+      }
       readyResolve();
     }).catch(function (err) {
       console.error('ts-auth.js:', err);
@@ -186,6 +193,13 @@
     verify: function () { console.warn('TSAuth.verify(): abgelöst durch Supabase Auth.'); return false; },
     markUnlocked: function () {}
   };
+
+  /* ---------- Altlasten früherer Schutzmechanismen entfernen ---------- */
+  try {
+    localStorage.removeItem('tsSuiteCustomPwHash');
+    sessionStorage.removeItem('tsSuiteAuthOk');
+    sessionStorage.removeItem('ts_uebersicht_auth');
+  } catch (e) {}
 
   /* ---------- Start ---------- */
   initClient();

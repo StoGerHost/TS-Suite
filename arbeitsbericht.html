@@ -675,7 +675,7 @@ function extractMaterialListFromPdf(text, docType){
 /* ---------- Material-Checkliste ---------- */
 let materialItems = [];
 function setMaterialItems(items){
-  materialItems = items.map((label, i) => ({id: 'mat_' + i, label, checked: true}));
+  materialItems = items.map((label, i) => ({id: 'mat_' + i, label, menge: 1, checked: true}));
   renderMaterialChecklist();
 }
 function renderMaterialChecklist(){
@@ -687,7 +687,10 @@ function renderMaterialChecklist(){
     <div style="display:flex;align-items:flex-start;gap:8px;padding:7px 0;">
       <input type="checkbox" class="matCheck" data-id="${item.id}" ${item.checked ? 'checked' : ''}
         style="width:17px;height:17px;margin-top:2px;accent-color:var(--amber);flex-shrink:0;">
-      <label style="margin:0;font-size:13.5px;color:var(--text);cursor:pointer;line-height:1.4;">${item.label}</label>
+      <input type="number" class="matMenge" data-id="${item.id}" value="${item.menge}" min="0" step="any" inputmode="decimal"
+        style="width:58px;padding:4px 6px;font-size:13px;background:var(--bg,#0a0a0c);color:var(--text);border:1px solid rgba(120,140,160,.35);border-radius:2px;flex-shrink:0;"
+        aria-label="Menge">
+      <label style="margin:0;font-size:13.5px;color:var(--text);cursor:pointer;line-height:1.4;padding-top:4px;">${item.label}</label>
     </div>
   `).join('');
   listEl.querySelectorAll('.matCheck').forEach(cb => {
@@ -695,6 +698,15 @@ function renderMaterialChecklist(){
       const it = materialItems.find(x => x.id === cb.dataset.id);
       if(it) it.checked = cb.checked;
       updateSelectAllState();
+    });
+  });
+  listEl.querySelectorAll('.matMenge').forEach(inp => {
+    inp.addEventListener('change', () => {
+      const it = materialItems.find(x => x.id === inp.dataset.id);
+      if(!it) return;
+      const v = parseFloat(String(inp.value).replace(',', '.'));
+      it.menge = (isFinite(v) && v >= 0) ? v : 1;
+      inp.value = it.menge;
     });
   });
   updateSelectAllState();
@@ -1010,7 +1022,7 @@ async function generateReport(){
     doc.text('Materialverbrauch', margin, y); y += 7;
     doc.setFont('helvetica','normal'); doc.setFontSize(10);
 
-    const checkedItems = materialItems.filter(i => i.checked).map(i => '• ' + i.label);
+    const checkedItems = materialItems.filter(i => i.checked).map(i => '• ' + (i.menge && i.menge !== 1 ? i.menge + '× ' : '') + i.label);
     const material = val('fMaterial');
     const materialBlocks = [...checkedItems];
     if(material) materialBlocks.push(...material.split('\n').filter(Boolean));
@@ -1083,7 +1095,7 @@ async function generateReport(){
         status: document.querySelector('input[name="arbeitsstatus"]:checked').value,
         interner_bericht: val('fInternerBericht') || null,
         hinweis: val('fHinweis') || null,
-        material_checkliste: materialItems.filter(i => i.checked).map(i => i.label),
+        material_checkliste: materialItems.filter(i => i.checked).map(i => ({bezeichnung: i.label, menge: i.menge || 1})),
         material_freitext: val('fMaterial') || null,
         kein_abnehmer_vor_ort: document.getElementById('keinAbnehmer').checked,
         kundenname: val('fKundenname') || null,
