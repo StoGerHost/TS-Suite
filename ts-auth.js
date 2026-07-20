@@ -25,6 +25,12 @@
    Kompatibilität zur alten Version:
      TSAuth.verify()/markUnlocked() existieren noch, tun aber
      nichts mehr — der alte Zugangscode ist abgelöst.
+
+   Design: Das Overlay nutzt dieselben CSS-Variablen wie der Rest
+   der Suite (--bg, --surface, --accent, --line-30, --font-mono …).
+   Läuft die Seite ausnahmsweise ohne das Blueprint-:root-Set,
+   greifen die var()-Fallbacks — dann sieht es exakt so aus wie
+   bisher, bricht also nirgends.
    ============================================================ */
 (function () {
   'use strict';
@@ -102,19 +108,42 @@
   function buildOverlay() {
     if (overlay) return overlay;
     var css =
+      /* Vollflächiges Gate, dunkler Blueprint-Grund inkl. Rastermuster
+         wie auf den übrigen Seiten (index.html, admin.html, crm.html). */
       '#tsAuthGate{position:fixed;inset:0;z-index:99999;display:flex;align-items:center;justify-content:center;' +
-      'background:#0a0a0c;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;}' +
-      '#tsAuthGate .ta-box{width:min(92vw,360px);border:1px solid #26303c;background:#101318;padding:26px 24px;}' +
-      '#tsAuthGate .ta-eyebrow{font-family:ui-monospace,Menlo,monospace;font-size:11px;letter-spacing:.08em;' +
-      'text-transform:uppercase;color:#3a7bd5;margin:0 0 6px;}' +
-      '#tsAuthGate h1{color:#e8edf2;font-size:20px;margin:0 0 16px;}' +
-      '#tsAuthGate input{display:block;width:100%;box-sizing:border-box;background:#0a0a0c;border:1px solid #2c3540;' +
-      'color:#e8edf2;padding:11px 12px;font-size:15px;margin-bottom:10px;}' +
-      '#tsAuthGate input:focus{outline:none;border-color:#3a7bd5;}' +
-      '#tsAuthGate button{width:100%;background:#3a7bd5;color:#0a0a0c;border:none;padding:11px 0;font-weight:600;' +
-      'font-size:14px;cursor:pointer;}' +
-      '#tsAuthGate button:disabled{opacity:.6;}' +
-      '#tsAuthGate .ta-err{color:#c9604f;font-size:13px;min-height:18px;margin-top:10px;}';
+      'padding:20px;background:var(--bg,#0a0a0c);' +
+      'background-image:linear-gradient(rgba(255,255,255,.03) 1px,transparent 1px),' +
+      'linear-gradient(90deg,rgba(255,255,255,.03) 1px,transparent 1px);background-size:34px 34px;' +
+      'font-family:var(--font-display,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif);}' +
+
+      '#tsAuthGate .ta-box{width:min(92vw,360px);border:1px solid var(--line-30,rgba(58,123,213,.3));' +
+      'border-radius:2px;background:var(--surface,#111318);padding:28px 24px;' +
+      'box-shadow:0 8px 40px rgba(0,0,0,.6);}' +
+
+      '#tsAuthGate .ta-icon{width:38px;height:38px;border:1.5px solid var(--accent,#3a7bd5);' +
+      'display:flex;align-items:center;justify-content:center;font-size:17px;margin-bottom:14px;}' +
+
+      '#tsAuthGate .ta-eyebrow{font-family:var(--font-mono,ui-monospace,Menlo,monospace);font-size:11px;' +
+      'letter-spacing:.08em;text-transform:uppercase;color:var(--accent,#3a7bd5);margin:0 0 6px;}' +
+
+      '#tsAuthGate h1{color:var(--ink,#e9edf2);font-size:19px;font-weight:800;margin:0 0 18px;' +
+      'font-family:var(--font-display,inherit);}' +
+
+      '#tsAuthGate input{display:block;width:100%;box-sizing:border-box;background:var(--bg,#0a0a0c);' +
+      'border:1px solid var(--line-30,rgba(58,123,213,.3));border-radius:2px;color:var(--ink,#e9edf2);' +
+      'padding:11px 12px;font-size:16px;min-height:44px;margin-bottom:10px;font-family:inherit;outline:none;' +
+      'transition:border-color .15s;}' +
+      '#tsAuthGate input::placeholder{color:var(--ink-40,rgba(233,237,242,.4));}' +
+      '#tsAuthGate input:focus{border-color:var(--glow,#5eead4);box-shadow:0 0 0 3px rgba(94,234,212,.18);}' +
+
+      '#tsAuthGate button{width:100%;background:var(--accent,#3a7bd5);color:var(--bg,#0a0a0c);border:none;' +
+      'border-radius:2px;padding:12px 0;font-weight:700;font-size:14px;font-family:var(--font-mono,inherit);' +
+      'letter-spacing:.02em;min-height:44px;cursor:pointer;transition:filter .15s;}' +
+      '#tsAuthGate button:hover{filter:brightness(1.1);}' +
+      '#tsAuthGate button:disabled{opacity:.6;cursor:default;}' +
+
+      '#tsAuthGate .ta-err{color:var(--danger,#e05a4e);font-size:12.5px;font-weight:600;' +
+      'font-family:var(--font-mono,inherit);min-height:18px;margin-top:10px;}';
     var st = document.createElement('style');
     st.textContent = css;
     document.head.appendChild(st);
@@ -123,6 +152,7 @@
     overlay.id = 'tsAuthGate';
     overlay.innerHTML =
       '<div class="ta-box">' +
+      '  <div class="ta-icon" aria-hidden="true">&#128274;</div>' +
       '  <p class="ta-eyebrow">Blueprint · TS-Suite</p>' +
       '  <h1>' + gateTitle.replace(/[<>&]/g, '') + '</h1>' +
       '  <input type="email" id="taEmail" placeholder="E-Mail" autocomplete="username" inputmode="email">' +
