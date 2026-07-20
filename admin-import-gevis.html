@@ -148,7 +148,8 @@
 <!-- Admin-Code-Gate -->
 <div id="admin-gate" class="karte">
   <label for="admin-code-input">Admin-Code</label>
-  <input type="text" id="admin-code-input" autocomplete="off">
+  <input type="text" id="admin-code-input" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false" style="font-family:var(--font-mono);letter-spacing:.05em;">
+  <small class="hilfe">Achtung: großes O, keine Null.</small>
   <button onclick="pruefeAdminCode()">Freischalten</button>
   <div id="admin-code-fehler" class="fehler"></div>
 </div>
@@ -254,7 +255,7 @@ let mapping = {};
 
 // --- Admin-Code-Gate ---
 function pruefeAdminCode() {
-  const eingabe = document.getElementById('admin-code-input').value;
+  const eingabe = document.getElementById('admin-code-input').value.trim();
   if (eingabe === ADMIN_CODE) {
     document.getElementById('admin-gate').style.display = 'none';
     document.getElementById('import-tool').style.display = 'block';
