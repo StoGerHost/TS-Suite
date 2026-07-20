@@ -2,100 +2,148 @@
 <html lang="de">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="theme-color" content="#0a0a0c">
 <title>TS-Suite – Kundenimport (gevis)</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="config.js"></script>
 <style>
+  :root{
+    --bg:#0a0a0c;
+    --surface:#111318;
+    --surface-alt:#0d0f13;
+    --ink:#e9edf2;
+    --ink-80:rgba(233,237,242,.8);
+    --ink-70:rgba(233,237,242,.7);
+    --ink-60:rgba(233,237,242,.6);
+    --ink-50:rgba(233,237,242,.5);
+    --ink-45:rgba(233,237,242,.45);
+    --ink-40:rgba(233,237,242,.4);
+    --accent:#3a7bd5;
+    --accent-dark:#2f66b3;
+    --glow:#5eead4;
+    --danger:#e05a4e;
+    --warn:#d9a441;
+    --line-20:rgba(58,123,213,.2);
+    --line-25:rgba(58,123,213,.25);
+    --line-30:rgba(58,123,213,.3);
+    --line-35:rgba(58,123,213,.35);
+    --font-display:'Inter',system-ui,-apple-system,'Segoe UI',Roboto,Arial,sans-serif;
+    --font-mono:ui-monospace,'JetBrains Mono','SFMono-Regular',Consolas,Menlo,monospace;
+  }
   * { box-sizing: border-box; }
   body {
-    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    font-family: var(--font-display);
     max-width: 720px;
     margin: 0 auto;
     padding: 16px;
-    background: #f5f6f8;
-    color: #1c1e21;
+    padding-bottom: 60px;
+    background: var(--bg);
+    color: var(--ink);
+    background-image:linear-gradient(rgba(255,255,255,.03) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.03) 1px,transparent 1px);
+    background-size:34px 34px;
+    -webkit-font-smoothing:antialiased;
   }
-  h1 { font-size: 1.3rem; margin-bottom: 4px; }
-  h2 { font-size: 1.05rem; margin-top: 28px; }
+  .back-link{display:inline-flex;align-items:center;gap:6px;color:var(--ink-60);text-decoration:none;
+    font:600 12px var(--font-mono);letter-spacing:.03em;margin-bottom:16px;}
+  .back-link:hover{color:var(--accent);}
+  h1 { font-size: 1.3rem; margin-bottom: 4px; color: #fff; font-weight: 700; }
+  h2 { font-size: 1.05rem; margin-top: 28px; color: var(--ink); font-weight: 700; }
   .karte {
-    background: #fff;
-    border: 1px solid #e1e3e6;
-    border-radius: 10px;
-    padding: 16px;
+    background: var(--surface);
+    border: 1px solid var(--line-30);
+    border-radius: 2px;
+    padding: 20px;
     margin-top: 12px;
   }
-  label { display: block; font-size: 0.9rem; margin: 10px 0 4px; font-weight: 600; }
+  label { display: block; font-size: 0.9rem; margin: 10px 0 4px; font-weight: 600; color: var(--ink-80); }
   input[type=file], input[type=text], select {
     width: 100%;
-    padding: 10px;
-    border: 1px solid #ccc;
-    border-radius: 8px;
+    padding: 11px 12px;
+    border: 1px solid var(--line-30);
+    border-radius: 2px;
     font-size: 1rem;
-    background: #fff;
+    min-height: 44px;
+    background: var(--bg);
+    color: var(--ink);
+    outline: none;
+    font-family: inherit;
   }
+  input:focus, select:focus { border-color: var(--accent); }
   button {
-    background: #2563eb;
-    color: #fff;
+    background: var(--accent);
+    color: var(--bg);
     border: none;
-    border-radius: 8px;
+    border-radius: 2px;
     padding: 12px 18px;
     font-size: 1rem;
+    font-weight: 700;
+    font-family: var(--font-mono);
+    letter-spacing: .02em;
+    min-height: 44px;
     margin-top: 14px;
     cursor: pointer;
     width: 100%;
+    transition: filter .15s;
   }
+  button:hover { filter: brightness(1.1); }
   button.sekundaer {
-    background: #fff;
-    color: #2563eb;
-    border: 1px solid #2563eb;
+    background: transparent;
+    color: var(--accent);
+    border: 1px solid var(--line-30);
   }
-  button:disabled { background: #b6c3e0; cursor: not-allowed; }
+  button.sekundaer:hover { border-color: var(--accent); }
+  button:disabled { background: var(--ink-40); color: var(--surface); cursor: not-allowed; filter: none; }
   .mapping-row {
     display: flex;
     align-items: center;
     gap: 10px;
     margin: 8px 0;
   }
-  .mapping-row label { flex: 1; margin: 0; font-weight: 500; }
+  .mapping-row label { flex: 1; margin: 0; font-weight: 500; color: var(--ink-70); }
   .mapping-row select { flex: 1.4; }
   table { width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 0.82rem; }
   th, td {
-    border: 1px solid #e1e3e6;
-    padding: 6px 8px;
+    border: 1px solid var(--line-20);
+    padding: 8px 6px;
     text-align: left;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
     max-width: 120px;
+    color: var(--ink-80);
   }
-  th { background: #f0f2f5; }
-  .hinweis { color: #b45309; font-size: 0.85rem; margin-top: 8px; min-height: 1.2em; }
-  .fehler { color: #b91c1c; font-size: 0.9rem; margin-top: 6px; }
+  th { background: var(--surface-alt); color: var(--ink-40); font: 600 10.5px var(--font-mono);
+    text-transform: uppercase; letter-spacing: .05em; }
+  .hinweis { color: var(--warn); font-size: 0.85rem; margin-top: 8px; min-height: 1.2em; }
+  .fehler { color: var(--danger); font-size: 0.9rem; margin-top: 6px; font-weight: 600; }
   #fortschritt-hülle {
-    background: #e5e7eb;
-    border-radius: 6px;
+    background: var(--bg);
+    border: 1px solid var(--line-30);
+    border-radius: 2px;
     height: 10px;
     overflow: hidden;
     margin-top: 10px;
   }
   #fortschritt-balken {
-    background: #2563eb;
+    background: var(--accent);
     height: 100%;
     width: 0%;
     transition: width 0.15s ease;
   }
-  #fortschritt-text { font-size: 0.85rem; margin-top: 6px; text-align: center; }
+  #fortschritt-text { font-size: 0.85rem; margin-top: 6px; text-align: center; color: var(--ink-60); font-family: var(--font-mono); }
   .zwei-spalten { display: flex; gap: 10px; }
   .zwei-spalten > div { flex: 1; }
-  details summary { cursor: pointer; margin-top: 6px; }
-  small.hilfe { color: #6b7280; display: block; margin-top: 4px; }
+  details summary { cursor: pointer; margin-top: 6px; color: var(--ink-70); }
+  small.hilfe { color: var(--ink-45); display: block; margin-top: 4px; }
 </style>
 </head>
 <body>
 
+<a href="index.html" class="back-link">&larr; STOBER Werkzeuge</a>
 <h1>Kundenimport aus gevis</h1>
-<p style="color:#6b7280; font-size:0.9rem;">CSV-Export laden, Spalten zuordnen, prüfen, importieren.</p>
+<p style="color:var(--ink-50); font-size:0.9rem;">CSV-Export laden, Spalten zuordnen, prüfen, importieren.</p>
 
 <!-- Admin-Code-Gate -->
 <div id="admin-gate" class="karte">
@@ -171,12 +219,14 @@
 
 <script>
 // ============================================================
-// KONFIGURATION – vor Nutzung anpassen (aus config.js übernehmen)
+// KONFIGURATION – kommt aus config.js (TENANT), nichts hier
+// duplizieren. Nur LOGIN_URL ggf. anpassen, falls die Login-
+// Seite bei euch anders heißt als index.html.
 // ============================================================
-const SUPABASE_URL = 'https://guuywhrzygcnpzrnnlsw.supabase.co';
-const SUPABASE_ANON_KEY = 'HIER-ANON-KEY-AUS-config.js-EINTRAGEN';
-const LOGIN_URL = 'index.html'; // Pfad zur bestehenden Login-Seite anpassen
-const ADMIN_CODE = 'sto78O8';   // wie beim GPS-Toggle; ggf. zentral in config.js pflegen
+const SUPABASE_URL = TENANT.supabaseUrl;
+const SUPABASE_ANON_KEY = TENANT.supabaseKey;
+const LOGIN_URL = 'index.html';
+const ADMIN_CODE = TENANT.adminCode;
 
 const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
