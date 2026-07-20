@@ -229,7 +229,12 @@ const SUPABASE_ANON_KEY = TENANT.supabaseKey;
 const LOGIN_URL = 'index.html';
 const ADMIN_CODE = TENANT.adminCode;
 
-const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+let supabase = null;
+try {
+  supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+} catch (err) {
+  console.error('Supabase-Client konnte nicht erstellt werden:', err);
+}
 
 // Zielfelder der kunden-Tabelle. extern_id + name sind Pflicht,
 // weil ohne Kundennummer kein sauberer Abgleich möglich ist.
@@ -249,18 +254,33 @@ let mapping = {};
 
 // --- Auth-Gate: ohne aktive Session zurück zum Login ---
 (async function checkAuth() {
-  const { data: { session } } = await supabase.auth.getSession();
-  if (!session) window.location.href = LOGIN_URL;
+  if (!supabase) return; // Client fehlt bereits — pruefeAdminCode zeigt die Meldung
+  try {
+    const { data: { session } } = await supabase.auth.getSession();
+    if (!session) window.location.href = LOGIN_URL;
+  } catch (err) {
+    console.error('Session-Prüfung fehlgeschlagen:', err);
+  }
 })();
 
 // --- Admin-Code-Gate ---
 function pruefeAdminCode() {
-  const eingabe = document.getElementById('admin-code-input').value.trim();
-  if (eingabe === ADMIN_CODE) {
-    document.getElementById('admin-gate').style.display = 'none';
-    document.getElementById('import-tool').style.display = 'block';
-  } else {
-    document.getElementById('admin-code-fehler').textContent = 'Falscher Code.';
+  const fehlerEl = document.getElementById('admin-code-fehler');
+  try {
+    if (!supabase) {
+      fehlerEl.textContent = 'Fehler: Supabase konnte nicht geladen werden (Internetverbindung/CDN prüfen, Seite neu laden).';
+      return;
+    }
+    const eingabe = document.getElementById('admin-code-input').value.trim();
+    if (eingabe === ADMIN_CODE) {
+      document.getElementById('admin-gate').style.display = 'none';
+      document.getElementById('import-tool').style.display = 'block';
+    } else {
+      fehlerEl.textContent = 'Falscher Code.';
+    }
+  } catch (err) {
+    fehlerEl.textContent = 'Unerwarteter Fehler: ' + (err.message || err);
+    console.error('pruefeAdminCode:', err);
   }
 }
 
