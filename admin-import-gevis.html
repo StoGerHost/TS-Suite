@@ -225,17 +225,25 @@
 // duplizieren. Nur LOGIN_URL ggf. anpassen, falls die Login-
 // Seite bei euch anders heißt als index.html.
 // ============================================================
-const SUPABASE_URL = TENANT.supabaseUrl;
-const SUPABASE_ANON_KEY = TENANT.supabaseKey;
-const LOGIN_URL = 'index.html';
-const ADMIN_CODE = TENANT.adminCode;
+function setzeStatus(text, farbe) {
+  const el = document.getElementById('init-status');
+  if (!el) return;
+  el.textContent = text;
+  el.style.color = farbe || 'var(--ink-45)';
+}
+
+// Sicherheitsnetz: JEDER unerwartete Fehler auf der Seite landet ab jetzt
+// sichtbar in der Statuszeile, statt nur in der (für dich unsichtbaren)
+// Konsole zu verschwinden.
+window.addEventListener('error', function (e) {
+  setzeStatus('Unerwarteter Skriptfehler: ' + (e.message || e), 'var(--danger)');
+});
 
 let supabase = null;
-try {
-  supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-} catch (err) {
-  console.error('Supabase-Client konnte nicht erstellt werden:', err);
-}
+let SUPABASE_URL, SUPABASE_ANON_KEY, LOGIN_URL, ADMIN_CODE;
+let parsedRows = [];
+let csvHeaders = [];
+let mapping = {};
 
 // Zielfelder der kunden-Tabelle. extern_id + name sind Pflicht,
 // weil ohne Kundennummer kein sauberer Abgleich möglich ist.
@@ -249,21 +257,29 @@ const ZIEL_FELDER = [
   { key: 'email',     label: 'E-Mail',                 required: false },
 ];
 
-let parsedRows = [];
-let csvHeaders = [];
-let mapping = {};
+// Alles, was beim Start schiefgehen könnte, läuft HIER in einem einzigen
+// try/catch — vorher stand TENANT.supabaseUrl etc. ungeschützt ganz am
+// Anfang, und ein Fehler dort hätte das komplette Skript lautlos
+// abgebrochen, noch bevor setzeStatus() je aufgerufen wird. Deshalb blieb
+// die Zeile permanent auf "Initialisiere …" stehen, unabhängig vom Cache.
+try {
+  if (typeof TENANT === 'undefined') {
+    throw new Error('config.js nicht geladen (TENANT fehlt) — liegt diese Datei im selben Ordner wie config.js?');
+  }
+  SUPABASE_URL = TENANT.supabaseUrl;
+  SUPABASE_ANON_KEY = TENANT.supabaseKey;
+  LOGIN_URL = 'index.html';
+  ADMIN_CODE = TENANT.adminCode;
 
-function setzeStatus(text, farbe) {
-  const el = document.getElementById('init-status');
-  if (!el) return;
-  el.textContent = text;
-  el.style.color = farbe || 'var(--ink-45)';
-}
+  if (typeof window.supabase === 'undefined' || !window.supabase.createClient) {
+    throw new Error('supabase-js nicht geladen (CDN blockiert oder kein Internet).');
+  }
+  supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-if (!supabase) {
-  setzeStatus('Fehler: Supabase-Bibliothek nicht geladen (CDN/Internet prüfen).', 'var(--danger)');
-} else {
   setzeStatus('Verbindung ok. Prüfe Anmeldung …');
+} catch (err) {
+  setzeStatus('Fehler beim Start: ' + (err.message || err), 'var(--danger)');
+  console.error('Initialisierung fehlgeschlagen:', err);
 }
 
 // --- Auth-Gate: ohne aktive Session zurück zum Login ---
@@ -288,7 +304,7 @@ function pruefeAdminCode() {
   const fehlerEl = document.getElementById('admin-code-fehler');
   try {
     if (!supabase) {
-      fehlerEl.textContent = 'Fehler: Supabase konnte nicht geladen werden (Internetverbindung/CDN prüfen, Seite neu laden).';
+      fehlerEl.textContent = 'Fehler: Supabase konnte nicht geladen werden (siehe Statuszeile oben — Internetverbindung/CDN prüfen, Seite neu laden).';
       return;
     }
     const eingabe = document.getElementById('admin-code-input').value.trim();
