@@ -147,6 +147,7 @@
 
 <!-- Admin-Code-Gate -->
 <div id="admin-gate" class="karte">
+  <p id="init-status" style="font-size:0.8rem;color:var(--ink-45);margin-bottom:14px;font-family:var(--font-mono);">Initialisiere …</p>
   <label for="admin-code-input">Admin-Code</label>
   <input type="text" id="admin-code-input" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false" style="font-family:var(--font-mono);letter-spacing:.05em;">
   <small class="hilfe">Achtung: großes O, keine Null.</small>
@@ -252,13 +253,32 @@ let parsedRows = [];
 let csvHeaders = [];
 let mapping = {};
 
+function setzeStatus(text, farbe) {
+  const el = document.getElementById('init-status');
+  if (!el) return;
+  el.textContent = text;
+  el.style.color = farbe || 'var(--ink-45)';
+}
+
+if (!supabase) {
+  setzeStatus('Fehler: Supabase-Bibliothek nicht geladen (CDN/Internet prüfen).', 'var(--danger)');
+} else {
+  setzeStatus('Verbindung ok. Prüfe Anmeldung …');
+}
+
 // --- Auth-Gate: ohne aktive Session zurück zum Login ---
 (async function checkAuth() {
-  if (!supabase) return; // Client fehlt bereits — pruefeAdminCode zeigt die Meldung
+  if (!supabase) return; // Client fehlt bereits — Status zeigt das schon an
   try {
     const { data: { session } } = await supabase.auth.getSession();
-    if (!session) window.location.href = LOGIN_URL;
+    if (!session) {
+      setzeStatus('Keine Anmeldung gefunden — leite zum Login weiter …', 'var(--warn)');
+      window.location.href = LOGIN_URL;
+      return;
+    }
+    setzeStatus('Angemeldet ✓ — Admin-Code eingeben.', 'var(--glow)');
   } catch (err) {
+    setzeStatus('Fehler bei der Session-Prüfung: ' + (err.message || err), 'var(--danger)');
     console.error('Session-Prüfung fehlgeschlagen:', err);
   }
 })();
