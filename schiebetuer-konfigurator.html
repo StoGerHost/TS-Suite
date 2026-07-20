@@ -1182,7 +1182,7 @@ function loadMAcodes(){
               2. letzter erfolgreicher DB-Stand aus dem Gerätecache
               3. ma-codes.json aus dem Repo
               4. eingebauter Fallback */
-  var FN_URL = (window.TENANT && TENANT.supabaseUrl)
+  var FN_URL = (typeof TENANT !== 'undefined' && TENANT.supabaseUrl)
     ? TENANT.supabaseUrl + '/functions/v1/mitarbeiter?public=1' : null;
   var CACHE_KEY = 'stober_ma_codes_db_cache';
   var lade = FN_URL

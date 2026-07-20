@@ -1342,7 +1342,7 @@ let EMPLOYEE_CODES = loadEmployeeCodes();
    übrigen Konfiguratoren (Edge Function, öffentliche Nur-Lese-Route).
    Datenbank-Einträge ergänzen/überschreiben die lokale Liste. */
 (function(){
-  const FN_URL = (window.TENANT && TENANT.supabaseUrl)
+  const FN_URL = (typeof TENANT !== 'undefined' && TENANT.supabaseUrl)
     ? TENANT.supabaseUrl + '/functions/v1/mitarbeiter?public=1' : null;
   const CACHE_KEY = 'aufmass_employee_codes_db_cache';
   function uebernehmen(codes){
