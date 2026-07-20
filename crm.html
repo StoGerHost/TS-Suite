@@ -879,7 +879,8 @@ async function positionWiedervorlageAnlegen(positionId){
       titel: 'Wartung: ' + position.bezeichnung,
       faellig_am: f.datum || vertrag.vertragsbeginn || heute(),
       notiz: vertrag.notiz || null,
-      erstellt_von: localStorage.getItem(KONFIG.KUERZEL_LS_KEY) || null
+      erstellt_von: localStorage.getItem(KONFIG.KUERZEL_LS_KEY) || null,
+      wartungsposition_id: position.id
     })});
     cache.wv = null; toast('Wiedervorlage angelegt ✓'); route();
   }catch(e){ toast('Fehler: ' + e.message.slice(0,80)); }
@@ -1446,6 +1447,17 @@ async function wvAnTrelloAusfuehren(wvId, gewaehlteBauvorhabenId){
     if(!res.ok) throw new Error(data.error || ('HTTP ' + res.status));
     await sb(`${KONFIG.TAB_WV}?id=eq.${wvId}`, { method:'PATCH',
       body: JSON.stringify({ an_trello_gesendet_am: new Date().toISOString() }) });
+    // Stammt die Wiedervorlage aus einer Wartungsposition, Karten-ID dort
+    // hinterlegen — der Arbeitsbericht schreibt später über diese ID die
+    // Rückmeldung (Kommentar + grünes Label) auf genau diese Karte.
+    // ACHTUNG: data.id passt zum Standard-Rückgabeformat der Trello-API
+    // (POST /1/cards liefert die neue Karte inkl. id). Falls eure
+    // create-trello-card-Function das Ergebnis anders verpackt (z.B.
+    // { card: {...} }), hier entsprechend anpassen.
+    if(w.wartungsposition_id && data.id){
+      await sb(`crm_wartungspositionen?id=eq.${w.wartungsposition_id}`, { method:'PATCH',
+        body: JSON.stringify({ trello_card_id: data.id }) });
+    }
     cache.wv = null;
     toast('Trello-Karte angelegt ✓');
     route();

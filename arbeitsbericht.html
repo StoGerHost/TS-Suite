@@ -280,6 +280,11 @@
     <label>Bauvorhaben</label>
     <input type="text" id="fBauvorhaben" placeholder="z. B. Karlsburg BA3 BS-Sanierung">
 
+    <label>Zugehörige Wartungsposition <span style="color:var(--muted);font-weight:normal;">(optional)</span></label>
+    <select id="fWartungsposition">
+      <option value="">– keine Wartungsposition / nicht zutreffend –</option>
+    </select>
+
     <div id="lieferanschriftBlock" style="display:none;">
       <label>Lieferanschrift <span style="color:var(--muted);font-weight:normal;">(abweichend von Kunde)</span></label>
       <textarea id="fLieferanschrift" placeholder="Abweichende Lieferadresse" style="min-height:60px;"></textarea>
@@ -492,6 +497,7 @@ function wendeAuftragAn(daten){
   if(daten.email)        document.getElementById('fEmail').value = daten.email;
   if(daten.hinweis)      document.getElementById('fHinweis').value = daten.hinweis;
   importierteKundeId = daten.kunde_id || null;
+  ladeWartungspositionenFuerKunde(importierteKundeId, daten.wartungsposition_id || null);
 
   auftragStatus.textContent = `Auftrag geladen: ${daten.bauvorhaben || '–'} · ${daten.kunde || 'ohne Kunde'}`;
   auftragStatus.className = 'pdf-status ok';
@@ -524,14 +530,19 @@ async function handleAuftragsdatei(file){
     telefon: p.get('telefon') || null,
     email: p.get('email') || null,
     hinweis: p.get('hinweis') || null,
-    kunde_id: p.get('kunde_id') || null
+    kunde_id: p.get('kunde_id') || null,
+    wartungsposition_id: p.get('wartungsposition_id') || null
   });
   history.replaceState(null, '', location.pathname); // URL wieder sauber, Werte bleiben im Formular
 })();
 /* Manuelle Korrektur nach dem Laden hebt die sichere Zuordnung wieder auf,
    dann greift beim Speichern wieder der normale Namensabgleich. */
-document.getElementById('fKunde').addEventListener('input', () => { importierteKundeId = null; });
-document.getElementById('fBauvorhaben').addEventListener('input', () => { importierteKundeId = null; });
+function setzeWartungspositionAuswahlZurueck(){
+  document.getElementById('fWartungsposition').innerHTML =
+    '<option value="">– keine Wartungsposition / nicht zutreffend –</option>';
+}
+document.getElementById('fKunde').addEventListener('input', () => { importierteKundeId = null; setzeWartungspositionAuswahlZurueck(); });
+document.getElementById('fBauvorhaben').addEventListener('input', () => { importierteKundeId = null; setzeWartungspositionAuswahlZurueck(); });
 
 async function handlePdf(file){
   pdfStatus.textContent = 'Lese PDF ...';
@@ -1085,6 +1096,7 @@ async function generateReport(){
       bauvorhaben: val('fBauvorhaben') || null,
       kunde: val('fKunde') || null,
       techniker: val('fTechniker') || null,
+      wartungsposition_id: val('fWartungsposition') || null,
       daten: {
         lieferanschrift: val('fLieferanschrift') || null,
         ansprechpartner: val('fAnsprechpartner') || null,
@@ -1134,6 +1146,20 @@ async function generateReport(){
       if(medien.fehler && medien.fehler.length){
         genStatus.textContent += ' — Achtung, Medien-Upload teilweise fehlgeschlagen: ' + medien.fehler.join('; ');
         genStatus.className = 'gen-status err';
+      }
+      if(reportData.wartungsposition_id){
+        const trelloResult = await meldeWartungAnTrello({
+          wartungsposition_id: reportData.wartungsposition_id,
+          techniker: reportData.techniker || '–',
+          datum: val('fDatum') || null,
+          notiz: reportData.daten.taetigkeit ? reportData.daten.taetigkeit.slice(0, 300) : null
+        });
+        if(trelloResult.trello){
+          genStatus.textContent += ' · Trello-Rückmeldung gesendet.';
+        } else if(trelloResult.warning){
+          genStatus.textContent += ' · Wartung gespeichert, Trello-Rückmeldung nicht möglich.';
+          console.warn(trelloResult.warning);
+        }
       }
     } else if(sendResult.reason === 'not-configured'){
       genStatus.textContent = 'Bericht lokal gespeichert: ' + filename + ' (Server noch nicht eingerichtet)';
@@ -1377,11 +1403,59 @@ function autofillKontaktFuerBauvorhaben(){
     statusEl.textContent = 'Ansprechpartner aus früherem Bericht übernommen – bitte prüfen.';
     statusEl.className = 'pdf-status ok';
   }
+  if(eintrag.kunde_id){
+    importierteKundeId = eintrag.kunde_id;
+    ladeWartungspositionenFuerKunde(eintrag.kunde_id);
+  }
+}
+
+/* Lädt die offenen Wartungsverträge des Kunden ins Dropdown. vorauswahlId
+   kommt z.B. aus dem Link einer Trello-Karte und wird vorbelegt, sofern
+   sie zu den geladenen Verträgen des Kunden passt — der Techniker sieht
+   und bestätigt die Auswahl trotzdem im Formular, bevor er speichert. */
+async function ladeWartungspositionenFuerKunde(kundeId, vorauswahlId){
+  const sel = document.getElementById('fWartungsposition');
+  sel.innerHTML = '<option value="">– keine Wartungsposition / nicht zutreffend –</option>';
+  if(!kundeId || !SUPABASE_CONFIGURED) return;
+  try{
+    // Positionen hängen nicht direkt am Kunden, sondern über vertrag_id am
+    // Wartungsvertrag (crm_wartungsplan) — gleiches zweistufiges Vorgehen wie im CRM.
+    const vertragRes = await fetch(
+      `${SUPABASE_URL}/rest/v1/crm_wartungsplan?kunde_id=eq.${kundeId}&select=id`,
+      { headers: supabaseHeaders() }
+    );
+    if(!vertragRes.ok) throw new Error('HTTP ' + vertragRes.status);
+    const vertraege = await vertragRes.json();
+    if(!vertraege.length) return;
+    const vertragIds = vertraege.map(v => v.id).join(',');
+
+    const posRes = await fetch(
+      `${SUPABASE_URL}/rest/v1/crm_wartungspositionen?vertrag_id=in.(${vertragIds})&select=id,bezeichnung,intervall_monate,letzte_wartung&order=bezeichnung`,
+      { headers: supabaseHeaders() }
+    );
+    if(!posRes.ok) throw new Error('HTTP ' + posRes.status);
+    const rows = await posRes.json();
+    rows.forEach(r => {
+      const opt = document.createElement('option');
+      opt.value = r.id;
+      const letzte = r.letzte_wartung ? ` · zuletzt ${r.letzte_wartung}` : '';
+      opt.textContent = `${r.bezeichnung || 'Wartungsposition'} · alle ${r.intervall_monate} Mon.${letzte}`;
+      sel.appendChild(opt);
+    });
+    if(vorauswahlId && rows.some(r => r.id === vorauswahlId)) sel.value = vorauswahlId;
+  } catch(err){
+    console.error('Wartungspositionen konnten nicht geladen werden:', err);
+  }
 }
 
 document.getElementById('fBauvorhaben').addEventListener('blur', autofillKontaktFuerBauvorhaben);
 document.getElementById('fAnsprechpartner').addEventListener('blur', upsertKontakt);
 document.getElementById('fTelefon').addEventListener('blur', upsertKontakt);
+document.getElementById('fKunde').addEventListener('blur', () => {
+  const kunde = document.getElementById('fKunde').value.trim();
+  const kundeId = importierteKundeId || kundenNameZuId[normText(kunde)] || null;
+  ladeWartungspositionenFuerKunde(kundeId);
+});
 
 /* ---------- E-Mail-Format-Validierung ---------- */
 const EMAIL_REGEX = /^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$/;
@@ -1507,6 +1581,25 @@ async function sendeBerichtAnServer(reportData){
     return { ok: true };
   } catch(err){
     console.error('Berichts-Upload fehlgeschlagen:', err);
+    return { ok: false, reason: err.message };
+  }
+}
+
+/* Best effort: Kommentar + grünes Label auf der verknüpften Trello-Karte.
+   Der Arbeitsbericht ist zu diesem Zeitpunkt schon sicher gespeichert —
+   schlägt dieser Aufruf fehl, bleibt trotzdem alles Wichtige erhalten. */
+async function meldeWartungAnTrello(payload){
+  if(!SUPABASE_CONFIGURED) return { ok: false, reason: 'not-configured' };
+  try{
+    const res = await fetch(`${SUPABASE_URL}/functions/v1/trello-wartung-abschliessen`, {
+      method: 'POST',
+      headers: supabaseHeaders(),
+      body: JSON.stringify(payload)
+    });
+    const ergebnis = await res.json().catch(() => null);
+    return ergebnis || { ok: false, reason: 'invalid-response' };
+  } catch(err){
+    console.error('Trello-Rückmeldung fehlgeschlagen (unkritisch):', err);
     return { ok: false, reason: err.message };
   }
 }
