@@ -1,0 +1,451 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TS-Suite – Kundenimport (gevis)</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+  * { box-sizing: border-box; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    max-width: 720px;
+    margin: 0 auto;
+    padding: 16px;
+    background: #f5f6f8;
+    color: #1c1e21;
+  }
+  h1 { font-size: 1.3rem; margin-bottom: 4px; }
+  h2 { font-size: 1.05rem; margin-top: 28px; }
+  .karte {
+    background: #fff;
+    border: 1px solid #e1e3e6;
+    border-radius: 10px;
+    padding: 16px;
+    margin-top: 12px;
+  }
+  label { display: block; font-size: 0.9rem; margin: 10px 0 4px; font-weight: 600; }
+  input[type=file], input[type=text], select {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 8px;
+    font-size: 1rem;
+    background: #fff;
+  }
+  button {
+    background: #2563eb;
+    color: #fff;
+    border: none;
+    border-radius: 8px;
+    padding: 12px 18px;
+    font-size: 1rem;
+    margin-top: 14px;
+    cursor: pointer;
+    width: 100%;
+  }
+  button.sekundaer {
+    background: #fff;
+    color: #2563eb;
+    border: 1px solid #2563eb;
+  }
+  button:disabled { background: #b6c3e0; cursor: not-allowed; }
+  .mapping-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin: 8px 0;
+  }
+  .mapping-row label { flex: 1; margin: 0; font-weight: 500; }
+  .mapping-row select { flex: 1.4; }
+  table { width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 0.82rem; }
+  th, td {
+    border: 1px solid #e1e3e6;
+    padding: 6px 8px;
+    text-align: left;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 120px;
+  }
+  th { background: #f0f2f5; }
+  .hinweis { color: #b45309; font-size: 0.85rem; margin-top: 8px; min-height: 1.2em; }
+  .fehler { color: #b91c1c; font-size: 0.9rem; margin-top: 6px; }
+  #fortschritt-hülle {
+    background: #e5e7eb;
+    border-radius: 6px;
+    height: 10px;
+    overflow: hidden;
+    margin-top: 10px;
+  }
+  #fortschritt-balken {
+    background: #2563eb;
+    height: 100%;
+    width: 0%;
+    transition: width 0.15s ease;
+  }
+  #fortschritt-text { font-size: 0.85rem; margin-top: 6px; text-align: center; }
+  .zwei-spalten { display: flex; gap: 10px; }
+  .zwei-spalten > div { flex: 1; }
+  details summary { cursor: pointer; margin-top: 6px; }
+  small.hilfe { color: #6b7280; display: block; margin-top: 4px; }
+</style>
+</head>
+<body>
+
+<h1>Kundenimport aus gevis</h1>
+<p style="color:#6b7280; font-size:0.9rem;">CSV-Export laden, Spalten zuordnen, prüfen, importieren.</p>
+
+<!-- Admin-Code-Gate -->
+<div id="admin-gate" class="karte">
+  <label for="admin-code-input">Admin-Code</label>
+  <input type="text" id="admin-code-input" autocomplete="off">
+  <button onclick="pruefeAdminCode()">Freischalten</button>
+  <div id="admin-code-fehler" class="fehler"></div>
+</div>
+
+<!-- Eigentliches Tool, erst nach Freischaltung sichtbar -->
+<div id="import-tool" style="display:none;">
+
+  <div class="karte">
+    <h2 style="margin-top:0;">1. Datei laden</h2>
+    <label for="csv-file">CSV-Datei (gevis-Export)</label>
+    <input type="file" id="csv-file" accept=".csv,.txt">
+
+    <div class="zwei-spalten">
+      <div>
+        <label for="delimiter">Trennzeichen</label>
+        <select id="delimiter">
+          <option value="auto">Automatisch erkennen</option>
+          <option value=";">Semikolon (;)</option>
+          <option value=",">Komma (,)</option>
+          <option value="	">Tabulator</option>
+        </select>
+      </div>
+      <div>
+        <label for="encoding">Kodierung</label>
+        <select id="encoding">
+          <option value="UTF-8">UTF-8</option>
+          <option value="ISO-8859-1">Windows-1252 / ANSI (ältere Exporte)</option>
+        </select>
+      </div>
+    </div>
+    <small class="hilfe">Bei falsch dargestellten Umlauten (ä, ö, ü) hier auf ANSI umstellen und erneut einlesen.</small>
+    <button onclick="parseCsv()">Datei einlesen</button>
+  </div>
+
+  <div class="karte" id="mapping-section" style="display:none;">
+    <h2 style="margin-top:0;">2. Spalten zuordnen</h2>
+    <p style="font-size:0.85rem; color:#6b7280;"><span id="anzahl-zeilen">0</span> Datenzeilen gefunden. Pflichtfelder sind mit * markiert.</p>
+    <div id="mapping-felder"></div>
+
+    <div class="zwei-spalten" style="margin-top:14px;">
+      <button class="sekundaer" onclick="mappingSpeichern()" type="button">Mapping speichern</button>
+      <div>
+        <input type="file" id="mapping-datei" accept=".json" onchange="mappingLaden(event)" style="padding:6px;">
+      </div>
+    </div>
+
+    <h2>3. Vorschau (erste 10 Zeilen)</h2>
+    <div style="overflow-x:auto;">
+      <table>
+        <thead><tr id="preview-head"></tr></thead>
+        <tbody id="preview-body"></tbody>
+      </table>
+    </div>
+
+    <div class="hinweis" id="mapping-hinweis"></div>
+    <button id="import-starten-btn" onclick="importStarten()" disabled>Import starten</button>
+  </div>
+
+  <div class="karte" id="import-status" style="display:none;">
+    <h2 style="margin-top:0;">Import läuft …</h2>
+    <div id="fortschritt-hülle"><div id="fortschritt-balken"></div></div>
+    <div id="fortschritt-text">0 / 0</div>
+  </div>
+
+  <div class="karte" id="ergebnis-box" style="display:none;"></div>
+
+</div>
+
+<script>
+// ============================================================
+// KONFIGURATION – vor Nutzung anpassen (aus config.js übernehmen)
+// ============================================================
+const SUPABASE_URL = 'https://guuywhrzygcnpzrnnlsw.supabase.co';
+const SUPABASE_ANON_KEY = 'HIER-ANON-KEY-AUS-config.js-EINTRAGEN';
+const LOGIN_URL = 'index.html'; // Pfad zur bestehenden Login-Seite anpassen
+const ADMIN_CODE = 'sto78O8';   // wie beim GPS-Toggle; ggf. zentral in config.js pflegen
+
+const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+// Zielfelder der kunden-Tabelle. extern_id + name sind Pflicht,
+// weil ohne Kundennummer kein sauberer Abgleich möglich ist.
+const ZIEL_FELDER = [
+  { key: 'extern_id', label: 'Kundennummer (gevis)', required: true },
+  { key: 'name',      label: 'Name',                 required: true },
+  { key: 'strasse',   label: 'Straße',                required: false },
+  { key: 'plz',       label: 'PLZ',                   required: false },
+  { key: 'ort',       label: 'Ort',                   required: false },
+  { key: 'telefon',   label: 'Telefon',                required: false },
+  { key: 'email',     label: 'E-Mail',                 required: false },
+];
+
+let parsedRows = [];
+let csvHeaders = [];
+let mapping = {};
+
+// --- Auth-Gate: ohne aktive Session zurück zum Login ---
+(async function checkAuth() {
+  const { data: { session } } = await supabase.auth.getSession();
+  if (!session) window.location.href = LOGIN_URL;
+})();
+
+// --- Admin-Code-Gate ---
+function pruefeAdminCode() {
+  const eingabe = document.getElementById('admin-code-input').value;
+  if (eingabe === ADMIN_CODE) {
+    document.getElementById('admin-gate').style.display = 'none';
+    document.getElementById('import-tool').style.display = 'block';
+  } else {
+    document.getElementById('admin-code-fehler').textContent = 'Falscher Code.';
+  }
+}
+
+// --- CSV einlesen ---
+function parseCsv() {
+  const file = document.getElementById('csv-file').files[0];
+  if (!file) { alert('Bitte zuerst eine CSV-Datei auswählen.'); return; }
+
+  const delimiterAuswahl = document.getElementById('delimiter').value;
+  const encodingAuswahl = document.getElementById('encoding').value;
+
+  Papa.parse(file, {
+    header: true,
+    skipEmptyLines: true,
+    delimiter: delimiterAuswahl === 'auto' ? '' : delimiterAuswahl,
+    encoding: encodingAuswahl,
+    complete: function (results) {
+      parsedRows = results.data;
+      csvHeaders = results.meta.fields || [];
+      if (parsedRows.length === 0) {
+        alert('Keine Datenzeilen gefunden. Trennzeichen/Kodierung prüfen.');
+        return;
+      }
+      zeigeMappingUI();
+    },
+    error: function (err) {
+      alert('Fehler beim Einlesen: ' + err.message);
+    }
+  });
+}
+
+function zeigeMappingUI() {
+  const container = document.getElementById('mapping-felder');
+  container.innerHTML = '';
+
+  ZIEL_FELDER.forEach(feld => {
+    const row = document.createElement('div');
+    row.className = 'mapping-row';
+
+    const label = document.createElement('label');
+    label.textContent = feld.label + (feld.required ? ' *' : '');
+
+    const select = document.createElement('select');
+    select.id = 'map-' + feld.key;
+    select.innerHTML = '<option value="">-- nicht zuordnen --</option>' +
+      csvHeaders.map(h => `<option value="${h}">${h}</option>`).join('');
+    select.onchange = aktualisierePreview;
+
+    // Automatischer Vorschlag anhand des Spaltennamens
+    const treffer = csvHeaders.find(h =>
+      h.toLowerCase().includes(feld.key.toLowerCase()) ||
+      (feld.key === 'extern_id' && /kunden.?nr|kdnr|nummer/i.test(h)) ||
+      (feld.key === 'ort' && /stadt|city/i.test(h)) ||
+      (feld.key === 'plz' && /postleitzahl|zip/i.test(h))
+    );
+    if (treffer) select.value = treffer;
+
+    row.appendChild(label);
+    row.appendChild(select);
+    container.appendChild(row);
+  });
+
+  const head = document.getElementById('preview-head');
+  head.innerHTML = ZIEL_FELDER.map(f => `<th>${f.label}</th>`).join('');
+
+  document.getElementById('mapping-section').style.display = 'block';
+  document.getElementById('anzahl-zeilen').textContent = parsedRows.length;
+  aktualisierePreview();
+}
+
+function sammleMapping() {
+  mapping = {};
+  ZIEL_FELDER.forEach(feld => {
+    const val = document.getElementById('map-' + feld.key).value;
+    if (val) mapping[feld.key] = val;
+  });
+  return mapping;
+}
+
+function mappeZeile(zeile) {
+  const ergebnis = {};
+  ZIEL_FELDER.forEach(feld => {
+    const spalte = mapping[feld.key];
+    ergebnis[feld.key] = spalte ? (zeile[spalte] || '').trim() : '';
+  });
+  return ergebnis;
+}
+
+function aktualisierePreview() {
+  sammleMapping();
+  const tbody = document.getElementById('preview-body');
+  tbody.innerHTML = '';
+  parsedRows.slice(0, 10).forEach(zeile => {
+    const gemappt = mappeZeile(zeile);
+    const tr = document.createElement('tr');
+    tr.innerHTML = ZIEL_FELDER.map(f => `<td>${gemappt[f.key] || ''}</td>`).join('');
+    tbody.appendChild(tr);
+  });
+  pruefeMappingVollstaendig();
+}
+
+function pruefeMappingVollstaendig() {
+  const fehlt = ZIEL_FELDER.filter(f => f.required && !mapping[f.key]);
+  const btn = document.getElementById('import-starten-btn');
+  const hinweis = document.getElementById('mapping-hinweis');
+
+  if (fehlt.length > 0) {
+    btn.disabled = true;
+    hinweis.textContent = 'Pflichtfelder fehlen: ' + fehlt.map(f => f.label).join(', ');
+    return;
+  }
+
+  const idFeld = mapping['extern_id'];
+  const ids = parsedRows.map(z => (z[idFeld] || '').trim()).filter(Boolean);
+  const duplikate = new Set(ids.filter((id, i) => ids.indexOf(id) !== i));
+
+  hinweis.textContent = duplikate.size > 0
+    ? `Achtung: ${duplikate.size} doppelte Kundennummer(n) in der Datei gefunden.`
+    : '';
+  btn.disabled = false;
+}
+
+// --- Mapping als Datei sichern/laden (bewusst kein localStorage) ---
+function mappingSpeichern() {
+  sammleMapping();
+  const blob = new Blob([JSON.stringify(mapping, null, 2)], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = 'gevis-mapping.json';
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
+function mappingLaden(event) {
+  const file = event.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = function (e) {
+    try {
+      const geladen = JSON.parse(e.target.result);
+      Object.keys(geladen).forEach(key => {
+        const select = document.getElementById('map-' + key);
+        if (select) select.value = geladen[key];
+      });
+      aktualisierePreview();
+    } catch (err) {
+      alert('Mapping-Datei ungültig.');
+    }
+  };
+  reader.readAsText(file);
+}
+
+// --- Import ausführen ---
+async function importStarten() {
+  sammleMapping();
+  const btn = document.getElementById('import-starten-btn');
+  btn.disabled = true;
+  document.getElementById('import-status').style.display = 'block';
+  document.getElementById('ergebnis-box').style.display = 'none';
+
+  let anzahlNeu = 0, anzahlUpdate = 0, anzahlFehler = 0;
+  const fehlerDetails = [];
+  const gesamt = parsedRows.length;
+
+  for (let i = 0; i < gesamt; i++) {
+    const gemappt = mappeZeile(parsedRows[i]);
+
+    if (!gemappt.extern_id || !gemappt.name) {
+      anzahlFehler++;
+      fehlerDetails.push({ zeile: i + 2, grund: 'Kundennummer oder Name leer' });
+      aktualisiereFortschritt(i + 1, gesamt);
+      continue;
+    }
+
+    try {
+      // Vorab prüfen, ob der Kunde schon existiert (für neu/update-Zählung)
+      const { data: bestehend } = await supabase
+        .from('kunden')
+        .select('id')
+        .eq('extern_system', 'gevis')
+        .eq('extern_id', gemappt.extern_id)
+        .maybeSingle();
+
+      const { error } = await supabase.rpc('import_kunde', {
+        p_extern_system: 'gevis',
+        p_extern_id: gemappt.extern_id,
+        p_name: gemappt.name,
+        p_strasse: gemappt.strasse || null,
+        p_plz: gemappt.plz || null,
+        p_ort: gemappt.ort || null,
+        p_telefon: gemappt.telefon || null,
+        p_email: gemappt.email || null,
+      });
+
+      if (error) throw error;
+      bestehend ? anzahlUpdate++ : anzahlNeu++;
+    } catch (err) {
+      anzahlFehler++;
+      fehlerDetails.push({ zeile: i + 2, grund: err.message || String(err) });
+    }
+
+    aktualisiereFortschritt(i + 1, gesamt);
+  }
+
+  await supabase.from('import_laeufe').insert({
+    quelle: 'gevis-csv',
+    dateiname: document.getElementById('csv-file').files[0]?.name || null,
+    anzahl_neu: anzahlNeu,
+    anzahl_update: anzahlUpdate,
+    anzahl_fehler: anzahlFehler,
+    fehler_details: fehlerDetails.length ? fehlerDetails : null,
+    beendet_am: new Date().toISOString(),
+  });
+
+  zeigeErgebnis(anzahlNeu, anzahlUpdate, anzahlFehler, fehlerDetails);
+  btn.disabled = false;
+}
+
+function aktualisiereFortschritt(aktuell, gesamt) {
+  const prozent = Math.round((aktuell / gesamt) * 100);
+  document.getElementById('fortschritt-balken').style.width = prozent + '%';
+  document.getElementById('fortschritt-text').textContent = `${aktuell} / ${gesamt}`;
+}
+
+function zeigeErgebnis(neu, update, fehler, fehlerDetails) {
+  const box = document.getElementById('ergebnis-box');
+  box.style.display = 'block';
+  box.innerHTML = `
+    <h2 style="margin-top:0;">Import abgeschlossen</h2>
+    <p><strong>${neu}</strong> neu angelegt, <strong>${update}</strong> aktualisiert, <strong>${fehler}</strong> Fehler.</p>
+    ${fehlerDetails.length ? '<details><summary>Fehlerdetails anzeigen</summary><ul>' +
+      fehlerDetails.map(f => `<li>Zeile ${f.zeile}: ${f.grund}</li>`).join('') +
+      '</ul></details>' : ''}
+  `;
+}
+</script>
+</body>
+</html>
