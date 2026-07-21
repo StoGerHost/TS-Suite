@@ -240,7 +240,7 @@ window.addEventListener('error', function (e) {
 });
 
 let sb = null;
-let SUPABASE_URL, SUPABASE_ANON_KEY, LOGIN_URL, ADMIN_CODE;
+let SUPABASE_URL, SUPABASE_ANON_KEY, LOGIN_URL;
 let parsedRows = [];
 let csvHeaders = [];
 let mapping = {};
@@ -269,7 +269,6 @@ try {
   SUPABASE_URL = TENANT.supabaseUrl;
   SUPABASE_ANON_KEY = TENANT.supabaseKey;
   LOGIN_URL = 'index.html';
-  ADMIN_CODE = TENANT.adminCode;
 
   if (typeof window.supabase === 'undefined' || !window.supabase.createClient) {
     throw new Error('supabase-js nicht geladen (CDN blockiert oder kein Internet).');
@@ -300,23 +299,55 @@ try {
 })();
 
 // --- Admin-Code-Gate ---
-function pruefeAdminCode() {
+// Der Vergleich läuft serverseitig in der Edge Function
+// admin-code-pruefen — der richtige Code steht nirgendwo in
+// dieser Datei oder in config.js, nur als Secret auf dem Server.
+async function pruefeAdminCode() {
   const fehlerEl = document.getElementById('admin-code-fehler');
+  const btn = document.querySelector('#admin-gate button');
+  fehlerEl.textContent = '';
   try {
     if (!sb) {
       fehlerEl.textContent = 'Fehler: Supabase konnte nicht geladen werden (siehe Statuszeile oben — Internetverbindung/CDN prüfen, Seite neu laden).';
       return;
     }
     const eingabe = document.getElementById('admin-code-input').value.trim();
-    if (eingabe === ADMIN_CODE) {
+    if (!eingabe) {
+      fehlerEl.textContent = 'Bitte einen Code eingeben.';
+      return;
+    }
+
+    btn.disabled = true;
+    fehlerEl.textContent = 'Prüfe …';
+
+    const { data: { session } } = await sb.auth.getSession();
+    if (!session) {
+      fehlerEl.textContent = 'Anmeldung abgelaufen — Seite neu laden.';
+      return;
+    }
+
+    const res = await fetch(`${SUPABASE_URL}/functions/v1/admin-code-pruefen`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer ' + session.access_token,
+        'apikey': SUPABASE_ANON_KEY
+      },
+      body: JSON.stringify({ code: eingabe })
+    });
+    const ergebnis = await res.json().catch(() => null);
+
+    if (ergebnis && ergebnis.ok) {
       document.getElementById('admin-gate').style.display = 'none';
       document.getElementById('import-tool').style.display = 'block';
     } else {
-      fehlerEl.textContent = 'Falscher Code.';
+      fehlerEl.textContent = (ergebnis && ergebnis.error) ? ergebnis.error : 'Falscher Code.';
     }
   } catch (err) {
     fehlerEl.textContent = 'Unerwarteter Fehler: ' + (err.message || err);
     console.error('pruefeAdminCode:', err);
+  } finally {
+    btn.disabled = false;
   }
 }
 
