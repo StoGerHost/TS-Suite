@@ -446,6 +446,19 @@ function supabaseHeaders(extra){
   }, extra || {});
 }
 
+// Sicherheitsnetz: jeder unerwartete, sonst nicht abgefangene Fehler landet
+// sichtbar im Bericht-Status, statt nur in der (unsichtbaren) Konsole.
+window.addEventListener('error', function (e) {
+  const el = document.getElementById('genStatus');
+  if (el) el.textContent = 'Unerwarteter Skriptfehler: ' + (e.message || e);
+  console.error('Unerwarteter Fehler:', e.error || e.message);
+});
+window.addEventListener('unhandledrejection', function (e) {
+  const el = document.getElementById('genStatus');
+  if (el) el.textContent = 'Unerwarteter Fehler (Promise): ' + (e.reason && e.reason.message ? e.reason.message : e.reason);
+  console.error('Unhandled rejection:', e.reason);
+});
+
 /* pdf.js kommt vom CDN — ohne Netz darf sein Fehlen nicht die ganze Seite lahmlegen. */
 if (window.pdfjsLib) {
   pdfjsLib.GlobalWorkerOptions.workerSrc = "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js";
@@ -1172,17 +1185,24 @@ async function generateReport(){
         genStatus.className = 'gen-status err';
       }
       if(reportData.wartungsposition_id){
+        genStatus.textContent += ' · Sende Trello-Rückmeldung …';
         const trelloResult = await meldeWartungAnTrello({
           wartungsposition_id: reportData.wartungsposition_id,
           techniker: reportData.techniker || '–',
           datum: val('fDatum') || null,
           notiz: reportData.daten.taetigkeit ? reportData.daten.taetigkeit.slice(0, 300) : null
         });
+        // Egal welcher der drei möglichen Fälle eintritt, IMMER sichtbar machen —
+        // vorher verschwand ein Netzwerkfehler (trelloResult.reason) komplett
+        // lautlos, weil nur .trello und .warning geprüft wurden.
         if(trelloResult.trello){
-          genStatus.textContent += ' · Trello-Rückmeldung gesendet.';
+          genStatus.textContent = genStatus.textContent.replace(' · Sende Trello-Rückmeldung …', '') + ' · Trello-Rückmeldung gesendet.';
         } else if(trelloResult.warning){
-          genStatus.textContent += ' · Wartung gespeichert, Trello-Rückmeldung nicht möglich.';
+          genStatus.textContent = genStatus.textContent.replace(' · Sende Trello-Rückmeldung …', '') + ' · Wartung gespeichert, Trello-Rückmeldung nicht möglich.';
           console.warn(trelloResult.warning);
+        } else {
+          genStatus.textContent = genStatus.textContent.replace(' · Sende Trello-Rückmeldung …', '') + ' · Trello-Rückmeldung fehlgeschlagen: ' + (trelloResult.reason || trelloResult.error || 'unbekannter Fehler');
+          console.error('Trello-Rückmeldung fehlgeschlagen:', trelloResult);
         }
       }
     } else if(sendResult.reason === 'not-configured'){
