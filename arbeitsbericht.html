@@ -1153,10 +1153,12 @@ async function generateReport(){
       }
     };
 
-    /* Erst an den Server senden, DANACH das PDF lokal öffnen/speichern.
-       Grund: doc.save() öffnet auf iOS ein neues Tab/Fenster, wodurch die
+    /* Erst ALLE Netzwerk-Schritte (Bericht speichern + ggf. Trello-Rückmeldung),
+       DANACH das PDF lokal öffnen/speichern. Grund: doc.save() öffnet auf iOS
+       ein neues Tab/Fenster (besonders im Trello-In-App-Browser), wodurch die
        Seite in den Hintergrund geschoben wird — laufende Netzwerk-Requests
-       können danach abgebrochen/verzögert werden. Deshalb zuerst der Upload. */
+       werden dabei abgebrochen ("Load failed"). Deshalb müssen wirklich alle
+       Uploads/Aufrufe fertig sein, bevor doc.save() läuft. */
     genStatus.textContent = 'Sende an Server ...';
     if(standortIstAktiv()){
       genStatus.textContent = 'Frage Standort ab ...';
@@ -1176,7 +1178,6 @@ async function generateReport(){
     const sendResult = await sendeBerichtAnServer(reportData);
 
     const filename = `Arbeitsbericht_${(val('fAngebotsnr')||'ohne-nr').replace(/[^a-zA-Z0-9\-]/g,'')}.pdf`;
-    doc.save(filename);
 
     if(sendResult.ok){
       genStatus.textContent = 'Bericht an Server übertragen und lokal gespeichert: ' + filename;
@@ -1216,6 +1217,13 @@ async function generateReport(){
     } else {
       genStatus.textContent = 'Bericht lokal gespeichert: ' + filename + ' — Server-Übertragung fehlgeschlagen (' + sendResult.reason + '), bitte später erneut versuchen.';
     }
+
+    // PDF-Download bewusst GANZ AM ENDE, nach allen Netzwerk-Aufrufen:
+    // Der Download-Dialog (bzw. das Sichern/Teilen-Sheet, das doc.save()
+    // auslöst) unterbricht offenbar laufende fetch()-Anfragen, besonders
+    // im eingebetteten Trello-In-App-Browser ("Load failed"). Deshalb
+    // muss die Trello-Rückmeldung fertig sein, BEVOR der Download startet.
+    doc.save(filename);
   } catch(err){
     genStatus.textContent = 'Fehler beim Erstellen des Berichts.';
     console.error(err);
