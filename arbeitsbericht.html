@@ -1195,14 +1195,20 @@ async function generateReport(){
         // Egal welcher der drei möglichen Fälle eintritt, IMMER sichtbar machen —
         // vorher verschwand ein Netzwerkfehler (trelloResult.reason) komplett
         // lautlos, weil nur .trello und .warning geprüft wurden.
+        // Zusätzlich per alert(): die Textzeile allein wird zu leicht übersehen/
+        // überschrieben, bevor Zeit zum Lesen bleibt. alert() muss aktiv
+        // weggetippt werden, verschwindet also nicht von selbst.
         if(trelloResult.trello){
           genStatus.textContent = genStatus.textContent.replace(' · Sende Trello-Rückmeldung …', '') + ' · Trello-Rückmeldung gesendet.';
+          alert('✅ Trello-Rückmeldung gesendet.\n\nDie Wartungsposition wurde aktualisiert und auf der Trello-Karte vermerkt.');
         } else if(trelloResult.warning){
           genStatus.textContent = genStatus.textContent.replace(' · Sende Trello-Rückmeldung …', '') + ' · Wartung gespeichert, Trello-Rückmeldung nicht möglich.';
           console.warn(trelloResult.warning);
+          alert('⚠️ Wartung wurde gespeichert, aber die Trello-Karte konnte nicht aktualisiert werden.\n\n' + trelloResult.warning);
         } else {
           genStatus.textContent = genStatus.textContent.replace(' · Sende Trello-Rückmeldung …', '') + ' · Trello-Rückmeldung fehlgeschlagen: ' + (trelloResult.reason || trelloResult.error || 'unbekannter Fehler');
           console.error('Trello-Rückmeldung fehlgeschlagen:', trelloResult);
+          alert('❌ Trello-Rückmeldung fehlgeschlagen:\n\n' + (trelloResult.reason || trelloResult.error || 'unbekannter Fehler') + '\n\nDer Bericht selbst wurde trotzdem gespeichert.');
         }
       }
     } else if(sendResult.reason === 'not-configured'){
