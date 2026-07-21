@@ -239,7 +239,7 @@ window.addEventListener('error', function (e) {
   setzeStatus('Unerwarteter Skriptfehler: ' + (e.message || e), 'var(--danger)');
 });
 
-let supabase = null;
+let sb = null;
 let SUPABASE_URL, SUPABASE_ANON_KEY, LOGIN_URL, ADMIN_CODE;
 let parsedRows = [];
 let csvHeaders = [];
@@ -274,7 +274,7 @@ try {
   if (typeof window.supabase === 'undefined' || !window.supabase.createClient) {
     throw new Error('supabase-js nicht geladen (CDN blockiert oder kein Internet).');
   }
-  supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+  sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
   setzeStatus('Verbindung ok. Prüfe Anmeldung …');
 } catch (err) {
@@ -284,9 +284,9 @@ try {
 
 // --- Auth-Gate: ohne aktive Session zurück zum Login ---
 (async function checkAuth() {
-  if (!supabase) return; // Client fehlt bereits — Status zeigt das schon an
+  if (!sb) return; // Client fehlt bereits — Status zeigt das schon an
   try {
-    const { data: { session } } = await supabase.auth.getSession();
+    const { data: { session } } = await sb.auth.getSession();
     if (!session) {
       setzeStatus('Keine Anmeldung gefunden — leite zum Login weiter …', 'var(--warn)');
       window.location.href = LOGIN_URL;
@@ -303,7 +303,7 @@ try {
 function pruefeAdminCode() {
   const fehlerEl = document.getElementById('admin-code-fehler');
   try {
-    if (!supabase) {
+    if (!sb) {
       fehlerEl.textContent = 'Fehler: Supabase konnte nicht geladen werden (siehe Statuszeile oben — Internetverbindung/CDN prüfen, Seite neu laden).';
       return;
     }
@@ -494,14 +494,14 @@ async function importStarten() {
 
     try {
       // Vorab prüfen, ob der Kunde schon existiert (für neu/update-Zählung)
-      const { data: bestehend } = await supabase
+      const { data: bestehend } = await sb
         .from('kunden')
         .select('id')
         .eq('extern_system', 'gevis')
         .eq('extern_id', gemappt.extern_id)
         .maybeSingle();
 
-      const { error } = await supabase.rpc('import_kunde', {
+      const { error } = await sb.rpc('import_kunde', {
         p_extern_system: 'gevis',
         p_extern_id: gemappt.extern_id,
         p_name: gemappt.name,
@@ -522,7 +522,7 @@ async function importStarten() {
     aktualisiereFortschritt(i + 1, gesamt);
   }
 
-  await supabase.from('import_laeufe').insert({
+  await sb.from('import_laeufe').insert({
     quelle: 'gevis-csv',
     dateiname: document.getElementById('csv-file').files[0]?.name || null,
     anzahl_neu: anzahlNeu,
