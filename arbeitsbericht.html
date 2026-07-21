@@ -422,6 +422,30 @@
 </div>
 
 <script>
+/* ============================================================
+   SUPABASE-KONFIGURATION — kommt aus config.js (TENANT).
+   Bewusst ganz am Skriptanfang, NICHT weiter unten: der Import
+   aus URL-Parametern (Trello-Link/CRM-Übergabe) läuft schon beim
+   Laden der Seite und braucht SUPABASE_URL sofort, um die
+   passenden Wartungspositionen nachzuladen. Stand die Konstante
+   weiter unten im Skript, war sie an dieser Stelle noch nicht
+   initialisiert (TDZ) — das ließ das Wartungsposition-Dropdown
+   beim Öffnen über einen Trello-Link leer bleiben, ganz ohne
+   sichtbaren Fehler.
+   ============================================================ */
+const SUPABASE_URL = TENANT.supabaseUrl;
+const SUPABASE_ANON_KEY = TENANT.supabaseKey;
+const SUPABASE_CONFIGURED = !SUPABASE_URL.includes('DEIN-PROJEKT');
+
+function supabaseHeaders(extra){
+  const t = (window.TSAuth && TSAuth.getToken()) || SUPABASE_ANON_KEY;
+  return Object.assign({
+    'apikey': SUPABASE_ANON_KEY,
+    'Authorization': 'Bearer ' + t,
+    'Content-Type': 'application/json'
+  }, extra || {});
+}
+
 /* pdf.js kommt vom CDN — ohne Netz darf sein Fehlen nicht die ganze Seite lahmlegen. */
 if (window.pdfjsLib) {
   pdfjsLib.GlobalWorkerOptions.workerSrc = "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js";
@@ -1182,21 +1206,9 @@ function val(id){
 /* Datum vorbelegen */
 document.getElementById('fDatum').valueAsDate = new Date();
 
-/* ============================================================
-   SUPABASE-KONFIGURATION — kommt aus config.js (TENANT)
-   ============================================================ */
-const SUPABASE_URL = TENANT.supabaseUrl;
-const SUPABASE_ANON_KEY = TENANT.supabaseKey;
-const SUPABASE_CONFIGURED = !SUPABASE_URL.includes('DEIN-PROJEKT');
-
-function supabaseHeaders(extra){
-  const t = (window.TSAuth && TSAuth.getToken()) || SUPABASE_ANON_KEY;
-  return Object.assign({
-    'apikey': SUPABASE_ANON_KEY,
-    'Authorization': 'Bearer ' + t,
-    'Content-Type': 'application/json'
-  }, extra || {});
-}
+/* SUPABASE_URL / SUPABASE_ANON_KEY / SUPABASE_CONFIGURED / supabaseHeaders()
+   stehen jetzt ganz am Skriptanfang (siehe Kommentar dort) — hier bewusst
+   nicht mehr doppelt deklariert. */
 
 /* ---------- Kontakte: lokal gecachte Kopie + Sync ---------- */
 const LS_KONTAKTE = 'ts_kontakte_cache';
