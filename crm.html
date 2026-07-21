@@ -1,0 +1,2340 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#0a0a0c">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="CRM">
+<title>Blueprint · CRM</title>
+<script src="config.js"></script>
+<style>
+/* --- Einheitliche TS-Suite-Backbar (auf allen Seiten identisch) --- */
+.stober-backbar{position:sticky;top:0;z-index:9999;display:flex;align-items:center;gap:10px;
+  background:#0a0a0c;color:#e9edf2;padding:10px 16px;padding-top:calc(10px + env(safe-area-inset-top,0px));
+  font:600 12px/1.4 ui-monospace,Menlo,monospace;letter-spacing:.03em;
+  border-bottom:1px solid rgba(120,140,160,.35);flex-wrap:wrap;}
+.stober-backbar__link{color:#e9edf2;text-decoration:none;display:inline-flex;align-items:center;gap:6px;
+  transition:color .15s ease;white-space:nowrap;}
+@media(hover:hover){ .stober-backbar__link:hover{color:#3a7bd5;} }
+.stober-backbar__slash{color:rgba(233,237,242,.4);}
+.stober-backbar__current{color:#3a7bd5;font-weight:700;}
+</style>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<style>
+:root{
+  --bg:#0a0a0c; --panel:#131318; --panel2:#191921; --border:#26262e;
+  --blau:#3a7bd5; --tuerkis:#5eead4; --text:#e8e8ec; --dim:#8b8b96;
+  --rot:#e05d5d; --gelb:#e0b45d; --gruen:#5dc98a;
+  --mono:ui-monospace,'SF Mono','Cascadia Mono',Consolas,monospace;
+  --nav-h:62px;
+}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+html{font-size:16px}
+body{
+  background:var(--bg);color:var(--text);
+  font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;
+  min-height:100dvh;padding-bottom:calc(var(--nav-h) + env(safe-area-inset-bottom));
+}
+button{font:inherit;color:inherit;background:none;border:none;cursor:pointer}
+input,select,textarea{
+  font:inherit;color:var(--text);background:var(--panel2);
+  border:1px solid var(--border);border-radius:10px;
+  padding:12px 14px;width:100%;min-height:48px;
+}
+input:focus,select:focus,textarea:focus{outline:none;border-color:var(--blau)}
+textarea{min-height:96px;resize:vertical}
+label{display:block;font-size:.78rem;color:var(--dim);margin:14px 0 6px;
+  font-family:var(--mono);text-transform:uppercase;letter-spacing:.06em}
+
+/* Kopfzeile */
+header{
+  position:sticky;top:calc(38px + env(safe-area-inset-top,0px));z-index:20;background:rgba(10,10,12,.92);
+  backdrop-filter:blur(8px);border-bottom:1px solid var(--border);
+  padding:10px 16px;
+  display:flex;align-items:center;gap:10px;
+}
+header .back-home{
+  display:flex;align-items:center;justify-content:center;
+  width:34px;height:34px;margin-left:-6px;flex-shrink:0;
+  color:var(--dim);text-decoration:none;font-size:1.15rem;line-height:1;
+  border:1px solid var(--border);border-radius:8px;
+  -webkit-tap-highlight-color:transparent;
+}
+header .back-home:active{background:rgba(58,123,213,.15);color:var(--blau,#3a7bd5)}
+header .logo{font-family:var(--mono);font-size:.95rem;letter-spacing:.04em}
+header .logo b{color:var(--tuerkis);font-weight:600}
+header .status{margin-left:auto;font-family:var(--mono);font-size:.7rem;color:var(--dim);
+  display:flex;align-items:center;gap:6px}
+header .dot{width:8px;height:8px;border-radius:50%;background:var(--dim)}
+header .dot.ok{background:var(--gruen)}
+header .dot.err{background:var(--rot)}
+
+main{max-width:760px;margin:0 auto;padding:14px 14px 24px}
+
+/* Suchfeld */
+.suchzeile{position:sticky;top:calc(49px + env(safe-area-inset-top));z-index:15;
+  padding:6px 0 10px;background:linear-gradient(var(--bg) 75%,transparent)}
+.suchzeile input{background:var(--panel)}
+
+/* Kundenkarte — Karteikarten-Look mit Blueprint-Raster im Kopf */
+.karte{
+  background:var(--panel);border:1px solid var(--border);border-radius:14px;
+  margin-bottom:10px;overflow:hidden;display:block;width:100%;text-align:left;
+}
+.karte:active{border-color:var(--blau)}
+.karte .kopf{
+  padding:10px 14px 8px;border-bottom:1px solid var(--border);
+  background:
+    repeating-linear-gradient(0deg,transparent 0 11px,rgba(58,123,213,.07) 11px 12px),
+    repeating-linear-gradient(90deg,transparent 0 11px,rgba(58,123,213,.07) 11px 12px);
+  display:flex;align-items:baseline;gap:10px;
+}
+.karte .knr{font-family:var(--mono);font-size:.72rem;color:var(--tuerkis)}
+.karte .ort{margin-left:auto;font-size:.75rem;color:var(--dim);white-space:nowrap;
+  overflow:hidden;text-overflow:ellipsis}
+.karte .rumpf{padding:10px 14px 12px}
+.karte h3{font-size:1rem;font-weight:600;margin-bottom:2px}
+.karte .sub{font-size:.8rem;color:var(--dim)}
+
+/* Abschnitte / Panels */
+.panel{background:var(--panel);border:1px solid var(--border);border-radius:14px;
+  padding:14px;margin-bottom:12px}
+.eyebrow{font-family:var(--mono);font-size:.7rem;color:var(--dim);
+  text-transform:uppercase;letter-spacing:.08em;margin-bottom:10px;
+  display:flex;align-items:center;gap:8px}
+.eyebrow .plus{margin-left:auto;color:var(--tuerkis);font-size:1rem;padding:4px 8px}
+
+/* Aktions-Buttons (anrufen / mail / karte) */
+.aktionen{display:flex;flex-wrap:wrap;gap:8px;margin:12px 0}
+.aktionen a,.aktionen button{
+  flex:1 1 auto;min-width:80px;min-height:48px;display:flex;align-items:center;justify-content:center;gap:6px;
+  background:var(--panel);border:1px solid var(--border);border-radius:12px;
+  color:var(--text);text-decoration:none;font-size:.85rem;
+}
+.aktionen a:active{border-color:var(--tuerkis)}
+
+/* Timeline */
+.tl{list-style:none}
+.tl li{position:relative;padding:0 0 14px 22px;border-left:1px solid var(--border);
+  margin-left:6px}
+.tl li:last-child{padding-bottom:2px}
+.tl li::before{content:'';position:absolute;left:-5px;top:4px;width:9px;height:9px;
+  border-radius:50%;background:var(--bg);border:2px solid var(--blau)}
+.tl li.t-wartung::before{border-color:var(--tuerkis)}
+.tl li.t-reklamation::before{border-color:var(--rot)}
+.tl .tlkopf{display:flex;gap:8px;align-items:baseline;font-size:.72rem;
+  font-family:var(--mono);color:var(--dim);margin-bottom:3px}
+.tl .tltyp{color:var(--blau);text-transform:uppercase;letter-spacing:.05em}
+.tl li.t-wartung .tltyp{color:var(--tuerkis)}
+.tl li.t-reklamation .tltyp{color:var(--rot)}
+.tl p{font-size:.9rem;white-space:pre-wrap}
+.tl .artchips{margin-top:6px;display:flex;flex-wrap:wrap;gap:6px}
+
+/* Chips */
+.chip{font-family:var(--mono);font-size:.72rem;color:var(--tuerkis);
+  border:1px solid rgba(94,234,212,.35);border-radius:99px;padding:3px 10px}
+.chip.blau{color:var(--blau);border-color:rgba(58,123,213,.4)}
+.chip button{color:var(--rot);margin-left:6px;padding:0}
+
+/* Wiedervorlagen */
+.wv{display:flex;align-items:flex-start;gap:12px;padding:12px 4px;
+  border-bottom:1px solid var(--border)}
+.wv:last-child{border-bottom:none}
+.wv .box{width:26px;height:26px;min-width:26px;border:2px solid var(--dim);
+  border-radius:8px;margin-top:2px;display:flex;align-items:center;justify-content:center;
+  color:transparent;font-size:.9rem}
+.wv.erledigt .box{border-color:var(--gruen);color:var(--gruen)}
+.wv.erledigt .txt{text-decoration:line-through;color:var(--dim)}
+.wv .datum{font-family:var(--mono);font-size:.72rem;color:var(--dim)}
+.wv .datum.faellig{color:var(--rot)}
+.wv .datum.heute{color:var(--gelb)}
+.wv .kunde{font-size:.75rem;color:var(--blau)}
+.wv .trello-btn{
+  display:inline-flex;align-items:center;gap:7px;flex-shrink:0;white-space:nowrap;
+  padding:9px 16px;min-height:40px;border-radius:99px;
+  border:1px solid rgba(0,132,209,.45);background:rgba(0,132,209,.14);
+  color:#5eb8f5;font-size:.8rem;font-weight:600;
+}
+.wv .trello-btn.gesendet{
+  border-color:var(--border);background:var(--panel2);color:var(--dim);font-weight:400;
+}
+.wv .trello-btn:active{background:rgba(0,132,209,.26)}
+
+/* Artikel-Liste */
+.artzeile{display:flex;align-items:center;gap:12px;padding:12px 4px;
+  border-bottom:1px solid var(--border);width:100%;text-align:left}
+.artzeile:last-child{border-bottom:none}
+.artzeile .nr{font-family:var(--mono);color:var(--tuerkis);font-size:.85rem;
+  min-width:110px}
+.artzeile .bez{font-size:.85rem;color:var(--text);flex:1;word-break:break-word}
+
+/* Formulare / Modal */
+.modalbg{position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:40;
+  display:flex;align-items:flex-end;justify-content:center}
+.modal{background:var(--panel);border:1px solid var(--border);
+  border-radius:18px 18px 0 0;width:100%;max-width:760px;max-height:88dvh;
+  overflow-y:auto;padding:18px 16px calc(18px + env(safe-area-inset-bottom))}
+.modal h2{font-size:1.05rem;margin-bottom:4px}
+.modal .griff{width:44px;height:4px;border-radius:2px;background:var(--border);
+  margin:0 auto 14px}
+.typwahl{display:flex;flex-wrap:wrap;gap:8px;margin-top:6px}
+.typwahl button{border:1px solid var(--border);border-radius:99px;
+  padding:9px 16px;font-size:.85rem;min-height:44px;background:var(--panel2)}
+.typwahl button.aktiv{border-color:var(--tuerkis);color:var(--tuerkis)}
+
+.btnzeile{display:flex;gap:10px;margin-top:18px}
+.btn{flex:1;min-height:52px;border-radius:12px;font-size:.95rem;font-weight:600;
+  display:flex;align-items:center;justify-content:center;gap:8px}
+.btn.primaer{background:var(--blau);color:#fff}
+.btn.primaer:active{background:#2f66b3}
+.btn.sekundaer{background:var(--panel2);border:1px solid var(--border)}
+.btn.gefahr{color:var(--rot);border:1px solid rgba(224,93,93,.4)}
+.btn[disabled]{opacity:.5}
+
+/* Bottom-Navigation */
+nav{
+  position:fixed;left:0;right:0;bottom:0;z-index:30;
+  background:rgba(15,15,19,.95);backdrop-filter:blur(10px);
+  border-top:1px solid var(--border);
+  display:flex;height:calc(var(--nav-h) + env(safe-area-inset-bottom));
+  padding-bottom:env(safe-area-inset-bottom);
+}
+nav button{flex:1;display:flex;flex-direction:column;align-items:center;
+  justify-content:center;gap:3px;color:var(--dim);font-size:.68rem;
+  font-family:var(--mono);letter-spacing:.03em}
+nav button svg{width:22px;height:22px;stroke:currentColor;fill:none;
+  stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+nav button.aktiv{color:var(--tuerkis)}
+.stn-filter{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:12px}
+.stn-chip{font-family:var(--mono);font-size:.72rem;padding:7px 12px;border:1px solid var(--border);
+  border-radius:99px;background:var(--panel);color:var(--dim);cursor:pointer}
+.stn-chip.aktiv{border-color:var(--blau);color:var(--text);background:rgba(58,123,213,.15)}
+.stn-range{display:flex;gap:8px;margin-bottom:14px}
+.stn-range input{flex:1;font-size:.85rem}
+.stn-ma{background:var(--panel);border:1px solid var(--border);border-radius:12px;margin-bottom:10px;overflow:hidden}
+.stn-ma summary{list-style:none;padding:12px 14px;cursor:pointer;-webkit-tap-highlight-color:transparent}
+.stn-ma summary::-webkit-details-marker{display:none}
+.stn-kopf{display:flex;justify-content:space-between;align-items:baseline;gap:10px}
+.stn-name{font-weight:600}
+.stn-summe{font-family:var(--mono);color:var(--tuerkis);font-size:1.05rem;white-space:nowrap}
+.stn-meta{font-family:var(--mono);font-size:.68rem;color:var(--dim);margin-top:3px}
+.stn-balken{height:5px;background:var(--panel2);border-radius:99px;margin-top:8px;overflow:hidden}
+.stn-balken i{display:block;height:100%;background:linear-gradient(90deg,var(--blau),var(--tuerkis));border-radius:99px}
+.stn-tage{border-top:1px solid var(--border);padding:6px 14px 10px}
+.stn-tag{display:flex;gap:10px;align-items:baseline;padding:7px 0;border-bottom:1px solid var(--border);font-size:.82rem}
+.stn-tag:last-child{border-bottom:none}
+.stn-tag .d{font-family:var(--mono);color:var(--dim);font-size:.72rem;white-space:nowrap}
+.stn-tag .h{font-family:var(--mono);color:var(--text);white-space:nowrap;margin-left:auto}
+.stn-tag .bv{color:var(--dim);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0}
+.ausw-kpis{display:grid;grid-template-columns:repeat(2,1fr);gap:8px;margin-bottom:12px}
+.ausw-kpi{background:var(--panel);border:1px solid var(--border);border-radius:12px;padding:11px 12px}
+.ausw-kpi b{display:block;font-family:var(--mono);font-size:1.15rem;color:var(--text)}
+.ausw-kpi span{font-family:var(--mono);font-size:.66rem;color:var(--dim);text-transform:uppercase;letter-spacing:.05em}
+.ausw-kpi.rot b{color:var(--rot)}
+.ausw-kpi.gelb b{color:#e0c34a}
+.ausw-abschnitt{font-family:var(--mono);font-size:.72rem;color:var(--dim);text-transform:uppercase;
+  letter-spacing:.08em;margin:6px 2px 10px}
+.ausw-sub{display:block;text-transform:none;letter-spacing:0;margin-top:2px;color:var(--dim);opacity:.8}
+.wrt-zeile{display:flex;gap:12px;width:100%;text-align:left;background:var(--panel);
+  border:1px solid var(--border);border-radius:12px;padding:11px 13px;margin-bottom:8px;
+  color:var(--text);font-size:.85rem;line-height:1.45;-webkit-tap-highlight-color:transparent}
+.wrt-zeile .wrt-wann{font-family:var(--mono);font-size:.72rem;color:var(--dim);white-space:nowrap;min-width:58px}
+.wrt-zeile .wrt-was{color:var(--dim);min-width:0}
+.wrt-zeile .wrt-was b{color:var(--text)}
+.wrt-zeile.rot{border-color:rgba(201,96,79,.55)}
+.wrt-zeile.rot .wrt-wann{color:var(--rot)}
+.wrt-zeile.gelb{border-color:rgba(224,195,74,.45)}
+.wrt-zeile.gelb .wrt-wann{color:#e0c34a}
+.stn-gesamt{display:flex;justify-content:space-between;font-family:var(--mono);font-size:.8rem;
+  color:var(--dim);padding:10px 4px 2px}
+nav .badge{position:absolute;transform:translate(14px,-26px);background:var(--rot);
+  color:#fff;font-size:.62rem;border-radius:99px;min-width:16px;height:16px;
+  display:flex;align-items:center;justify-content:center;padding:0 4px}
+
+/* Leerzustand, Hinweise */
+.leer{text-align:center;color:var(--dim);padding:36px 20px;font-size:.9rem}
+.leer .gross{font-size:1.6rem;margin-bottom:8px;color:var(--border)}
+.hinweis{background:rgba(224,180,93,.08);border:1px solid rgba(224,180,93,.3);
+  border-radius:12px;padding:12px 14px;font-size:.83rem;color:var(--gelb);
+  margin-bottom:12px}
+.fehler{background:rgba(224,93,93,.08);border-color:rgba(224,93,93,.35);color:var(--rot)}
+
+/* Toast */
+#toast{position:fixed;left:50%;bottom:calc(var(--nav-h) + 20px + env(safe-area-inset-bottom));
+  transform:translateX(-50%) translateY(20px);background:var(--panel2);
+  border:1px solid var(--tuerkis);color:var(--text);padding:12px 20px;
+  border-radius:12px;font-size:.85rem;opacity:0;pointer-events:none;
+  transition:all .25s;z-index:60;white-space:nowrap}
+#toast.zeig{opacity:1;transform:translateX(-50%) translateY(0)}
+
+.zurueck{font-family:var(--mono);font-size:.8rem;color:var(--blau);
+  padding:8px 0;margin-bottom:6px;display:inline-flex;align-items:center;gap:6px}
+.fab{position:fixed;right:18px;bottom:calc(var(--nav-h) + 18px + env(safe-area-inset-bottom));
+  width:58px;height:58px;border-radius:50%;background:var(--blau);color:#fff;
+  font-size:1.7rem;display:flex;align-items:center;justify-content:center;
+  box-shadow:0 6px 20px rgba(58,123,213,.4);z-index:25}
+.fab:active{background:#2f66b3}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+@media (min-width:700px){ /* Tablet: etwas Luft */
+  main{padding:20px}
+  .modalbg{align-items:center}
+  .modal{border-radius:18px;max-height:80dvh}
+}
+</style>
+</head>
+<body>
+<script src="ts-auth.js" data-gate data-title="CRM"></script>
+
+<div class="stober-backbar">
+  <a href="index.html" class="stober-backbar__link">&larr; STOBER Werkzeuge</a>
+  <span class="stober-backbar__slash" aria-hidden="true">/</span>
+  <span class="stober-backbar__current">CRM</span>
+</div>
+<header>
+  <span class="logo">Blueprint · <b>CRM</b></span>
+  <span class="status"><span class="dot" id="statusDot"></span><span id="statusTxt">–</span></span>
+</header>
+
+<main id="view"></main>
+
+<nav id="nav"></nav>
+<div id="modalRoot"></div>
+<div id="toast"></div>
+
+<script>
+/* ================= KONFIGURATION =================
+   Nur hier anpassen — der Rest der App liest daraus. */
+const KONFIG = {
+  SUPABASE_URL : TENANT.supabaseUrl,
+  SUPABASE_KEY : TENANT.supabaseKey,
+
+  TAB_KONTAKTE : 'kontakte',                   // Bauvorhaben — bestehende TS-Suite-Tabelle
+  TAB_KUNDEN   : 'kunden',                      // Kunden-Stammdaten (neu, Phase 1)
+  TAB_AKT      : 'crm_aktivitaeten',
+  TAB_WV       : 'crm_wiedervorlagen',
+  TAB_AP       : 'crm_ansprechpartner',
+  TAB_WARTUNG  : 'crm_wartungsplan',
+  TAB_WARTUNGSPOS: 'crm_wartungspositionen',
+  TAB_PREISE   : 'crm_preisliste',
+  TAB_ANGEBOTE : 'crm_angebote',
+
+  // Feld-Zuordnung für die kontakte-Tabelle (= Bauvorhaben).
+  // kunde bleibt als Text-Fallback für Zeilen ohne kunde_id.
+  FELD: {
+    name    : ['bauvorhaben'],
+    kunde   : ['kunde'],
+    ap      : ['ansprechpartner'],
+    telefon : ['telefon','tel','telefonnummer'],
+    email   : ['email','mail','e_mail'],
+    knr     : []
+  },
+
+  // Artikel: gleiches Drei-Schichten-Muster wie in der TS-Suite
+  ARTIKEL_LS_KEY : 'artikelnummern',           // localStorage-Key ggf. anpassen
+  ARTIKEL_URL    : 'artikel.json',             // relativ, liegt im selben Repo
+
+  KUERZEL_LS_KEY : 'crm_kuerzel'               // eigenes Kürzel (z.B. GER)
+};
+</script>
+<script>
+/* ================= HELFER ================= */
+const $ = s => document.querySelector(s);
+const esc = s => String(s ?? '').replace(/[&<>"']/g, c =>
+  ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const heute = () => new Date().toISOString().slice(0,10);
+
+function toast(msg){
+  const t = $('#toast'); t.textContent = msg; t.classList.add('zeig');
+  clearTimeout(t._h); t._h = setTimeout(()=>t.classList.remove('zeig'), 2200);
+}
+function datumFmt(iso){
+  if(!iso) return '';
+  const d = new Date(iso);
+  return d.toLocaleDateString('de-DE',{day:'2-digit',month:'2-digit',year:'2-digit'}) +
+    (iso.length > 10 ? ' ' + d.toLocaleTimeString('de-DE',{hour:'2-digit',minute:'2-digit'}) : '');
+}
+/* Feld-Mapping: erster vorhandener Kandidat gewinnt */
+function feld(obj, key){
+  for(const k of KONFIG.FELD[key] || []){
+    if(obj && obj[k] != null && obj[k] !== '') return obj[k];
+  }
+  return '';
+}
+function feldName(key){ // in welcher Spalte wird geschrieben (für Neuanlage)
+  return (KONFIG.FELD[key] || [])[0];
+}
+
+/* ================= SUPABASE (REST) ================= */
+async function sb(pfad, opts = {}){
+  const r = await fetch(`${KONFIG.SUPABASE_URL}/rest/v1/${pfad}`, {
+    ...opts,
+    headers: {
+      'apikey': KONFIG.SUPABASE_KEY,
+      'Authorization': `Bearer ${(window.TSAuth && TSAuth.getToken()) || KONFIG.SUPABASE_KEY}`,
+      'Content-Type': 'application/json',
+      'Prefer': opts.method === 'POST' || opts.method === 'PATCH' ? 'return=representation' : '',
+      ...(opts.headers || {})
+    }
+  });
+  if(!r.ok){
+    const txt = await r.text().catch(()=> '');
+    throw new Error(`${r.status}: ${txt.slice(0,200)}`);
+  }
+  return r.status === 204 ? null : r.json();
+}
+function setStatus(ok, txt){
+  $('#statusDot').className = 'dot ' + (ok === null ? '' : ok ? 'ok' : 'err');
+  $('#statusTxt').textContent = txt;
+}
+/* Lädt eine Datei in den 'angebote'-Storage-Bucket hoch und gibt die
+   öffentliche URL zurück. */
+async function ladeAngebotDateiHoch(pfad, file){
+  const res = await fetch(`${KONFIG.SUPABASE_URL}/storage/v1/object/${TENANT.bucketAngebote}/${pfad}`, {
+    method: 'POST',
+    headers: {
+      'Authorization': 'Bearer ' + ((window.TSAuth && TSAuth.getToken()) || KONFIG.SUPABASE_KEY),
+      'apikey': KONFIG.SUPABASE_KEY,
+      'Content-Type': file.type || 'application/octet-stream',
+      'x-upsert': 'true'
+    },
+    body: file
+  });
+  if(!res.ok) throw new Error('Datei-Upload fehlgeschlagen (' + res.status + ')');
+  return `${KONFIG.SUPABASE_URL}/storage/v1/object/public/${TENANT.bucketAngebote}/${pfad}`;
+}
+
+/* ================= ARTIKEL (3 Schichten) ================= */
+let ARTIKEL = {};   // { key: nummer } — wie artikel.json der TS-Suite
+async function ladeArtikel(){
+  try{ // 1. localStorage (Admin-Panel-Overrides)
+    const ls = localStorage.getItem(KONFIG.ARTIKEL_LS_KEY);
+    if(ls){ ARTIKEL = {...ARTIKEL, ...JSON.parse(ls)}; }
+  }catch(e){}
+  try{ // 2. zentrale artikel.json
+    const r = await fetch(KONFIG.ARTIKEL_URL, {cache:'no-store'});
+    if(r.ok){
+      const json = await r.json();
+      ARTIKEL = {...json, ...ARTIKEL}; // localStorage behält Vorrang
+    }
+  }catch(e){}
+  // 3. Fallback: leer — App funktioniert auch ohne Artikel
+}
+function artikelSuche(q){
+  q = q.toLowerCase().trim();
+  if(!q) return Object.entries(ARTIKEL).slice(0,30);
+  return Object.entries(ARTIKEL)
+    .filter(([key,nr]) => key.toLowerCase().includes(q) || String(nr).toLowerCase().includes(q))
+    .slice(0,50);
+}
+
+/* ================= DATEN-CACHE ================= */
+const cache = { kontakte:null, kunden:null, wv:null };
+
+async function holeKontakte(neu = false){
+  if(cache.kontakte && !neu) return cache.kontakte;
+  cache.kontakte = await sb(`${KONFIG.TAB_KONTAKTE}?select=*&limit=1000`);
+  return cache.kontakte;
+}
+async function holeKunden(neu = false){
+  if(cache.kunden && !neu) return cache.kunden;
+  cache.kunden = await sb(`${KONFIG.TAB_KUNDEN}?select=*&order=name.asc&limit=1000`);
+  return cache.kunden;
+}
+async function holeOffeneWV(neu = false){
+  if(cache.wv && !neu) return cache.wv;
+  cache.wv = await sb(`${KONFIG.TAB_WV}?erledigt=eq.false&select=*&order=faellig_am.asc&limit=500`);
+  return cache.wv;
+}
+/* Hilfsfunktionen für die verknüpfte Anzeige */
+function kundeVon(kundeId){
+  return kundeId && cache.kunden ? cache.kunden.find(ku => String(ku.id) === String(kundeId)) : null;
+}
+function bauvorhabenVon(kontaktId){
+  return cache.kontakte ? cache.kontakte.find(k => String(k.id) === String(kontaktId)) : null;
+}
+function bauvorhabenAnzahl(kundeId){
+  return cache.kontakte ? cache.kontakte.filter(k => String(k.kunde_id) === String(kundeId)).length : 0;
+}
+
+/* ================= ROUTING ================= */
+const routen = {
+  kunden      : () => zeigKunden(),
+  kunde       : id => zeigKundeMaster(id),
+  bauvorhaben : id => zeigBauvorhaben(id),
+  unzugeordnet: () => zeigUnzugeordnet(),
+  wv          : () => zeigWV(),
+  artikel     : () => zeigArtikel(),
+  preise      : () => zeigPreisliste(),
+  auswertung  : sub => zeigAuswertung(sub),
+  stunden     : () => zeigAuswertung('stunden')   // alte Route bleibt gültig
+};
+function navigiere(hash){ location.hash = hash; }
+async function route(){
+  const [ , seite = 'kunden', param ] = location.hash.split('/');
+  const fn = routen[seite] || routen.kunden;
+  const kundenTab = ['kunden','kunde','bauvorhaben','unzugeordnet'].includes(seite);
+  const auswTab = ['auswertung','stunden'].includes(seite);
+  document.querySelectorAll('nav button').forEach(b =>
+    b.classList.toggle('aktiv', b.dataset.ziel === seite ||
+      (kundenTab && b.dataset.ziel === 'kunden') ||
+      (auswTab && b.dataset.ziel === 'auswertung')));
+  try{ await fn(param); }
+  catch(e){
+    $('#view').innerHTML = `<div class="hinweis fehler">Verbindung fehlgeschlagen:<br>
+      <span style="font-family:var(--mono);font-size:.75rem">${esc(e.message)}</span><br><br>
+      Ist der Supabase-Key in der KONFIG eingetragen und das SQL-Setup ausgeführt?</div>`;
+    setStatus(false, 'offline');
+  }
+}
+window.addEventListener('hashchange', route);
+
+/* ================= ANSICHT: KUNDENLISTE ================= */
+let suchbegriff = '';
+async function zeigKunden(){
+  const v = $('#view');
+  v.innerHTML = `<div class="suchzeile">
+      <input id="suche" type="search" placeholder="Kunde suchen …"
+        value="${esc(suchbegriff)}" autocomplete="off">
+    </div><div id="unzugBanner"></div><div id="liste"><div class="leer">Lade Kunden …</div></div>
+    <button class="fab" id="fabNeu" title="Neuer Kunde">+</button>`;
+  $('#suche').addEventListener('input', e => {
+    suchbegriff = e.target.value; renderKundenListe();
+  });
+  $('#fabNeu').onclick = () => modalNeuerKunde();
+  await Promise.all([holeKunden(), holeKontakte()]);
+  setStatus(true, cache.kunden.length + ' Kunden');
+  const offen = cache.kontakte.filter(k => !k.kunde_id).length;
+  $('#unzugBanner').innerHTML = offen
+    ? `<button class="hinweis" style="width:100%;text-align:left;display:flex;align-items:center;gap:10px"
+         onclick="navigiere('#/unzugeordnet')">
+         ⚠ ${offen} Bauvorhaben ohne Kunde — jetzt zuordnen →</button>`
+    : '';
+  renderKundenListe();
+}
+function renderKundenListe(){
+  const liste = $('#liste'); if(!liste || !cache.kunden) return;
+  const q = suchbegriff.toLowerCase().trim();
+  const gefiltert = !q ? cache.kunden : cache.kunden.filter(ku =>
+    [ku.name, ku.telefon, ku.email, ku.notiz].some(w => String(w ?? '').toLowerCase().includes(q)));
+  if(!gefiltert.length){
+    liste.innerHTML = `<div class="leer"><div class="gross">⌀</div>Kein Kunde gefunden.<br>
+      Mit dem <b style="color:var(--blau)">+</b> unten rechts legst du einen neuen an.</div>`;
+    return;
+  }
+  liste.innerHTML = gefiltert.map(ku => {
+    const n = bauvorhabenAnzahl(ku.id);
+    return `
+    <button class="karte" onclick="navigiere('#/kunde/${ku.id}')">
+      <div class="kopf">
+        <span class="knr">#${ku.id}</span>
+        <span class="ort">${n} Bauvorhaben</span>
+      </div>
+      <div class="rumpf">
+        <h3>${esc(ku.name)}</h3>
+        <div class="sub">${esc([ku.telefon, ku.email].filter(Boolean).join(' · '))}</div>
+      </div>
+    </button>`;
+  }).join('');
+}
+
+/* ================= ANSICHT: NICHT ZUGEORDNETE BAUVORHABEN ================= */
+async function zeigUnzugeordnet(){
+  const v = $('#view');
+  v.innerHTML = `<div class="leer">Lade …</div>`;
+  await Promise.all([holeKontakte(), holeKunden()]);
+  const offen = cache.kontakte.filter(k => !k.kunde_id);
+  setStatus(true, offen.length + ' offen');
+  v.innerHTML = `<button class="zurueck" onclick="navigiere('#/kunden')">← Kunden</button>
+    <div class="panel"><div class="eyebrow">Ohne Kunde · ${offen.length}</div>
+    ${offen.length ? offen.map(k => `
+      <div class="wv"><div style="flex:1">
+        <div class="txt"><b>${esc(feld(k,'name') || '(ohne Bauvorhaben)')}</b></div>
+        ${feld(k,'kunde') ? `<div class="datum">${esc(feld(k,'kunde'))}</div>` : ''}
+      </div>
+      <button class="btn primaer" style="flex:0 0 auto;min-height:40px;padding:0 16px"
+        onclick="modalZuordnen('${k.id}','${esc(feld(k,'kunde')).replace(/'/g,"\\'")}')">Zuordnen</button>
+      </div>`).join('')
+      : `<div class="leer" style="padding:12px">Alles zugeordnet ✓</div>`}
+    </div>`;
+}
+</script>
+<script>
+/* ================= ANSICHT: KUNDEN-STAMMSEITE ================= */
+async function zeigKundeMaster(id){
+  const v = $('#view');
+  v.innerHTML = `<div class="leer">Lade Kunde …</div>`;
+  await Promise.all([holeKunden(), holeKontakte()]);
+  const ku = cache.kunden.find(x => String(x.id) === String(id));
+  if(!ku){ v.innerHTML = `<div class="leer">Kunde nicht gefunden.</div>`; return; }
+
+  const bauvorhaben = cache.kontakte.filter(k => String(k.kunde_id) === String(id));
+  const ids = bauvorhaben.map(k => k.id);
+  const idList = ids.length ? ids.join(',') : '0';
+  const [akt, aktKu, wvBv, wvKu, wartung, angebote] = await Promise.all([
+    sb(`${KONFIG.TAB_AKT}?kontakt_id=in.(${idList})&select=*&order=erstellt_am.desc&limit=100`),
+    sb(`${KONFIG.TAB_AKT}?kunde_id=eq.${id}&kontakt_id=is.null&select=*&order=erstellt_am.desc&limit=100`),
+    sb(`${KONFIG.TAB_WV}?kontakt_id=in.(${idList})&erledigt=eq.false&select=*&order=faellig_am.asc&limit=100`),
+    sb(`${KONFIG.TAB_WV}?kunde_id=eq.${id}&kontakt_id=is.null&erledigt=eq.false&select=*&order=faellig_am.asc&limit=100`),
+    sb(`${KONFIG.TAB_WARTUNG}?kunde_id=eq.${id}&select=*&order=erstellt_am.asc`),
+    sb(`${KONFIG.TAB_ANGEBOTE}?kunde_id=eq.${id}&select=*&order=erstellt_am.desc`)
+  ]);
+  const verlauf = [...aktKu, ...akt].sort((a,b) => (b.erstellt_am||'').localeCompare(a.erstellt_am||''));
+  const wv = [...wvKu, ...wvBv].sort((a,b) => (a.faellig_am||'').localeCompare(b.faellig_am||''));
+  kundeWartungsDaten = wartung;
+  kundeAngeboteDaten = angebote;
+  const vertragIds = wartung.map(v => v.id);
+  kundePositionenDaten = vertragIds.length
+    ? await sb(`${KONFIG.TAB_WARTUNGSPOS}?vertrag_id=in.(${vertragIds.join(',')})&select=*&order=bezeichnung.asc`)
+    : [];
+  setStatus(true, 'verbunden');
+
+  v.innerHTML = `
+    <button class="zurueck" onclick="navigiere('#/kunden')">← Kunden</button>
+
+    <div class="karte"><div class="kopf">
+        <span class="knr">#${ku.id}</span>
+        <button class="ort" style="color:var(--blau)" onclick="modalKundeBearbeiten('${ku.id}')">✎ bearbeiten</button>
+      </div>
+      <div class="rumpf">
+        <h3>${esc(ku.name)}</h3>
+        ${(ku.strasse || ku.plz || ku.ort) ? `<div class="sub">${esc([ku.strasse, [ku.plz, ku.ort].filter(Boolean).join(' ')].filter(Boolean).join(', '))}</div>` : ''}
+        ${ku.notiz ? `<div class="sub">${esc(ku.notiz)}</div>` : ''}
+      </div>
+    </div>
+
+    <div class="aktionen">
+      ${ku.telefon ? `<a href="tel:${esc(ku.telefon)}">📞 Anrufen</a>` : ''}
+      ${ku.email   ? `<a href="mailto:${esc(ku.email)}">✉️ E-Mail</a>` : ''}
+    </div>
+
+    <div class="panel">
+      <div class="eyebrow">Bauvorhaben · ${bauvorhaben.length}
+        <button class="plus" onclick="modalNeuesBauvorhaben('${ku.id}')">＋</button></div>
+      ${bauvorhaben.length ? bauvorhaben.map(b => `
+        <button class="karte" style="margin-bottom:8px" onclick="navigiere('#/bauvorhaben/${b.id}')">
+          <div class="rumpf" style="padding:10px 12px">
+            <h3 style="font-size:.92rem">${esc(feld(b,'name') || '(ohne Namen)')}</h3>
+            ${feld(b,'ap') ? `<div class="sub">${esc(feld(b,'ap'))}</div>` : ''}
+          </div>
+        </button>`).join('')
+        : `<div class="leer" style="padding:12px">Noch kein Bauvorhaben — mit ＋ eins anlegen.</div>`}
+    </div>
+
+    <div class="panel">
+      <div class="eyebrow">Wartungsverträge
+        <button class="plus" onclick="modalNeueWartung('${ku.id}')">＋</button></div>
+      ${wartung.length ? wartung.map(v => {
+          const positionen = kundePositionenDaten.filter(p => p.vertrag_id === v.id);
+          const zeitraum = (v.vertragsbeginn ? datumFmt(v.vertragsbeginn) : '–') + ' – ' +
+            (v.vertragsende ? datumFmt(v.vertragsende) : 'unbefristet');
+          const titel = v.vertragsnummer ? 'Vertrag ' + v.vertragsnummer
+            : (positionen.length ? positionen.map(p => p.bezeichnung).join(', ') : 'Neuer Wartungsvertrag');
+          const gesamt = positionen.reduce((sum, p) => sum + (positionEndpreis(p) != null ? positionEndpreis(p) * (p.stueckzahl || 1) : 0), 0);
+          return `<div class="wv" style="flex-direction:column;align-items:stretch;gap:8px">
+            <div>
+              <div style="display:flex;align-items:center;gap:10px">
+                <div class="txt" style="flex:1">${esc(titel)}</div>
+                <button style="flex-shrink:0;min-height:34px;padding:6px 14px;border:1px solid var(--border);
+                  border-radius:99px;background:var(--panel2);color:var(--blau);font-size:.75rem;white-space:nowrap"
+                  onclick="modalWartungBearbeiten('${v.id}')">✎ Bearbeiten</button>
+              </div>
+              ${gesamt > 0 ? `<div class="datum" style="color:var(--dim)">Gesamt ${eur(gesamt)} / Termin</div>` : ''}
+              <div class="datum" style="color:var(--dim)">Vertrag ${zeitraum}</div>
+              <div class="datum" style="color:var(--dim)">${v.automatische_verlaengerung ? 'verlängert sich automatisch' : 'keine automatische Verlängerung'}
+                ${v.kuendigungsfrist_monate ? ` · Kündigungsfrist ${v.kuendigungsfrist_monate} Mon.` : ''}</div>
+            </div>
+            <div style="border-top:1px solid var(--border);padding-top:10px;display:flex;flex-direction:column;gap:12px">
+              ${positionen.length ? positionen.map(p => {
+                  const f = wartungsFaelligkeit(p, v);
+                  const endpreis = positionEndpreis(p);
+                  return `<div style="border-left:2px solid var(--border);padding-left:10px">
+                    <div class="txt" style="font-size:.88rem">${p.stueckzahl > 1 ? p.stueckzahl + '× ' : ''}${esc(p.bezeichnung)}</div>
+                    ${p.preis != null ? `<div class="datum" style="color:var(--dim)">${eur(p.preis)} je Stück${p.stueckzahl > 1 ? ' · ' + eur(p.preis * p.stueckzahl) + ' gesamt' : ''}</div>` : ''}
+                    ${p.preis != null && p.rabatt_prozent ? `<div class="datum" style="color:var(--dim)">Rabatt: -${p.rabatt_prozent}%</div>
+                    <div class="datum" style="color:var(--tuerkis)">Neuer Preis: ${eur(endpreis)} je Stück${p.stueckzahl > 1 ? ' · ' + eur(endpreis * p.stueckzahl) + ' gesamt' : ''}</div>` : ''}
+                    <div class="datum" style="color:var(--dim)">${p.intervall_monate === 6 ? 'halbjährlich' : 'jährlich'} ·
+                      zuletzt ${p.letzte_wartung ? datumFmt(p.letzte_wartung) : 'noch nie'}</div>
+                    <div class="datum ${f.status === 'faellig' || f.status === 'heute' ? f.status : ''}">
+                      ${f.status === 'beendet' || f.status === 'kuenftig' ? f.text : 'fällig ' + f.text}</div>
+                    <div style="display:flex;flex-wrap:wrap;gap:8px;margin-top:6px">
+                      ${f.status === 'beendet' ? '' : `
+                      <button style="flex:1;min-width:110px;min-height:36px;border:1px solid var(--border);border-radius:10px;
+                        background:var(--panel2);font-size:.75rem;color:var(--tuerkis)"
+                        onclick="positionWiedervorlageAnlegen('${p.id}')">+ Wiedervorlage</button>
+                      <button style="flex:1;min-width:110px;min-height:36px;border:1px solid var(--border);border-radius:10px;
+                        background:var(--panel2);font-size:.75rem;color:var(--gruen)"
+                        onclick="positionErledigt('${p.id}')">✓ Erledigt</button>`}
+                      <button style="flex:1;min-width:110px;min-height:36px;border:1px solid var(--border);border-radius:10px;
+                        background:var(--panel2);font-size:.75rem;color:var(--blau)"
+                        onclick="modalPositionBearbeiten('${p.id}')">✎ Bearbeiten</button>
+                    </div>
+                  </div>`;
+                }).join('')
+                : `<div style="color:var(--dim);font-size:.8rem">Noch keine Position.</div>`}
+              <button style="min-height:36px;border:1px dashed var(--border);border-radius:10px;
+                background:none;font-size:.78rem;color:var(--dim)"
+                onclick="modalNeuePosition('${v.id}')">＋ Position hinzufügen</button>
+            </div>
+          </div>`;
+        }).join('')
+        : `<div class="leer" style="padding:12px">Noch kein Wartungsvertrag — mit ＋ anlegen.</div>`}
+    </div>
+
+    <div class="panel">
+      <div class="eyebrow">Angebote
+        <button class="plus" onclick="modalNeuesAngebot('${ku.id}')">＋</button></div>
+      ${angebote.length ? angebote.map(a => `
+        <div class="wv">
+          <div style="flex:1">
+            <div class="txt">${esc(a.bezeichnung)}</div>
+            <div class="datum" style="color:${a.status==='angenommen'?'var(--gruen)':a.status==='abgelehnt'?'var(--rot)':'var(--gelb)'}">
+              ${a.status==='angenommen'?'✓ Angenommen':a.status==='abgelehnt'?'✕ Abgelehnt':'○ Offen'}
+              ${angebotBetragText(a)} · ${datumFmt(a.erstellt_am)}</div>
+            ${angebotRabattZeilen(a)}
+          </div>
+          ${a.datei_url ? `<a href="${a.datei_url}" target="_blank" rel="noopener"
+            style="align-self:center;font-size:1.2rem;text-decoration:none;padding:4px 6px">📎</a>` : ''}
+          <button style="align-self:center;color:var(--blau);font-size:2.4rem;line-height:1;padding:4px 6px"
+            onclick="modalAngebotBearbeiten('${a.id}')">✎</button>
+        </div>`).join('')
+        : `<div class="leer" style="padding:12px">Noch kein Angebot — mit ＋ hinterlegen.</div>`}
+    </div>
+
+    <div class="panel">
+      <div class="eyebrow">Offene Wiedervorlagen
+        <button class="plus" onclick="modalWV('kunde','${ku.id}')">＋</button></div>
+      ${wv.length ? wv.map(w => wvZeile(w, 'kunde')).join('')
+        : `<div class="leer" style="padding:12px">Nichts offen.</div>`}
+    </div>
+
+    <div class="panel">
+      <div class="eyebrow">Verlauf
+        <button class="plus" onclick="modalAktivitaet('kunde','${ku.id}')">＋</button></div>
+      ${verlauf.length ? `<ul class="tl">${verlauf.map(a => aktivitaetZeile(a, true)).join('')}</ul>`
+        : `<div class="leer" style="padding:12px">Noch keine Einträge.</div>`}
+    </div>`;
+}
+
+/* ================= WARTUNGSPLAN ================= */
+let kundeWartungsDaten = [];
+let kundePositionenDaten = [];
+let kundeAngeboteDaten = [];
+function positionEndpreis(p){
+  if(p.preis == null) return null;
+  return p.rabatt_prozent ? p.preis * (1 - p.rabatt_prozent / 100) : p.preis;
+}
+function wartungsFaelligkeit(position, vertrag){
+  const h = heute();
+  if(vertrag.vertragsende && vertrag.vertragsende < h){
+    return { datum: null, status: 'beendet', text: 'Vertrag beendet ' + datumFmt(vertrag.vertragsende) };
+  }
+  if(vertrag.vertragsbeginn && vertrag.vertragsbeginn > h){
+    return { datum: null, status: 'kuenftig', text: 'Vertrag beginnt ' + datumFmt(vertrag.vertragsbeginn) };
+  }
+  if(!position.letzte_wartung) return { datum: null, status: 'faellig', text: 'sofort' };
+  const d = new Date(position.letzte_wartung + 'T00:00:00');
+  d.setMonth(d.getMonth() + position.intervall_monate);
+  const datum = d.toISOString().slice(0, 10);
+  const status = datum < h ? 'faellig' : datum === h ? 'heute' : '';
+  return { datum, status, text: datumFmt(datum) + (status === 'faellig' ? ' · überfällig' : status === 'heute' ? ' · heute' : '') };
+}
+async function modalNeueWartung(kundeId){
+  let wartungspreise = [];
+  try{ wartungspreise = await sb(`${KONFIG.TAB_PREISE}?kategorie=eq.wartung&select=*&order=bezeichnung.asc`); }catch(e){}
+  modal(`
+    <h2>Neuer Wartungsvertrag</h2>
+    <label>Erste Position — Bezeichnung</label>
+    <input id="wpBez" placeholder="z.B. Schiebetür Haupteingang">
+    <label>Intervall</label>
+    <select id="wpIntervall">
+      <option value="6">Halbjährlich</option>
+      <option value="12" selected>Jährlich</option>
+    </select>
+    ${wartungspreise.length ? `
+    <label>Preis aus Preisliste übernehmen (optional)</label>
+    <select id="wpPreisWahl" onchange="if(this.value) document.getElementById('wpPreis').value = this.value">
+      <option value="">— manuell eintragen —</option>
+      ${wartungspreise.map(p => `<option value="${p.preis}">${esc(p.bezeichnung)} — ${eur(p.preis)}</option>`).join('')}
+    </select>` : ''}
+    <div style="display:flex;gap:10px">
+      <div style="flex:2"><label>Preis (€) je Stück</label>
+        <input id="wpPreis" type="number" inputmode="decimal" step="0.01" placeholder="0,00"></div>
+      <div style="flex:1"><label>Stückzahl</label>
+        <input id="wpStueck" type="number" inputmode="numeric" min="1" value="1"></div>
+    </div>
+    <label>Rabatt (%, optional)</label>
+    <input id="wpRabatt" type="number" inputmode="decimal" step="0.1" min="0" max="100" placeholder="0">
+    <label>Letzte Wartung dieser Position (optional — leer = sofort fällig)</label>
+    <input type="date" id="wpLetzte">
+    <p style="font-size:.75rem;color:var(--dim);margin-top:4px">Weitere Positionen — auch mit eigenem Preis und eigener Stückzahl — kannst du danach jederzeit im Vertrag ergänzen.</p>
+    <label>Vertragsnummer (optional)</label>
+    <input id="wpVertragsnr" placeholder="z.B. WV-2026-014">
+    <label>Vertragsbeginn</label>
+    <input type="date" id="wpBeginn" value="${heute()}">
+    <label>Vertragsende (leer = unbefristet)</label>
+    <input type="date" id="wpEnde">
+    <label>Kündigungsfrist (Monate zum Vertragsende, optional)</label>
+    <input id="wpKuendigung" type="number" inputmode="numeric" placeholder="z.B. 3">
+    <label style="display:flex;align-items:center;gap:10px;text-transform:none;font-family:inherit;font-size:.88rem;color:var(--text)">
+      <input type="checkbox" id="wpAutoVerlaengerung" checked style="width:22px;height:22px;min-height:0">
+      Verlängert sich automatisch, wenn nicht gekündigt
+    </label>
+    <label>Notiz</label>
+    <textarea id="wpNotiz" style="min-height:64px"></textarea>
+    <div class="btnzeile">
+      <button class="btn sekundaer" onclick="modalZu()">Abbrechen</button>
+      <button class="btn primaer" onclick="speichereWartung('${kundeId}')">Anlegen</button>
+    </div>`);
+}
+async function speichereWartung(kundeId){
+  const bezeichnung = $('#wpBez').value.trim();
+  if(!bezeichnung){ toast('Bezeichnung für die erste Position fehlt noch.'); return; }
+  try{
+    const [vertrag] = await sb(KONFIG.TAB_WARTUNG, { method:'POST', body: JSON.stringify({
+      kunde_id: kundeId,
+      vertragsnummer: $('#wpVertragsnr').value.trim() || null,
+      vertragsbeginn: $('#wpBeginn').value || null,
+      vertragsende: $('#wpEnde').value || null,
+      kuendigungsfrist_monate: $('#wpKuendigung').value ? parseInt($('#wpKuendigung').value, 10) : null,
+      automatische_verlaengerung: $('#wpAutoVerlaengerung').checked,
+      notiz: $('#wpNotiz').value.trim() || null
+    })});
+    await sb(KONFIG.TAB_WARTUNGSPOS, { method:'POST', body: JSON.stringify({
+      vertrag_id: vertrag.id,
+      bezeichnung,
+      intervall_monate: parseInt($('#wpIntervall').value, 10),
+      preis: $('#wpPreis').value ? parseFloat($('#wpPreis').value.replace(',', '.')) : null,
+      stueckzahl: parseInt($('#wpStueck').value, 10) || 1,
+      rabatt_prozent: $('#wpRabatt').value ? parseFloat($('#wpRabatt').value.replace(',', '.')) : null,
+      letzte_wartung: $('#wpLetzte').value || null
+    })});
+    modalZu(); toast('Wartungsvertrag angelegt ✓'); route();
+  }catch(e){ toast('Fehler: ' + e.message.slice(0,80)); }
+}
+async function modalWartungBearbeiten(planId){
+  const plan = kundeWartungsDaten.find(p => String(p.id) === String(planId));
+  if(!plan) return;
+  modal(`
+    <h2>Wartungsvertrag bearbeiten</h2>
+    <label>Vertragsnummer (optional)</label>
+    <input id="wpVertragsnr" value="${esc(plan.vertragsnummer)}" placeholder="z.B. WV-2026-014">
+    <label>Vertragsbeginn</label>
+    <input type="date" id="wpBeginn" value="${plan.vertragsbeginn || ''}">
+    <label>Vertragsende (leer = unbefristet)</label>
+    <input type="date" id="wpEnde" value="${plan.vertragsende || ''}">
+    <label>Kündigungsfrist (Monate zum Vertragsende, optional)</label>
+    <input id="wpKuendigung" type="number" inputmode="numeric" value="${plan.kuendigungsfrist_monate != null ? plan.kuendigungsfrist_monate : ''}">
+    <label style="display:flex;align-items:center;gap:10px;text-transform:none;font-family:inherit;font-size:.88rem;color:var(--text)">
+      <input type="checkbox" id="wpAutoVerlaengerung" ${plan.automatische_verlaengerung ? 'checked' : ''} style="width:22px;height:22px;min-height:0">
+      Verlängert sich automatisch, wenn nicht gekündigt
+    </label>
+    <label>Notiz</label>
+    <textarea id="wpNotiz" style="min-height:64px">${esc(plan.notiz)}</textarea>
+    <div class="btnzeile">
+      <button class="btn sekundaer" onclick="modalZu()">Abbrechen</button>
+      <button class="btn primaer" onclick="speichereWartungBearbeiten('${planId}')">Speichern</button>
+    </div>
+    <button class="btn gefahr" style="width:100%;margin-top:10px" onclick="wartungLoeschen('${planId}')">
+      🗑 Ganzen Vertrag löschen (inkl. aller Positionen)</button>`);
+}
+async function wartungLoeschen(planId){
+  const plan = kundeWartungsDaten.find(p => String(p.id) === String(planId));
+  if(!plan || !confirm(`„${plan.bezeichnung}" wirklich löschen?`)) return;
+  try{
+    await sb(`${KONFIG.TAB_WARTUNG}?id=eq.${planId}`, { method:'DELETE' });
+    modalZu(); toast('Wartungsplan gelöscht'); route();
+  }catch(e){ toast('Fehler: ' + e.message.slice(0,80)); }
+}
+async function speichereWartungBearbeiten(planId){
+  try{
+    await sb(`${KONFIG.TAB_WARTUNG}?id=eq.${planId}`, { method:'PATCH', body: JSON.stringify({
+      vertragsnummer: $('#wpVertragsnr').value.trim() || null,
+      vertragsbeginn: $('#wpBeginn').value || null,
+      vertragsende: $('#wpEnde').value || null,
+      kuendigungsfrist_monate: $('#wpKuendigung').value ? parseInt($('#wpKuendigung').value, 10) : null,
+      automatische_verlaengerung: $('#wpAutoVerlaengerung').checked,
+      notiz: $('#wpNotiz').value.trim() || null
+    })});
+    modalZu(); toast('Gespeichert ✓'); route();
+  }catch(e){ toast('Fehler: ' + e.message.slice(0,80)); }
+}
+async function positionErledigt(positionId){
+  try{
+    await sb(`${KONFIG.TAB_WARTUNGSPOS}?id=eq.${positionId}`, { method:'PATCH',
+      body: JSON.stringify({ letzte_wartung: heute() }) });
+    toast('Als erledigt markiert ✓'); route();
+  }catch(e){ toast('Fehler: ' + e.message.slice(0,80)); }
+}
+async function positionWiedervorlageAnlegen(positionId){
+  const position = kundePositionenDaten.find(p => String(p.id) === String(positionId));
+  if(!position) return;
+  const vertrag = kundeWartungsDaten.find(v => String(v.id) === String(position.vertrag_id));
+  if(!vertrag) return;
+  const f = wartungsFaelligkeit(position, vertrag);
+  try{
+    await sb(KONFIG.TAB_WV, { method:'POST', body: JSON.stringify({
+      kunde_id: vertrag.kunde_id,
+      titel: 'Wartung: ' + position.bezeichnung,
+      faellig_am: f.datum || vertrag.vertragsbeginn || heute(),
+      notiz: vertrag.notiz || null,
+      erstellt_von: localStorage.getItem(KONFIG.KUERZEL_LS_KEY) || null,
+      wartungsposition_id: position.id
+    })});
+    cache.wv = null; toast('Wiedervorlage angelegt ✓'); route();
+  }catch(e){ toast('Fehler: ' + e.message.slice(0,80)); }
+}
+async function modalNeuePosition(vertragId){
+  let wartungspreise = [];
+  try{ wartungspreise = await sb(`${KONFIG.TAB_PREISE}?kategorie=eq.wartung&select=*&order=bezeichnung.asc`); }catch(e){}
+  modal(`
+    <h2>Neue Position</h2>
+    <label>Bezeichnung</label>
+    <input id="posBez" placeholder="z.B. Drehtür Nebeneingang">
+    <label>Intervall</label>
+    <select id="posIntervall">
+      <option value="6">Halbjährlich</option>
+      <option value="12" selected>Jährlich</option>
+    </select>
+    ${wartungspreise.length ? `
+    <label>Preis aus Preisliste übernehmen (optional)</label>
+    <select id="posPreisWahl" onchange="if(this.value) document.getElementById('posPreis').value = this.value">
+      <option value="">— manuell eintragen —</option>
+      ${wartungspreise.map(p => `<option value="${p.preis}">${esc(p.bezeichnung)} — ${eur(p.preis)}</option>`).join('')}
+    </select>` : ''}
+    <div style="display:flex;gap:10px">
+      <div style="flex:2"><label>Preis (€) je Stück</label>
+        <input id="posPreis" type="number" inputmode="decimal" step="0.01" placeholder="0,00"></div>
+      <div style="flex:1"><label>Stückzahl</label>
+        <input id="posStueck" type="number" inputmode="numeric" min="1" value="1"></div>
+    </div>
+    <label>Rabatt (%, optional)</label>
+    <input id="posRabatt" type="number" inputmode="decimal" step="0.1" min="0" max="100" placeholder="0">
+    <label>Letzte Wartung (optional — leer = sofort fällig)</label>
+    <input type="date" id="posLetzte">
+    <div class="btnzeile">
+      <button class="btn sekundaer" onclick="modalZu()">Abbrechen</button>
+      <button class="btn primaer" onclick="speicherePosition('${vertragId}')">Hinzufügen</button>
+    </div>`);
+}
+async function speicherePosition(vertragId){
+  const bezeichnung = $('#posBez').value.trim();
+  if(!bezeichnung){ toast('Bezeichnung fehlt noch.'); return; }
+  try{
+    await sb(KONFIG.TAB_WARTUNGSPOS, { method:'POST', body: JSON.stringify({
+      vertrag_id: vertragId,
+      bezeichnung,
+      intervall_monate: parseInt($('#posIntervall').value, 10),
+      preis: $('#posPreis').value ? parseFloat($('#posPreis').value.replace(',', '.')) : null,
+      stueckzahl: parseInt($('#posStueck').value, 10) || 1,
+      rabatt_prozent: $('#posRabatt').value ? parseFloat($('#posRabatt').value.replace(',', '.')) : null,
+      letzte_wartung: $('#posLetzte').value || null
+    })});
+    modalZu(); toast('Position hinzugefügt ✓'); route();
+  }catch(e){ toast('Fehler: ' + e.message.slice(0,80)); }
+}
+async function modalPositionBearbeiten(positionId){
+  const p = kundePositionenDaten.find(x => String(x.id) === String(positionId));
+  if(!p) return;
+  let wartungspreise = [];
+  try{ wartungspreise = await sb(`${KONFIG.TAB_PREISE}?kategorie=eq.wartung&select=*&order=bezeichnung.asc`); }catch(e){}
+  modal(`
+    <h2>Position bearbeiten</h2>
+    <label>Bezeichnung</label>
+    <input id="posBez" value="${esc(p.bezeichnung)}">
+    <label>Intervall</label>
+    <select id="posIntervall">
+      <option value="6" ${p.intervall_monate===6?'selected':''}>Halbjährlich</option>
+      <option value="12" ${p.intervall_monate===12?'selected':''}>Jährlich</option>
+    </select>
+    ${wartungspreise.length ? `
+    <label>Preis aus Preisliste übernehmen (optional)</label>
+    <select id="posPreisWahl" onchange="if(this.value) document.getElementById('posPreis').value = this.value">
+      <option value="">— manuell eintragen —</option>
+      ${wartungspreise.map(x => `<option value="${x.preis}">${esc(x.bezeichnung)} — ${eur(x.preis)}</option>`).join('')}
+    </select>` : ''}
+    <div style="display:flex;gap:10px">
+      <div style="flex:2"><label>Preis (€) je Stück</label>
+        <input id="posPreis" type="number" inputmode="decimal" step="0.01" value="${p.preis != null ? p.preis : ''}"></div>
+      <div style="flex:1"><label>Stückzahl</label>
+        <input id="posStueck" type="number" inputmode="numeric" min="1" value="${p.stueckzahl || 1}"></div>
+    </div>
+    <label>Rabatt (%, optional)</label>
+    <input id="posRabatt" type="number" inputmode="decimal" step="0.1" min="0" max="100" value="${p.rabatt_prozent != null ? p.rabatt_prozent : ''}">
+    <label>Letzte Wartung</label>
+    <input type="date" id="posLetzte" value="${p.letzte_wartung || ''}">
+    <div class="btnzeile">
+      <button class="btn sekundaer" onclick="modalZu()">Abbrechen</button>
+      <button class="btn primaer" onclick="speicherePositionBearbeiten('${positionId}')">Speichern</button>
+    </div>
+    <button class="btn gefahr" style="width:100%;margin-top:10px" onclick="positionLoeschen('${positionId}')">
+      🗑 Position löschen</button>`);
+}
+async function speicherePositionBearbeiten(positionId){
+  const bezeichnung = $('#posBez').value.trim();
+  if(!bezeichnung){ toast('Bezeichnung fehlt noch.'); return; }
+  try{
+    await sb(`${KONFIG.TAB_WARTUNGSPOS}?id=eq.${positionId}`, { method:'PATCH', body: JSON.stringify({
+      bezeichnung,
+      intervall_monate: parseInt($('#posIntervall').value, 10),
+      preis: $('#posPreis').value ? parseFloat($('#posPreis').value.replace(',', '.')) : null,
+      stueckzahl: parseInt($('#posStueck').value, 10) || 1,
+      rabatt_prozent: $('#posRabatt').value ? parseFloat($('#posRabatt').value.replace(',', '.')) : null,
+      letzte_wartung: $('#posLetzte').value || null
+    })});
+    modalZu(); toast('Gespeichert ✓'); route();
+  }catch(e){ toast('Fehler: ' + e.message.slice(0,80)); }
+}
+async function positionLoeschen(positionId){
+  const p = kundePositionenDaten.find(x => String(x.id) === String(positionId));
+  if(!p || !confirm(`„${p.bezeichnung}" wirklich löschen?`)) return;
+  try{
+    await sb(`${KONFIG.TAB_WARTUNGSPOS}?id=eq.${positionId}`, { method:'DELETE' });
+    modalZu(); toast('Position gelöscht'); route();
+  }catch(e){ toast('Fehler: ' + e.message.slice(0,80)); }
+}
+
+/* ================= ANGEBOTE ================= */
+function angebotBetragText(a){
+  return a.betrag != null ? ` · ${eur(a.betrag)}` : '';
+}
+function angebotRabattZeilen(a){
+  if(a.betrag == null || !a.rabatt_prozent) return '';
+  const neuerPreis = a.betrag * (1 - a.rabatt_prozent / 100);
+  return `<div class="datum" style="color:var(--dim)">Rabatt: -${a.rabatt_prozent}%</div>
+    <div class="datum" style="color:var(--tuerkis)">Neuer Preis: ${eur(neuerPreis)}</div>`;
+}
+function modalNeuesAngebot(kundeId){
+  modal(`
+    <h2>Neues Angebot</h2>
+    <label>Bezeichnung</label>
+    <input id="agBez" placeholder="z.B. Wartungsvertrag Angebot 2026">
+    <label>Betrag (€, optional)</label>
+    <input id="agBetrag" type="number" inputmode="decimal" step="0.01">
+    <label>Rabatt (%, optional)</label>
+    <input id="agRabatt" type="number" inputmode="decimal" step="0.1" min="0" max="100" placeholder="0">
+    <label>Status</label>
+    <select id="agStatus">
+      <option value="offen" selected>Offen</option>
+      <option value="angenommen">Angenommen</option>
+      <option value="abgelehnt">Abgelehnt</option>
+    </select>
+    <label>Datei (PDF, Foto, ...) — optional</label>
+    <input type="file" id="agDatei" accept=".pdf,image/*,.doc,.docx">
+    <div class="btnzeile">
+      <button class="btn sekundaer" onclick="modalZu()">Abbrechen</button>
+      <button class="btn primaer" id="agSpeichernBtn" onclick="speichereAngebot('${kundeId}')">Speichern</button>
+    </div>`);
+}
+async function speichereAngebot(kundeId){
+  const bezeichnung = $('#agBez').value.trim();
+  if(!bezeichnung){ toast('Bezeichnung fehlt noch.'); return; }
+  const datei = $('#agDatei').files[0];
+  const btn = $('#agSpeichernBtn'); btn.disabled = true;
+  let datei_url = null, datei_name = null;
+  try{
+    if(datei){
+      toast('Lade Datei hoch …');
+      const sicherName = datei.name.replace(/[^a-zA-Z0-9.\-_]/g, '_');
+      const pfad = `${kundeId}/${Date.now()}-${sicherName}`;
+      datei_url = await ladeAngebotDateiHoch(pfad, datei);
+      datei_name = datei.name;
+    }
+    await sb(KONFIG.TAB_ANGEBOTE, { method:'POST', body: JSON.stringify({
+      kunde_id: kundeId,
+      bezeichnung,
+      betrag: $('#agBetrag').value ? parseFloat($('#agBetrag').value.replace(',', '.')) : null,
+      rabatt_prozent: $('#agRabatt').value ? parseFloat($('#agRabatt').value.replace(',', '.')) : null,
+      status: $('#agStatus').value,
+      datei_url, datei_name
+    })});
+    modalZu(); toast('Angebot gespeichert ✓'); route();
+  }catch(e){ btn.disabled = false; toast('Fehler: ' + e.message.slice(0,80)); }
+}
+function modalAngebotBearbeiten(angebotId){
+  const a = kundeAngeboteDaten.find(x => String(x.id) === String(angebotId));
+  if(!a) return;
+  modal(`
+    <h2>Angebot bearbeiten</h2>
+    <label>Bezeichnung</label>
+    <input id="agBez" value="${esc(a.bezeichnung)}">
+    <label>Betrag (€, optional)</label>
+    <input id="agBetrag" type="number" inputmode="decimal" step="0.01" value="${a.betrag != null ? a.betrag : ''}">
+    <label>Rabatt (%, optional)</label>
+    <input id="agRabatt" type="number" inputmode="decimal" step="0.1" min="0" max="100" value="${a.rabatt_prozent != null ? a.rabatt_prozent : ''}">
+    <label>Status</label>
+    <select id="agStatus">
+      <option value="offen" ${a.status==='offen'?'selected':''}>Offen</option>
+      <option value="angenommen" ${a.status==='angenommen'?'selected':''}>Angenommen</option>
+      <option value="abgelehnt" ${a.status==='abgelehnt'?'selected':''}>Abgelehnt</option>
+    </select>
+    ${a.datei_url ? `<div style="font-size:.8rem;color:var(--dim);margin-top:8px">
+      Aktuelle Datei: <a href="${a.datei_url}" target="_blank" rel="noopener" style="color:var(--blau)">${esc(a.datei_name || 'öffnen')}</a></div>` : ''}
+    <label>${a.datei_url ? 'Datei ersetzen' : 'Datei hinzufügen'} (optional)</label>
+    <input type="file" id="agDatei" accept=".pdf,image/*,.doc,.docx">
+    <div class="btnzeile">
+      <button class="btn sekundaer" onclick="modalZu()">Abbrechen</button>
+      <button class="btn primaer" id="agSpeichernBtn" onclick="speichereAngebotBearbeiten('${angebotId}')">Speichern</button>
+    </div>
+    <button class="btn gefahr" style="width:100%;margin-top:10px" onclick="angebotLoeschen('${angebotId}')">
+      🗑 Angebot löschen</button>`);
+}
+async function speichereAngebotBearbeiten(angebotId){
+  const a = kundeAngeboteDaten.find(x => String(x.id) === String(angebotId));
+  const bezeichnung = $('#agBez').value.trim();
+  if(!bezeichnung){ toast('Bezeichnung fehlt noch.'); return; }
+  const datei = $('#agDatei').files[0];
+  const btn = $('#agSpeichernBtn'); btn.disabled = true;
+  let datei_url = a?.datei_url || null, datei_name = a?.datei_name || null;
+  try{
+    if(datei){
+      toast('Lade Datei hoch …');
+      const sicherName = datei.name.replace(/[^a-zA-Z0-9.\-_]/g, '_');
+      const pfad = `${a.kunde_id}/${Date.now()}-${sicherName}`;
+      datei_url = await ladeAngebotDateiHoch(pfad, datei);
+      datei_name = datei.name;
+    }
+    await sb(`${KONFIG.TAB_ANGEBOTE}?id=eq.${angebotId}`, { method:'PATCH', body: JSON.stringify({
+      bezeichnung,
+      betrag: $('#agBetrag').value ? parseFloat($('#agBetrag').value.replace(',', '.')) : null,
+      rabatt_prozent: $('#agRabatt').value ? parseFloat($('#agRabatt').value.replace(',', '.')) : null,
+      status: $('#agStatus').value,
+      datei_url, datei_name
+    })});
+    modalZu(); toast('Gespeichert ✓'); route();
+  }catch(e){ btn.disabled = false; toast('Fehler: ' + e.message.slice(0,80)); }
+}
+async function angebotLoeschen(angebotId){
+  const a = kundeAngeboteDaten.find(x => String(x.id) === String(angebotId));
+  if(!a || !confirm(`„${a.bezeichnung}" wirklich löschen?`)) return;
+  try{
+    await sb(`${KONFIG.TAB_ANGEBOTE}?id=eq.${angebotId}`, { method:'DELETE' });
+    modalZu(); toast('Angebot gelöscht'); route();
+  }catch(e){ toast('Fehler: ' + e.message.slice(0,80)); }
+}
+
+/* ================= ANSICHT: BAUVORHABEN-DETAIL ================= */
+const TYPEN = {
+  notiz:'Notiz', anruf:'Anruf', besuch:'Besuch',
+  wartung:'Wartung', angebot:'Angebot', reklamation:'Reklamation'
+};
+async function zeigBauvorhaben(id){
+  const v = $('#view');
+  v.innerHTML = `<div class="leer">Lade Bauvorhaben …</div>`;
+  await Promise.all([holeKontakte(), holeKunden()]);
+  const k = cache.kontakte.find(x => String(x.id) === String(id));
+  if(!k){ v.innerHTML = `<div class="leer">Bauvorhaben nicht gefunden.</div>`; return; }
+  const ku = kundeVon(k.kunde_id);
+
+  const [akt, wv, ap] = await Promise.all([
+    sb(`${KONFIG.TAB_AKT}?kontakt_id=eq.${id}&select=*&order=erstellt_am.desc&limit=100`),
+    sb(`${KONFIG.TAB_WV}?kontakt_id=eq.${id}&select=*&order=faellig_am.asc&limit=100`),
+    sb(`${KONFIG.TAB_AP}?kontakt_id=eq.${id}&select=*&order=name.asc`)
+  ]);
+  setStatus(true, 'verbunden');
+  bauvorhabenExportDaten = { k, ku, offeneWV: wv.filter(w => !w.erledigt) };
+
+  const tel   = ku?.telefon || feld(k,'telefon');
+  const mail  = ku?.email   || feld(k,'email');
+  const navQ  = encodeURIComponent(ku?.name || feld(k,'kunde'));
+
+  v.innerHTML = `
+    <button class="zurueck" onclick="${ku ? `navigiere('#/kunde/${ku.id}')` : `navigiere('#/kunden')`}">
+      ← ${ku ? esc(ku.name) : 'Kunden'}</button>
+
+    <div class="karte"><div class="kopf">
+        <span class="knr">#${k.id}</span>
+        <span class="ort">${esc(feld(k,'ap'))}</span>
+      </div>
+      <div class="rumpf">
+        <h3>${esc(feld(k,'name') || '(ohne Bauvorhaben)')}</h3>
+        <div class="sub">${esc(ku ? ku.name : feld(k,'kunde') || 'kein Kunde zugeordnet')}</div>
+      </div>
+    </div>
+
+    <div class="aktionen">
+      ${tel  ? `<a href="tel:${esc(tel)}">📞 Anrufen</a>` : ''}
+      ${mail ? `<a href="mailto:${esc(mail)}">✉️ E-Mail</a>` : ''}
+      ${navQ ? `<a href="https://maps.apple.com/?q=${navQ}" target="_blank" rel="noopener">🧭 Route</a>` : ''}
+      <button onclick="exportAuftrag('${id}')">📤 Teilen</button>
+    </div>
+
+    <div class="panel">
+      <div class="eyebrow">Wiedervorlagen
+        <button class="plus" onclick="modalWV('kontakt','${id}')">＋</button></div>
+      ${wv.length ? wv.map(w => wvZeile(w, 'keine')).join('')
+        : `<div class="leer" style="padding:12px">Keine Wiedervorlage — mit ＋ eine anlegen.</div>`}
+    </div>
+
+    <div class="panel">
+      <div class="eyebrow">Ansprechpartner vor Ort
+        <button class="plus" onclick="modalAP('${id}')">＋</button></div>
+      ${feld(k,'ap') ? `<div class="wv"><div style="flex:1">
+          <div class="txt"><b>${esc(feld(k,'ap'))}</b> <span style="color:var(--dim);font-size:.78rem">· aus Arbeitsbericht</span></div>
+        </div></div>` : ''}
+      ${ap.length ? ap.map(p => `
+        <div class="wv"><div style="flex:1">
+          <div class="txt"><b>${esc(p.name)}</b>${p.funktion ? ` <span class="sub" style="color:var(--dim);font-size:.78rem">· ${esc(p.funktion)}</span>`:''}</div>
+          <div class="datum">${esc([p.telefon,p.email].filter(Boolean).join(' · '))}</div>
+        </div>
+        ${p.telefon ? `<a href="tel:${esc(p.telefon)}" style="align-self:center;font-size:1.2rem;text-decoration:none">📞</a>`:''}
+        </div>`).join('')
+        : (feld(k,'ap') ? '' : `<div class="leer" style="padding:12px">Noch niemand hinterlegt.</div>`)}
+    </div>
+
+    <div class="panel">
+      <div class="eyebrow">Verlauf</div>
+      ${akt.length ? `<ul class="tl">${akt.map(a => aktivitaetZeile(a, false)).join('')}</ul>`
+        : `<div class="leer" style="padding:12px">Noch keine Einträge.</div>`}
+    </div>
+
+    <button class="btn gefahr" style="width:100%;margin-bottom:70px" onclick="modalBauvorhabenLoeschen('${id}')">
+      🗑 Bauvorhaben löschen</button>
+
+    <button class="fab" onclick="modalAktivitaet('kontakt','${id}')" title="Neue Aktivität">+</button>`;
+}
+function modalBauvorhabenLoeschen(kontaktId){
+  const k = bauvorhabenVon(kontaktId);
+  if(!k) return;
+  const ku = kundeVon(k.kunde_id);
+  modal(`
+    <h2>Bauvorhaben endgültig löschen?</h2>
+    <p style="font-size:.88rem;margin-top:8px">„${esc(feld(k,'name') || 'Ohne Namen')}" wird unwiderruflich gelöscht.</p>
+    <p style="font-size:.8rem;color:var(--dim);margin-top:8px">
+      Verlauf, Wiedervorlagen und strukturierte Ansprechpartner zu diesem Bauvorhaben werden mitgelöscht.
+      Berichte, die schon im Arbeitsbericht abgeschlossen wurden, bleiben unangetastet.
+      Das lässt sich nicht rückgängig machen.</p>
+    <div class="btnzeile">
+      <button class="btn sekundaer" onclick="modalZu()">Abbrechen</button>
+      <button class="btn gefahr" onclick="speichereBauvorhabenLoeschen('${kontaktId}','${ku ? ku.id : ''}')">Endgültig löschen</button>
+    </div>`);
+}
+async function speichereBauvorhabenLoeschen(kontaktId, kundeId){
+  try{
+    await sb(`${KONFIG.TAB_KONTAKTE}?id=eq.${kontaktId}`, { method:'DELETE' });
+    cache.kontakte = null; modalZu(); toast('Bauvorhaben gelöscht');
+    navigiere(kundeId ? '#/kunde/' + kundeId : '#/kunden');
+  }catch(e){ toast('Fehler: ' + e.message.slice(0,80)); }
+}
+
+/* ================= AUFTRAG EXPORTIEREN (für Arbeitsbericht) ================= */
+let bauvorhabenExportDaten = null;
+async function exportAuftrag(id){
+  const d = bauvorhabenExportDaten;
+  if(!d || String(d.k.id) !== String(id)){ toast('Bitte Seite neu laden und erneut versuchen.'); return; }
+
+  const hinweisTeile = d.offeneWV.slice(0,3).map(w => w.titel).filter(Boolean);
+  const daten = {
+    typ: 'ts-auftrag',
+    version: 1,
+    erstellt_am: new Date().toISOString(),
+    kunde_id: d.ku ? d.ku.id : null,
+    kunde: d.ku ? d.ku.name : (feld(d.k,'kunde') || null),
+    kontakt_id: d.k.id,
+    bauvorhaben: feld(d.k,'name') || null,
+    ansprechpartner: feld(d.k,'ap') || null,
+    telefon: (d.ku && d.ku.telefon) || feld(d.k,'telefon') || null,
+    email: (d.ku && d.ku.email) || feld(d.k,'email') || null,
+    hinweis: hinweisTeile.length ? ('Offen: ' + hinweisTeile.join(' · ')) : null
+  };
+  const dateiname = 'auftrag-' + slugify(daten.bauvorhaben || 'ohne-namen') + '.json';
+  const blob = new Blob([JSON.stringify(daten, null, 2)], { type: 'application/json' });
+
+  try{
+    const datei = new File([blob], dateiname, { type: 'application/json' });
+    if(navigator.canShare && navigator.canShare({ files: [datei] })){
+      await navigator.share({ files: [datei], title: 'Auftrag: ' + (daten.bauvorhaben || '') });
+      return;
+    }
+  }catch(e){
+    if(e.name === 'AbortError') return; // Nutzer hat den Teilen-Dialog abgebrochen
+    // sonst: unten der Download-Fallback
+  }
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = dateiname;
+  document.body.appendChild(a); a.click(); document.body.removeChild(a);
+  setTimeout(() => URL.revokeObjectURL(url), 2000);
+  toast('Auftragsdatei heruntergeladen');
+}
+function slugify(s){
+  return String(s).toLowerCase()
+    .replace(/[äöüß]/g, c => ({ä:'ae',ö:'oe',ü:'ue',ß:'ss'}[c]))
+    .replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '').slice(0, 40) || 'auftrag';
+}
+function aktivitaetZeile(a, mitBauvorhaben){
+  const b = (mitBauvorhaben && a.kontakt_id) ? bauvorhabenVon(a.kontakt_id) : null;
+  return `<li class="t-${esc(a.typ)}">
+      <div class="tlkopf"><span class="tltyp">${esc(TYPEN[a.typ] || a.typ)}</span>
+        <span>${datumFmt(a.erstellt_am)}</span>
+        ${a.erstellt_von ? `<span>· ${esc(a.erstellt_von)}</span>` : ''}</div>
+      <p>${esc(a.text)}</p>
+      ${b ? `<button class="kunde" onclick="navigiere('#/bauvorhaben/${b.id}')">${esc(feld(b,'name'))} →</button>`
+        : (mitBauvorhaben && !a.kontakt_id ? `<span class="datum" style="color:var(--dim)">allgemein</span>` : '')}
+      ${Array.isArray(a.artikel) && a.artikel.length ? `<div class="artchips">
+        ${a.artikel.map(x => `<span class="chip">${esc(x.nr)}${x.key ? ' · ' + esc(x.key) : ''}</span>`).join('')}
+      </div>` : ''}
+    </li>`;
+}
+let wvSichtbar = {};
+function wvZeile(w, kontext){
+  wvSichtbar[w.id] = w;
+  const h = heute();
+  const cls = w.erledigt ? '' : w.faellig_am < h ? 'faellig' : w.faellig_am === h ? 'heute' : '';
+  const b = (kontext !== 'keine' && w.kontakt_id) ? bauvorhabenVon(w.kontakt_id) : null;
+  const kuVonB = b ? kundeVon(b.kunde_id) : null;
+  const kuDirekt = (!w.kontakt_id && w.kunde_id) ? kundeVon(w.kunde_id) : null;
+  let kontextZeile = '';
+  if(kontext === 'global'){
+    if(b) kontextZeile = `<button class="kunde" onclick="navigiere('#/bauvorhaben/${b.id}')">
+        ${kuVonB ? esc(kuVonB.name) + ' · ' : ''}${esc(feld(b,'name'))} →</button>`;
+    else if(kuDirekt) kontextZeile = `<button class="kunde" onclick="navigiere('#/kunde/${kuDirekt.id}')">
+        ${esc(kuDirekt.name)} · allgemein →</button>`;
+  } else if(kontext === 'kunde'){
+    if(b) kontextZeile = `<button class="kunde" onclick="navigiere('#/bauvorhaben/${b.id}')">${esc(feld(b,'name'))} →</button>`;
+    else if(!w.kontakt_id) kontextZeile = `<span class="datum" style="color:var(--dim)">allgemein</span>`;
+  }
+  return `<div class="wv ${w.erledigt ? 'erledigt' : ''}">
+    <button class="box" onclick="wvToggle('${w.id}', ${!w.erledigt})">✓</button>
+    <div style="flex:1">
+      <div class="txt">${esc(w.titel)}</div>
+      ${w.notiz ? `<div class="datum" style="color:var(--dim)">${esc(w.notiz)}</div>` : ''}
+      <div class="datum ${cls}">fällig ${datumFmt(w.faellig_am)}
+        ${cls === 'faellig' ? '· überfällig' : cls === 'heute' ? '· heute' : ''}</div>
+      ${w.an_trello_gesendet_am ? `<div class="datum" style="color:var(--tuerkis)">✓ An Trello übergeben · ${datumFmt(w.an_trello_gesendet_am)}</div>` : ''}
+      ${kontextZeile}
+    </div>
+    ${!w.erledigt ? `<button class="trello-btn ${w.an_trello_gesendet_am ? 'gesendet' : ''}" onclick="wvAnTrello('${w.id}')">
+      ↗ ${w.an_trello_gesendet_am ? 'Erneut senden' : 'An Trello senden'}</button>` : ''}
+    </div>`;
+}
+/* Erzeugt aus den Auftragsdaten ein einfaches, für jeden lesbares PDF —
+   reines Base64 (ohne data:-Prefix), fürs Hochladen an die Edge Function. */
+function auftragPdfBase64(auftrag){
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF();
+  doc.setFont('helvetica', 'bold'); doc.setFontSize(18);
+  doc.text('Arbeitsauftrag', 15, 20);
+  doc.setDrawColor(210); doc.line(15, 25, 195, 25);
+
+  let y = 38;
+  const zeile = (label, wert) => {
+    if(!wert) return;
+    doc.setFont('helvetica', 'bold'); doc.setFontSize(11);
+    doc.text(label + ':', 15, y);
+    doc.setFont('helvetica', 'normal');
+    const lines = doc.splitTextToSize(String(wert), 125);
+    doc.text(lines, 60, y);
+    y += 7.5 * lines.length + 2;
+  };
+  zeile('Kunde', auftrag.kunde);
+  zeile('Bauvorhaben', auftrag.bauvorhaben);
+  zeile('Ansprechpartner', auftrag.ansprechpartner);
+  zeile('Telefon', auftrag.telefon);
+  zeile('E-Mail', auftrag.email);
+  y += 4;
+  zeile('Hinweis', auftrag.hinweis);
+
+  doc.setFontSize(9); doc.setTextColor(150);
+  doc.text('Erstellt am ' + new Date(auftrag.erstellt_am).toLocaleString('de-DE') + ' · TS-Suite CRM', 15, 285);
+
+  return doc.output('datauristring').split(',')[1];
+}
+async function wvAnTrello(wvId){
+  const w = wvSichtbar[wvId];
+  if(!w) return;
+  // Nur bei allgemeinen (kundendirekten) Wiedervorlagen ist das Bauvorhaben
+  // unbekannt — hängt der Kunde mehrere Bauvorhaben, muss ausgewählt werden.
+  if(!w.kontakt_id && w.kunde_id){
+    await holeKontakte();
+    const kandidaten = cache.kontakte.filter(k => String(k.kunde_id) === String(w.kunde_id));
+    if(kandidaten.length > 1){
+      modalBauvorhabenWahl(wvId, kandidaten);
+      return;
+    }
+  }
+  await wvAnTrelloAusfuehren(wvId, null);
+}
+function modalBauvorhabenWahl(wvId, kandidaten){
+  modal(`
+    <h2>Welches Bauvorhaben?</h2>
+    <p style="font-size:.85rem;color:var(--dim);margin-top:4px">Dieser Kunde hat mehrere Bauvorhaben —
+      welches soll auf der Trello-Karte und im Auftrag stehen?</p>
+    <div style="margin-top:12px;display:flex;flex-direction:column;gap:8px">
+      <label style="display:flex;align-items:center;gap:10px;text-transform:none;font-family:inherit;
+        font-size:.9rem;color:var(--text);padding:10px;border:1px solid var(--border);border-radius:10px">
+        <input type="radio" name="bvWahl" value="" checked style="width:20px;height:20px;min-height:0">
+        Kein bestimmtes Bauvorhaben (allgemein)
+      </label>
+      ${kandidaten.map(k => `
+      <label style="display:flex;align-items:center;gap:10px;text-transform:none;font-family:inherit;
+        font-size:.9rem;color:var(--text);padding:10px;border:1px solid var(--border);border-radius:10px">
+        <input type="radio" name="bvWahl" value="${k.id}" style="width:20px;height:20px;min-height:0">
+        ${esc(feld(k,'name') || '(ohne Namen)')}
+      </label>`).join('')}
+    </div>
+    <div class="btnzeile">
+      <button class="btn sekundaer" onclick="modalZu()">Abbrechen</button>
+      <button class="btn primaer" onclick="waehleBauvorhabenUndSende('${wvId}')">Weiter</button>
+    </div>`);
+}
+async function waehleBauvorhabenUndSende(wvId){
+  const gewaehlt = document.querySelector('input[name="bvWahl"]:checked')?.value || null;
+  modalZu();
+  await wvAnTrelloAusfuehren(wvId, gewaehlt || null);
+}
+async function wvAnTrelloAusfuehren(wvId, gewaehlteBauvorhabenId){
+  const w = wvSichtbar[wvId];
+  if(!w) return;
+  const b = gewaehlteBauvorhabenId ? bauvorhabenVon(gewaehlteBauvorhabenId)
+    : (w.kontakt_id ? bauvorhabenVon(w.kontakt_id) : null);
+  const ku = b ? kundeVon(b.kunde_id) : (w.kunde_id ? kundeVon(w.kunde_id) : null);
+  const titelTeile = [ku?.name, b ? feld(b,'name') : null].filter(Boolean);
+  const name = titelTeile.length ? titelTeile.join(', ') : w.titel;
+  const telefon = (ku && ku.telefon) || (b && feld(b,'telefon')) || null;
+  const email = (ku && ku.email) || (b && feld(b,'email')) || null;
+  const hinweisText = [w.titel, w.notiz].filter(Boolean).join('\n\n');
+  const kontaktZeile = [telefon ? 'Tel: ' + telefon : null, email ? 'E-Mail: ' + email : null].filter(Boolean).join(' · ');
+  const berichtParams = new URLSearchParams();
+  if(ku?.name) berichtParams.set('kunde', ku.name);
+  if(b) berichtParams.set('bauvorhaben', feld(b,'name') || '');
+  if(b && feld(b,'ap')) berichtParams.set('ansprechpartner', feld(b,'ap'));
+  if(telefon) berichtParams.set('telefon', telefon);
+  if(email) berichtParams.set('email', email);
+  if(hinweisText) berichtParams.set('hinweis', hinweisText);
+  if(ku?.id) berichtParams.set('kunde_id', ku.id);
+  // Klammern werden von encodeURIComponent nicht escaped, könnten aber ein
+  // Markdown-Link vorzeitig beenden — zur Sicherheit selbst kodieren.
+  const berichtQuery = berichtParams.toString().replace(/\(/g, '%28').replace(/\)/g, '%29');
+  // Absolute URL relativ zum eigenen Standort bauen — Arbeitsbericht liegt jetzt im selben Verzeichnis.
+  // So funktioniert der Link in Trello egal wo die Suite gehostet ist (GitHub Pages, lokal, anderer Server).
+  const berichtLink = new URL('arbeitsbericht.html', location.href).href + `?${berichtQuery}`;
+  const desc = [hinweisText, kontaktZeile, `[Arbeitsbericht ausgefüllt öffnen](${berichtLink})`].filter(Boolean).join('\n\n');
+  // Monatsanfang/-ende aus dem Fälligkeitsdatum für Start-/Fälligkeitsfeld der Trello-Karte
+  let start = null, due = null;
+  if(w.faellig_am){
+    const [jahr, monat] = w.faellig_am.split('-').map(Number);
+    const letzterTag = new Date(jahr, monat, 0).getDate();
+    start = `${jahr}-${String(monat).padStart(2,'0')}-01`;
+    due = `${jahr}-${String(monat).padStart(2,'0')}-${String(letzterTag).padStart(2,'0')}`;
+  }
+  const auftrag = {
+    typ: 'ts-auftrag',
+    version: 1,
+    erstellt_am: new Date().toISOString(),
+    kunde_id: ku ? ku.id : null,
+    kunde: ku ? ku.name : null,
+    kontakt_id: b ? b.id : null,
+    bauvorhaben: b ? (feld(b,'name') || null) : null,
+    ansprechpartner: b ? (feld(b,'ap') || null) : null,
+    telefon,
+    email,
+    hinweis: hinweisText || null
+  };
+  try{
+    const pdfBase64 = auftragPdfBase64(auftrag);
+    const res = await fetch(`${KONFIG.SUPABASE_URL}/functions/v1/create-trello-card`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer ' + ((window.TSAuth && TSAuth.getToken()) || KONFIG.SUPABASE_KEY),
+        'apikey': KONFIG.SUPABASE_KEY
+      },
+      body: JSON.stringify({ name, desc, auftrag, pdfBase64, start, due })
+    });
+    const data = await res.json();
+    if(!res.ok) throw new Error(data.error || ('HTTP ' + res.status));
+    await sb(`${KONFIG.TAB_WV}?id=eq.${wvId}`, { method:'PATCH',
+      body: JSON.stringify({ an_trello_gesendet_am: new Date().toISOString() }) });
+    // Stammt die Wiedervorlage aus einer Wartungsposition, Karten-ID dort
+    // hinterlegen — der Arbeitsbericht schreibt später über diese ID die
+    // Rückmeldung (Kommentar + grünes Label) auf genau diese Karte.
+    // ACHTUNG: data.id passt zum Standard-Rückgabeformat der Trello-API
+    // (POST /1/cards liefert die neue Karte inkl. id). Falls eure
+    // create-trello-card-Function das Ergebnis anders verpackt (z.B.
+    // { card: {...} }), hier entsprechend anpassen.
+    if(w.wartungsposition_id && data.id){
+      await sb(`crm_wartungspositionen?id=eq.${w.wartungsposition_id}`, { method:'PATCH',
+        body: JSON.stringify({ trello_card_id: data.id }) });
+    }
+    cache.wv = null;
+    toast('Trello-Karte angelegt ✓');
+    route();
+  }catch(e){ toast('Fehler: ' + e.message.slice(0,80)); }
+}
+async function wvToggle(id, erledigt){
+  await sb(`${KONFIG.TAB_WV}?id=eq.${id}`, { method:'PATCH',
+    body: JSON.stringify({ erledigt, erledigt_am: erledigt ? new Date().toISOString() : null })});
+  cache.wv = null; toast(erledigt ? 'Erledigt ✓' : 'Wieder offen'); route();
+}
+
+/* ================= ANSICHT: WIEDERVORLAGEN ================= */
+async function zeigWV(){
+  const v = $('#view');
+  v.innerHTML = `<div class="leer">Lade Wiedervorlagen …</div>`;
+  const [wv] = await Promise.all([holeOffeneWV(true), holeKontakte(), holeKunden()]);
+  setStatus(true, wv.length + ' offen');
+  aktualisiereBadge(wv);
+  const h = heute();
+  const gruppen = [
+    ['Überfällig', wv.filter(w => w.faellig_am <  h)],
+    ['Heute',      wv.filter(w => w.faellig_am === h)],
+    ['Demnächst',  wv.filter(w => w.faellig_am >  h)]
+  ];
+  v.innerHTML = wv.length
+    ? gruppen.filter(([,l]) => l.length).map(([titel, liste]) => `
+        <div class="panel"><div class="eyebrow">${titel} · ${liste.length}</div>
+        ${liste.map(w => wvZeile(w, 'global')).join('')}</div>`).join('')
+    : `<div class="leer"><div class="gross">✓</div>Alles erledigt — keine offene Wiedervorlage.</div>`;
+}
+function aktualisiereBadge(wv){
+  const h = heute();
+  const n = (wv || []).filter(w => w.faellig_am <= h).length;
+  const el = $('#wvBadge');
+  if(el) el.style.display = n ? 'flex' : 'none', el.textContent = n;
+}
+
+/* ================= ANSICHT: ARTIKEL ================= */
+async function zeigArtikel(){
+  const v = $('#view');
+  const n = Object.keys(ARTIKEL).length;
+  v.innerHTML = `<div class="suchzeile">
+      <input id="artSuche" type="search" placeholder="Artikel suchen … (Bezeichnung oder Nummer)" autocomplete="off">
+    </div>
+    ${n ? '' : `<div class="hinweis">Keine Artikel geladen. Liegt <b>artikel.json</b> im selben
+      Ordner wie diese Datei? Pfad in der KONFIG prüfen (ARTIKEL_URL).</div>`}
+    <div class="panel" id="artListe"></div>`;
+  setStatus(true, n + ' Artikel');
+  const render = q => {
+    const treffer = artikelSuche(q || '');
+    $('#artListe').innerHTML = treffer.length
+      ? treffer.map(([key, nr]) => `
+        <button class="artzeile" onclick="artikelKopieren('${esc(nr)}')">
+          <span class="nr">${esc(nr)}</span><span class="bez">${esc(key)}</span>
+        </button>`).join('')
+      : `<div class="leer" style="padding:12px">Nichts gefunden.</div>`;
+  };
+  $('#artSuche').addEventListener('input', e => render(e.target.value));
+  render('');
+}
+function artikelKopieren(nr){
+  navigator.clipboard?.writeText(nr).then(
+    () => toast('Artikelnummer kopiert: ' + nr),
+    () => toast(nr));
+}
+
+/* ================= ANSICHT: PREISLISTE ================= */
+const PREIS_KATEGORIEN = [
+  ['stundensatz', 'Stundensätze / Arbeitszeiten', 'z.B. Normalarbeitszeit, Überstunden, Wochenende', 'pro Stunde'],
+  ['anfahrt',     'Anfahrtspauschalen',            'z.B. Anfahrt Pauschale, Anfahrt außerhalb 30km',   'pauschal'],
+  ['wartung',     'Wartungspauschalen',            'z.B. Jahreswartung Schiebetür',                    'pauschal'],
+  ['artikel',     'Weitere Preise',                'frei erweiterbar für alles Sonstige',              '']
+];
+function eur(n){
+  return Number(n).toLocaleString('de-DE', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' €';
+}
+let preislisteDaten = [];
+async function zeigPreisliste(){
+  const v = $('#view');
+  v.innerHTML = `<div class="leer">Lade Preisliste …</div>`;
+  preislisteDaten = await sb(`${KONFIG.TAB_PREISE}?select=*&order=bezeichnung.asc`);
+  setStatus(true, preislisteDaten.length + ' Preise');
+  v.innerHTML = PREIS_KATEGORIEN.map(([kat, titel, hinweis]) => {
+    const eintraege = preislisteDaten.filter(p => p.kategorie === kat);
+    return `<div class="panel">
+      <div class="eyebrow">${titel}
+        <button class="plus" onclick="modalNeuerPreis('${kat}')">＋</button></div>
+      ${eintraege.length ? eintraege.map(p => `
+        <button class="artzeile" onclick="modalPreisBearbeiten('${p.id}')" style="align-items:flex-start">
+          <span class="bez">${esc(p.bezeichnung)}
+            ${p.einheit ? `<span style="color:var(--dim);font-size:.75rem"> · ${esc(p.einheit)}</span>` : ''}
+            ${p.notiz ? `<br><span style="color:var(--dim);font-size:.75rem">${esc(p.notiz)}</span>` : ''}</span>
+          <span class="nr" style="min-width:auto">${eur(p.preis)}</span>
+        </button>`).join('')
+        : `<div class="leer" style="padding:12px">Noch keine Einträge — ${esc(hinweis)}.</div>`}
+    </div>`;
+  }).join('');
+}
+function modalNeuerPreis(kategorie){
+  const kat = PREIS_KATEGORIEN.find(k => k[0] === kategorie);
+  modal(`
+    <h2>Neuer Preis — ${esc(kat ? kat[1] : '')}</h2>
+    <label>Bezeichnung</label>
+    <input id="ppBez" placeholder="z.B. Normalarbeitszeit">
+    <label>Preis (€)</label>
+    <input id="ppPreis" type="number" inputmode="decimal" step="0.01" placeholder="0,00">
+    <label>Einheit</label>
+    <input id="ppEinheit" placeholder="${esc(kat ? kat[3] : '')}" value="${esc(kat ? kat[3] : '')}">
+    <label>Notiz (optional)</label>
+    <textarea id="ppNotiz" style="min-height:56px"></textarea>
+    <div class="btnzeile">
+      <button class="btn sekundaer" onclick="modalZu()">Abbrechen</button>
+      <button class="btn primaer" onclick="speicherePreis('${kategorie}')">Anlegen</button>
+    </div>`);
+}
+async function speicherePreis(kategorie){
+  const bezeichnung = $('#ppBez').value.trim();
+  const preis = parseFloat($('#ppPreis').value.replace(',', '.'));
+  if(!bezeichnung){ toast('Bezeichnung fehlt noch.'); return; }
+  if(isNaN(preis)){ toast('Preis fehlt noch.'); return; }
+  try{
+    await sb(KONFIG.TAB_PREISE, { method:'POST', body: JSON.stringify({
+      kategorie, bezeichnung, preis,
+      einheit: $('#ppEinheit').value.trim() || null,
+      notiz: $('#ppNotiz').value.trim() || null
+    })});
+    modalZu(); toast('Preis angelegt ✓'); route();
+  }catch(e){ toast('Fehler: ' + e.message.slice(0,80)); }
+}
+function modalPreisBearbeiten(preisId){
+  const p = preislisteDaten.find(x => String(x.id) === String(preisId));
+  if(!p) return;
+  modal(`
+    <h2>Preis bearbeiten</h2>
+    <label>Bezeichnung</label>
+    <input id="ppBez" value="${esc(p.bezeichnung)}">
+    <label>Preis (€)</label>
+    <input id="ppPreis" type="number" inputmode="decimal" step="0.01" value="${p.preis}">
+    <label>Einheit</label>
+    <input id="ppEinheit" value="${esc(p.einheit)}">
+    <label>Notiz (optional)</label>
+    <textarea id="ppNotiz" style="min-height:56px">${esc(p.notiz)}</textarea>
+    <div class="btnzeile">
+      <button class="btn sekundaer" onclick="modalZu()">Abbrechen</button>
+      <button class="btn primaer" onclick="speicherePreisBearbeiten('${preisId}')">Speichern</button>
+    </div>
+    <button class="btn gefahr" style="width:100%;margin-top:10px" onclick="preisLoeschen('${preisId}')">
+      🗑 Preis löschen</button>`);
+}
+async function speicherePreisBearbeiten(preisId){
+  const bezeichnung = $('#ppBez').value.trim();
+  const preis = parseFloat($('#ppPreis').value.replace(',', '.'));
+  if(!bezeichnung){ toast('Bezeichnung fehlt noch.'); return; }
+  if(isNaN(preis)){ toast('Preis fehlt noch.'); return; }
+  try{
+    await sb(`${KONFIG.TAB_PREISE}?id=eq.${preisId}`, { method:'PATCH', body: JSON.stringify({
+      bezeichnung, preis,
+      einheit: $('#ppEinheit').value.trim() || null,
+      notiz: $('#ppNotiz').value.trim() || null
+    })});
+    modalZu(); toast('Gespeichert ✓'); route();
+  }catch(e){ toast('Fehler: ' + e.message.slice(0,80)); }
+}
+async function preisLoeschen(preisId){
+  const p = preislisteDaten.find(x => String(x.id) === String(preisId));
+  if(!p || !confirm(`„${p.bezeichnung}" wirklich löschen?`)) return;
+  try{
+    await sb(`${KONFIG.TAB_PREISE}?id=eq.${preisId}`, { method:'DELETE' });
+    modalZu(); toast('Preis gelöscht'); route();
+  }catch(e){ toast('Fehler: ' + e.message.slice(0,80)); }
+}
+</script>
+<script>
+/* ================= MODALS ================= */
+function modal(html){
+  $('#modalRoot').innerHTML = `<div class="modalbg" onclick="if(event.target===this)modalZu()">
+    <div class="modal"><div class="griff"></div>${html}</div></div>`;
+}
+function modalZu(){ $('#modalRoot').innerHTML = ''; }
+
+/* --- Neue Aktivität (mit Artikel-Verknüpfung) --- */
+let aktArtikel = [];
+function modalAktivitaet(zielTyp, zielId){
+  aktArtikel = [];
+  const kuerzel = localStorage.getItem(KONFIG.KUERZEL_LS_KEY) || '';
+  modal(`
+    <h2>Neue Aktivität</h2>
+    <label>Art</label>
+    <div class="typwahl" id="typWahl">
+      ${Object.entries(TYPEN).map(([k,v],i) =>
+        `<button data-typ="${k}" class="${i===0?'aktiv':''}">${v}</button>`).join('')}
+    </div>
+    <label>Was war los?</label>
+    <textarea id="aktText" placeholder="z.B. Schiebetür EG klemmt, Kunde bittet um Termin nächste Woche …"></textarea>
+    <label>Artikel verknüpfen (optional)</label>
+    <input id="aktArtSuche" type="search" placeholder="Artikel suchen …" autocomplete="off">
+    <div id="aktArtVorschlaege"></div>
+    <div class="artchips" id="aktArtChips" style="margin-top:8px"></div>
+    <label>Dein Kürzel</label>
+    <input id="aktKuerzel" value="${esc(kuerzel)}" placeholder="z.B. GER" maxlength="6"
+      style="max-width:140px;text-transform:uppercase">
+    <label style="display:flex;align-items:center;gap:10px;text-transform:none;font-family:inherit;font-size:.88rem;color:var(--text)">
+      <input type="checkbox" id="aktMitWV" style="width:22px;height:22px;min-height:0">
+      Wiedervorlage dazu anlegen
+    </label>
+    <div id="aktWVBlock" style="display:none">
+      <label>Fällig am</label>
+      <input type="date" id="aktWVDatum" value="${heute()}">
+    </div>
+    <div class="btnzeile">
+      <button class="btn sekundaer" onclick="modalZu()">Abbrechen</button>
+      <button class="btn primaer" onclick="speichereAktivitaet('${zielTyp}','${zielId}')">Speichern</button>
+    </div>`);
+  $('#typWahl').addEventListener('click', e => {
+    const b = e.target.closest('button'); if(!b) return;
+    document.querySelectorAll('#typWahl button').forEach(x => x.classList.remove('aktiv'));
+    b.classList.add('aktiv');
+  });
+  $('#aktMitWV').addEventListener('change', e =>
+    $('#aktWVBlock').style.display = e.target.checked ? 'block' : 'none');
+  $('#aktArtSuche').addEventListener('input', e => {
+    const q = e.target.value.trim();
+    const box = $('#aktArtVorschlaege');
+    if(!q){ box.innerHTML = ''; return; }
+    box.innerHTML = artikelSuche(q).slice(0,6).map(([key,nr]) => `
+      <button class="artzeile" onclick="aktArtikelDazu('${esc(nr)}','${esc(key)}')">
+        <span class="nr">${esc(nr)}</span><span class="bez">${esc(key)}</span>
+      </button>`).join('');
+  });
+}
+function aktArtikelDazu(nr, key){
+  if(!aktArtikel.some(a => a.nr === nr)) aktArtikel.push({nr, key});
+  $('#aktArtSuche').value = ''; $('#aktArtVorschlaege').innerHTML = '';
+  renderAktChips();
+}
+function renderAktChips(){
+  $('#aktArtChips').innerHTML = aktArtikel.map((a,i) =>
+    `<span class="chip">${esc(a.nr)}<button onclick="aktArtikel.splice(${i},1);renderAktChips()">×</button></span>`).join('');
+}
+async function speichereAktivitaet(zielTyp, zielId){
+  const text = $('#aktText').value.trim();
+  if(!text){ toast('Bitte kurz beschreiben, was war.'); return; }
+  const typ = $('#typWahl .aktiv')?.dataset.typ || 'notiz';
+  const kuerzel = $('#aktKuerzel').value.trim().toUpperCase();
+  if(kuerzel) localStorage.setItem(KONFIG.KUERZEL_LS_KEY, kuerzel);
+  const zielFeld = zielTyp === 'kunde' ? { kunde_id: zielId } : { kontakt_id: zielId };
+  try{
+    await sb(KONFIG.TAB_AKT, { method:'POST', body: JSON.stringify({
+      ...zielFeld, typ, text,
+      artikel: aktArtikel.length ? aktArtikel : null,
+      erstellt_von: kuerzel || null
+    })});
+    if($('#aktMitWV').checked){
+      await sb(KONFIG.TAB_WV, { method:'POST', body: JSON.stringify({
+        ...zielFeld,
+        titel: TYPEN[typ] + ': ' + text.slice(0,60),
+        faellig_am: $('#aktWVDatum').value || heute(),
+        erstellt_von: kuerzel || null
+      })});
+      cache.wv = null;
+    }
+    modalZu(); toast('Gespeichert ✓'); route();
+  }catch(e){ toast('Fehler: ' + e.message.slice(0,80)); }
+}
+
+/* --- Neue Wiedervorlage (an ein Bauvorhaben oder direkt an einen Kunden) --- */
+function modalWV(zielTyp, zielId){
+  modal(`
+    <h2>Neue Wiedervorlage</h2>
+    <label>Worum geht's?</label>
+    <input id="wvTitel" placeholder="z.B. Wartungsangebot nachfassen">
+    <label>Fällig am</label>
+    <input type="date" id="wvDatum" value="${heute()}">
+    <label>Notiz (optional)</label>
+    <textarea id="wvNotiz" style="min-height:64px"></textarea>
+    <div class="btnzeile">
+      <button class="btn sekundaer" onclick="modalZu()">Abbrechen</button>
+      <button class="btn primaer" onclick="speichereWV('${zielTyp}','${zielId}')">Speichern</button>
+    </div>`);
+}
+async function speichereWV(zielTyp, zielId){
+  const titel = $('#wvTitel').value.trim();
+  if(!titel){ toast('Titel fehlt noch.'); return; }
+  const zeile = {
+    titel,
+    faellig_am: $('#wvDatum').value || heute(),
+    notiz: $('#wvNotiz').value.trim() || null,
+    erstellt_von: localStorage.getItem(KONFIG.KUERZEL_LS_KEY) || null
+  };
+  if(zielTyp === 'kunde') zeile.kunde_id = zielId; else zeile.kontakt_id = zielId;
+  try{
+    await sb(KONFIG.TAB_WV, { method:'POST', body: JSON.stringify(zeile) });
+    cache.wv = null; modalZu(); toast('Wiedervorlage angelegt ✓'); route();
+  }catch(e){ toast('Fehler: ' + e.message.slice(0,80)); }
+}
+
+/* --- Neuer Ansprechpartner --- */
+function modalAP(kontaktId){
+  modal(`
+    <h2>Neuer Ansprechpartner</h2>
+    <label>Name</label><input id="apName" placeholder="Vor- und Nachname">
+    <label>Funktion</label><input id="apFunktion" placeholder="z.B. Hausmeister, Einkauf">
+    <label>Telefon</label><input id="apTel" type="tel" inputmode="tel">
+    <label>E-Mail</label><input id="apMail" type="email" inputmode="email">
+    <div class="btnzeile">
+      <button class="btn sekundaer" onclick="modalZu()">Abbrechen</button>
+      <button class="btn primaer" onclick="speichereAP('${kontaktId}')">Speichern</button>
+    </div>`);
+}
+async function speichereAP(kontaktId){
+  const name = $('#apName').value.trim();
+  if(!name){ toast('Name fehlt noch.'); return; }
+  try{
+    await sb(KONFIG.TAB_AP, { method:'POST', body: JSON.stringify({
+      kontakt_id: kontaktId, name,
+      funktion: $('#apFunktion').value.trim() || null,
+      telefon:  $('#apTel').value.trim() || null,
+      email:    $('#apMail').value.trim() || null
+    })});
+    modalZu(); toast('Ansprechpartner gespeichert ✓'); route();
+  }catch(e){ toast('Fehler: ' + e.message.slice(0,80)); }
+}
+
+/* --- Neuer Kunde (Stammdaten, eigene kunden-Tabelle) --- */
+function modalNeuerKunde(){
+  modal(`
+    <h2>Neuer Kunde</h2>
+    <label>Name</label><input id="nkName" placeholder="z.B. Stadt Karlsruhe, Gebäudewirtschaft">
+    <label>Telefon</label><input id="nkTel" type="tel" inputmode="tel">
+    <label>E-Mail</label><input id="nkMail" type="email" inputmode="email">
+    <label>Straße</label><input id="nkStrasse" placeholder="z.B. Zähringerstr. 61">
+    <div style="display:flex;gap:10px">
+      <div style="flex:0 0 32%"><label>PLZ</label><input id="nkPlz" inputmode="numeric"></div>
+      <div style="flex:1"><label>Ort</label><input id="nkOrt"></div>
+    </div>
+    <label>Notiz</label><textarea id="nkNotiz" style="min-height:64px"></textarea>
+    <div class="btnzeile">
+      <button class="btn sekundaer" onclick="modalZu()">Abbrechen</button>
+      <button class="btn primaer" onclick="speichereNeuerKunde()">Anlegen</button>
+    </div>`);
+}
+async function speichereNeuerKunde(){
+  const name = $('#nkName').value.trim();
+  if(!name){ toast('Name fehlt noch.'); return; }
+  try{
+    const [neu] = await sb(KONFIG.TAB_KUNDEN, { method:'POST', body: JSON.stringify({
+      name,
+      telefon: $('#nkTel').value.trim() || null,
+      email:   $('#nkMail').value.trim() || null,
+      strasse: $('#nkStrasse').value.trim() || null,
+      plz:     $('#nkPlz').value.trim() || null,
+      ort:     $('#nkOrt').value.trim() || null,
+      notiz:   $('#nkNotiz').value.trim() || null
+    })});
+    cache.kunden = null; modalZu(); toast('Kunde angelegt ✓');
+    navigiere('#/kunde/' + neu.id);
+  }catch(e){ toast('Fehler: ' + e.message.slice(0,80)); }
+}
+
+/* --- Kunde bearbeiten --- */
+function modalKundeBearbeiten(kundeId){
+  const ku = kundeVon(kundeId); if(!ku) return;
+  modal(`
+    <h2>Kunde bearbeiten</h2>
+    <label>Name</label><input id="keName" value="${esc(ku.name)}">
+    <label>Telefon</label><input id="keTel" type="tel" inputmode="tel" value="${esc(ku.telefon)}">
+    <label>E-Mail</label><input id="keMail" type="email" inputmode="email" value="${esc(ku.email)}">
+    <label>Straße</label><input id="keStrasse" value="${esc(ku.strasse)}" placeholder="z.B. Zähringerstr. 61">
+    <div style="display:flex;gap:10px">
+      <div style="flex:0 0 32%"><label>PLZ</label>
+        <input id="kePlz" value="${esc(ku.plz)}" inputmode="numeric"></div>
+      <div style="flex:1"><label>Ort</label>
+        <input id="keOrt" value="${esc(ku.ort)}"></div>
+    </div>
+    <label>Notiz</label><textarea id="keNotiz" style="min-height:64px">${esc(ku.notiz)}</textarea>
+    <div class="btnzeile">
+      <button class="btn sekundaer" onclick="modalZu()">Abbrechen</button>
+      <button class="btn primaer" onclick="speichereKundeBearbeiten('${kundeId}')">Speichern</button>
+    </div>
+    <button class="btn gefahr" style="width:100%;margin-top:10px" onclick="modalKundeLoeschen('${kundeId}')">
+      🗑 Kunde löschen</button>`);
+}
+function modalKundeLoeschen(kundeId){
+  const ku = kundeVon(kundeId); if(!ku) return;
+  const anzahl = bauvorhabenAnzahl(kundeId);
+  if(anzahl > 0){
+    toast(`Kann nicht gelöscht werden — hat noch ${anzahl} Bauvorhaben. Erst umziehen oder entfernen.`);
+    return;
+  }
+  modal(`
+    <h2>Kunde endgültig löschen?</h2>
+    <p style="font-size:.88rem;margin-top:8px">„${esc(ku.name)}" wird unwiderruflich gelöscht.</p>
+    <p style="font-size:.8rem;color:var(--dim);margin-top:8px">
+      Wartungsplan sowie alle direkt an diesem Kunden hängenden Notizen und Wiedervorlagen
+      werden mitgelöscht. Das lässt sich nicht rückgängig machen.</p>
+    <div class="btnzeile">
+      <button class="btn sekundaer" onclick="modalZu()">Abbrechen</button>
+      <button class="btn gefahr" onclick="speichereKundeLoeschen('${kundeId}')">Endgültig löschen</button>
+    </div>`);
+}
+async function speichereKundeLoeschen(kundeId){
+  try{
+    await sb(`${KONFIG.TAB_KUNDEN}?id=eq.${kundeId}`, { method:'DELETE' });
+    cache.kunden = null; modalZu(); toast('Kunde gelöscht'); navigiere('#/kunden');
+  }catch(e){ toast('Fehler: ' + e.message.slice(0,80)); }
+}
+async function speichereKundeBearbeiten(kundeId){
+  const name = $('#keName').value.trim();
+  if(!name){ toast('Name fehlt noch.'); return; }
+  try{
+    await sb(`${KONFIG.TAB_KUNDEN}?id=eq.${kundeId}`, { method:'PATCH', body: JSON.stringify({
+      name,
+      telefon: $('#keTel').value.trim() || null,
+      email:   $('#keMail').value.trim() || null,
+      strasse: $('#keStrasse').value.trim() || null,
+      plz:     $('#kePlz').value.trim() || null,
+      ort:     $('#keOrt').value.trim() || null,
+      notiz:   $('#keNotiz').value.trim() || null
+    })});
+    cache.kunden = null; modalZu(); toast('Gespeichert ✓'); route();
+  }catch(e){ toast('Fehler: ' + e.message.slice(0,80)); }
+}
+
+/* --- Neues Bauvorhaben unter einem Kunden --- */
+function modalNeuesBauvorhaben(kundeId){
+  const ku = kundeVon(kundeId);
+  modal(`
+    <h2>Neues Bauvorhaben</h2>
+    <p style="font-size:.8rem;color:var(--dim);margin-top:4px">Für ${esc(ku ? ku.name : 'diesen Kunden')} —
+      wird in der Kontakte-Tabelle der TS-Suite angelegt.</p>
+    <label>Bauvorhaben</label><input id="nbName" placeholder="z.B. Eingang Bücherei KUZ">
+    <label>Ansprechpartner vor Ort</label><input id="nbAp" placeholder="optional">
+    <div class="btnzeile">
+      <button class="btn sekundaer" onclick="modalZu()">Abbrechen</button>
+      <button class="btn primaer" onclick="speichereNeuesBauvorhaben('${kundeId}')">Anlegen</button>
+    </div>`);
+}
+async function speichereNeuesBauvorhaben(kundeId){
+  const name = $('#nbName').value.trim();
+  if(!name){ toast('Bauvorhaben fehlt noch.'); return; }
+  const ku = kundeVon(kundeId);
+  const zeile = { bauvorhaben: name, kunde_id: kundeId, kunde: ku ? ku.name : null };
+  const ap = $('#nbAp').value.trim(); if(ap) zeile.ansprechpartner = ap;
+  try{
+    const [neu] = await sb(KONFIG.TAB_KONTAKTE, { method:'POST', body: JSON.stringify(zeile) });
+    cache.kontakte = null; modalZu(); toast('Bauvorhaben angelegt ✓');
+    navigiere('#/bauvorhaben/' + neu.id);
+  }catch(e){
+    toast('Fehler — gibt es dieses Bauvorhaben schon?');
+    console.error(e);
+  }
+}
+
+/* --- Bauvorhaben ohne Kunde zuordnen --- */
+function modalZuordnen(kontaktId, vorschlagName){
+  const treffer = (cache.kunden || []);
+  modal(`
+    <h2>Kunde zuordnen</h2>
+    <label>Kunde suchen</label>
+    <input id="zoSuche" type="search" placeholder="Namen tippen …" autocomplete="off">
+    <div id="zoTreffer" style="max-height:40vh;overflow-y:auto;margin-top:4px"></div>
+    ${vorschlagName ? `
+      <label>Oder neu anlegen</label>
+      <button class="btn sekundaer" style="width:100%" onclick="zuordnenNeuerKunde('${kontaktId}')">
+        „${esc(vorschlagName)}" als neuen Kunden anlegen</button>` : ''}
+    <div class="btnzeile"><button class="btn sekundaer" style="flex:1" onclick="modalZu()">Abbrechen</button></div>`);
+  const render = q => {
+    q = (q || '').toLowerCase().trim();
+    const liste = !q ? treffer : treffer.filter(ku => ku.name.toLowerCase().includes(q));
+    $('#zoTreffer').innerHTML = liste.slice(0,30).map(ku => `
+      <button class="artzeile" onclick="zuordnenSpeichern('${kontaktId}','${ku.id}')">
+        <span class="bez">${esc(ku.name)}</span>
+      </button>`).join('') || `<div class="leer" style="padding:12px">Keinen gefunden.</div>`;
+  };
+  $('#zoSuche').addEventListener('input', e => render(e.target.value));
+  render('');
+}
+async function zuordnenSpeichern(kontaktId, kundeId){
+  try{
+    await sb(`${KONFIG.TAB_KONTAKTE}?id=eq.${kontaktId}`, { method:'PATCH',
+      body: JSON.stringify({ kunde_id: kundeId }) });
+    cache.kontakte = null; modalZu(); toast('Zugeordnet ✓'); route();
+  }catch(e){ toast('Fehler: ' + e.message.slice(0,80)); }
+}
+async function zuordnenNeuerKunde(kontaktId){
+  const k = bauvorhabenVon(kontaktId);
+  const name = feld(k, 'kunde').trim();
+  if(!name){ toast('Kein Name vorgeschlagen.'); return; }
+  try{
+    const [neu] = await sb(KONFIG.TAB_KUNDEN, { method:'POST', body: JSON.stringify({ name }) });
+    await zuordnenSpeichern(kontaktId, neu.id);
+  }catch(e){ toast('Fehler: ' + e.message.slice(0,80)); }
+}
+
+/* ================= ANSICHT: AUSWERTUNGEN (Stunden · Wartung · Material) ================= */
+let auswSub = 'stunden';
+
+async function zeigAuswertung(sub){
+  if(sub && ['stunden','wartung','material'].includes(sub)) auswSub = sub;
+  const v = $('#view');
+  v.innerHTML = `
+    <div class="stn-filter" id="auswSubChips">
+      ${[['stunden','Stunden'],['wartung','Wartung'],['material','Ersatzteile']]
+        .map(([k, t]) => `<button class="stn-chip ${auswSub === k ? 'aktiv' : ''}" data-s="${k}">${t}</button>`).join('')}
+    </div>
+    <div id="auswInhalt"><div class="leer">Lade …</div></div>`;
+  $('#auswSubChips').addEventListener('click', e => {
+    const b = e.target.closest('[data-s]'); if(!b || b.dataset.s === auswSub) return;
+    navigiere('#/auswertung/' + b.dataset.s);
+  });
+  if(auswSub === 'wartung')       await zeigWartungAusw();
+  else if(auswSub === 'material') await zeigMaterialAusw();
+  else                            await zeigStunden();
+}
+
+/* ---------- Unter-Auswertung: WARTUNG ---------- */
+/* Fälligkeiten über ALLE Kunden (Stichtag heute) + Wartungsumsatz p.a. aus den
+   Vertragspositionen + durchgeführte Wartungen (crm_aktivitaeten, typ=wartung, 12 Monate). */
+async function zeigWartungAusw(){
+  const v = $('#auswInhalt');
+  v.innerHTML = '<div class="leer">Lade Wartungsverträge …</div>';
+  const vor12M = new Date(); vor12M.setMonth(vor12M.getMonth() - 12);
+  let vertraege, positionen, akts;
+  try{
+    [vertraege, positionen, , akts] = await Promise.all([
+      sb(`${KONFIG.TAB_WARTUNG}?select=*`),
+      sb(`${KONFIG.TAB_WARTUNGSPOS}?select=*`),
+      holeKunden(),
+      sb(`${KONFIG.TAB_AKT}?typ=eq.wartung&erstellt_am=gte.${vor12M.toISOString()}&select=erstellt_von,erstellt_am&order=erstellt_am.desc`)
+    ]);
+  }catch(e){
+    v.innerHTML = `<div class="hinweis fehler">Wartungsdaten konnten nicht geladen werden:<br>
+      <span style="font-family:var(--mono);font-size:.75rem">${esc(e.message.slice(0,120))}</span></div>`;
+    return;
+  }
+  const vertragVon = {}; vertraege.forEach(w => vertragVon[w.id] = w);
+  const kundeName = id => {
+    const k = (cache.kunden || []).find(k => String(k.id) === String(id));
+    return k ? k.name : '(Kunde ' + id + ')';
+  };
+  const in30 = (() => { const d = new Date(); d.setDate(d.getDate() + 30); return d.toISOString().slice(0,10); })();
+
+  const zeilen = [];
+  let umsatzPa = 0, aktiv = 0, ueberfaellig = 0, faellig30 = 0;
+  for(const p of positionen){
+    const w = vertragVon[p.vertrag_id]; if(!w) continue;
+    const f = wartungsFaelligkeit(p, w);
+    if(f.status === 'beendet' || f.status === 'kuenftig') continue;
+    aktiv++;
+    const ep = positionEndpreis(p);
+    if(ep != null && p.intervall_monate) umsatzPa += ep * (p.stueckzahl || 1) * (12 / p.intervall_monate);
+    const sofort = f.status === 'faellig' && !f.datum;
+    if(f.status === 'faellig') ueberfaellig++;
+    else if(f.datum && f.datum <= in30) faellig30++;
+    zeilen.push({ p, w, f, sort: sofort ? '0000-00-00' : (f.datum || '9999-99-99') });
+  }
+  zeilen.sort((a, z) => a.sort.localeCompare(z.sort));
+
+  // Durchgeführt (12 Monate) je Mitarbeiterkürzel
+  const durch = {}; (akts || []).forEach(a => {
+    const k = (a.erstellt_von || '—').trim().toUpperCase() || '—';
+    durch[k] = (durch[k] || 0) + 1;
+  });
+  const durchStr = Object.entries(durch).sort((a, z) => z[1] - a[1])
+    .map(([k, n]) => `${esc(k)} ${n}×`).join(' · ') || 'keine erfasst';
+  const planStunden = (ueberfaellig + faellig30) * 2; // Standard: 2 h je Wartungseinsatz
+
+  v.innerHTML = `
+    <div class="ausw-kpis">
+      <div class="ausw-kpi rot"><b>${ueberfaellig}</b><span>überfällig</span></div>
+      <div class="ausw-kpi gelb"><b>${faellig30}</b><span>fällig ≤ 30 Tage</span></div>
+      <div class="ausw-kpi"><b>${aktiv}</b><span>aktive Positionen</span></div>
+      <div class="ausw-kpi"><b>${umsatzPa ? umsatzPa.toLocaleString('de-DE',{maximumFractionDigits:0}) + ' €' : '—'}</b><span>Wartungsumsatz p.a.</span></div>
+    </div>
+    <div class="stn-gesamt"><span>Planungsaufwand offen (2 h/Einsatz)</span><span>~ ${planStunden} h</span></div>
+    <div class="stn-gesamt"><span>Durchgeführt (12 Monate)</span><span>${durchStr}</span></div>
+    ${zeilen.length ? zeilen.map(({p, w, f}) => `
+      <button class="wrt-zeile ${f.status === 'faellig' ? 'rot' : (f.datum && f.datum <= in30 ? 'gelb' : '')}"
+        onclick="navigiere('#/kunde/${w.kunde_id}')">
+        <span class="wrt-wann">${f.datum ? fmtTag(f.datum) : 'sofort'}</span>
+        <span class="wrt-was"><b>${esc(kundeName(w.kunde_id))}</b><br>
+          ${esc(p.bezeichnung)}${(p.stueckzahl || 1) > 1 ? ' × ' + p.stueckzahl : ''}
+          · alle ${p.intervall_monate} Mon. · zuletzt ${p.letzte_wartung ? fmtTag(p.letzte_wartung) : 'nie'}</span>
+      </button>`).join('')
+      : '<div class="leer">Keine aktiven Wartungspositionen.</div>'}`;
+  setStatus(true, aktiv + ' Wartungspositionen');
+}
+
+/* ---------- Unter-Auswertung: ERSATZTEILE / MATERIAL ---------- */
+/* Quelle 1: Arbeitsberichte — daten.material_checkliste + material_freitext
+   (Häufigkeit je Einsatz; Mengen/Preise werden im Bericht nicht erfasst).
+   Quelle 2: Artikel, die an CRM-Aktivitäten angeheftet wurden (artikel.json-Nummern).
+   Zeitraumfilter nutzt dieselben Chips/Grenzen wie die Stunden-Auswertung. */
+async function zeigMaterialAusw(){
+  const v = $('#auswInhalt');
+  v.innerHTML = `
+    <div class="stn-filter" id="matChips">
+      ${[['monat','Dieser Monat'],['letzter','Letzter Monat'],['jahr','Dieses Jahr'],['alles','Alles'],['eigen','Zeitraum …']]
+        .map(([k, t]) => `<button class="stn-chip ${stnPreset === k ? 'aktiv' : ''}" data-p="${k}">${t}</button>`).join('')}
+    </div>
+    <div class="stn-range" id="matRange" style="display:${stnPreset === 'eigen' ? 'flex' : 'none'}">
+      <input type="date" id="matVon" value="${stnVon || stnMonatsanfang(0)}">
+      <input type="date" id="matBis" value="${stnBis || stnHeute()}">
+    </div>
+    <div id="matErgebnis"><div class="leer">Lade Arbeitsberichte …</div></div>`;
+  $('#matChips').addEventListener('click', e => {
+    const b = e.target.closest('[data-p]'); if(!b) return;
+    stnPreset = b.dataset.p;
+    document.querySelectorAll('#matChips .stn-chip').forEach(c => c.classList.toggle('aktiv', c.dataset.p === stnPreset));
+    $('#matRange').style.display = stnPreset === 'eigen' ? 'flex' : 'none';
+    renderMaterial();
+  });
+  ['matVon', 'matBis'].forEach(id => $('#' + id).addEventListener('change', () => {
+    stnVon = $('#matVon').value; stnBis = $('#matBis').value; renderMaterial();
+  }));
+  try{
+    if(!cache.berichte)
+      cache.berichte = await sb('berichte?select=id,angebotsnr,bauvorhaben,kunde,daten,created_at&order=created_at.desc');
+    cache.aktArtikel = await sb(`${KONFIG.TAB_AKT}?artikel=not.is.null&select=artikel,erstellt_am`);
+  }catch(e){
+    $('#matErgebnis').innerHTML = `<div class="hinweis fehler">Daten konnten nicht geladen werden:<br>
+      <span style="font-family:var(--mono);font-size:.75rem">${esc(e.message.slice(0,120))}</span></div>`;
+    return;
+  }
+  renderMaterial();
+}
+
+function renderMaterial(){
+  const ziel = $('#matErgebnis'); if(!ziel) return;
+  let von, bis;
+  if(stnPreset === 'eigen'){ von = $('#matVon').value; bis = $('#matBis').value; }
+  else { [von, bis] = stnPresetGrenzen(stnPreset); }
+  const imZeitraum = iso => {
+    const d = (iso || '').slice(0, 10);
+    if(von && d < von) return false;
+    if(bis && d > bis) return false;
+    return true;
+  };
+
+  // --- Material aus Arbeitsberichten (Bericht-Datum = created_at) ---
+  const mat = {};
+  let berichteMit = 0;
+  for(const b of (cache.berichte || [])){
+    if(!imZeitraum(b.created_at)) continue;
+    const d = b.daten || {};
+    /* Positionen normalisieren: alt = String (Menge 1), neu = {bezeichnung, menge} */
+    const posten = [
+      ...(Array.isArray(d.material_checkliste) ? d.material_checkliste : []).map(m =>
+        typeof m === 'string' ? { bez: m, menge: 1 } : { bez: (m && m.bezeichnung) || '', menge: (m && isFinite(m.menge)) ? m.menge : 1 }),
+      ...((d.material_freitext || '').split('\n').map(x => x.trim()).filter(Boolean).map(x => ({ bez: x, menge: 1 })))
+    ];
+    if(!posten.length) continue;
+    berichteMit++;
+    const proBericht = new Set(); // gleiche Position im selben Bericht nur 1× je Einsatz zählen
+    for(const p of posten){
+      const key = p.bez.trim().toLowerCase();
+      if(!key || proBericht.has(key)) continue;
+      proBericht.add(key);
+      if(!mat[key]) mat[key] = { label: p.bez.trim(), n: 0, summe: 0, zuletzt: '', einsaetze: [] };
+      mat[key].n++;
+      mat[key].summe += p.menge;
+      const tag = (b.created_at || '').slice(0, 10);
+      if(tag > mat[key].zuletzt) mat[key].zuletzt = tag;
+      mat[key].einsaetze.push({ tag, bv: b.bauvorhaben || b.kunde || b.angebotsnr || '—', menge: p.menge });
+    }
+  }
+  const matListe = Object.values(mat).sort((a, z) => z.summe - a.summe || z.n - a.n);
+  const matMax = Math.max(...matListe.map(m => m.summe), 1);
+  const fmtMenge = v => (Math.round(v * 100) / 100).toString().replace('.', ',');
+
+  // --- Artikel aus CRM-Aktivitäten ---
+  const art = {};
+  for(const a of (cache.aktArtikel || [])){
+    if(!imZeitraum(a.erstellt_am)) continue;
+    for(const x of (Array.isArray(a.artikel) ? a.artikel : [])){
+      const nr = (x.nr || '').trim(); if(!nr) continue;
+      if(!art[nr]) art[nr] = { nr, key: x.key || '', n: 0 };
+      art[nr].n++;
+    }
+  }
+  const artListe = Object.values(art).sort((a, z) => z.n - a.n);
+
+  ziel.innerHTML = `
+    <div class="ausw-abschnitt">Verbautes Material aus Arbeitsberichten
+      <span class="ausw-sub">${berichteMit} Berichte mit Material · Mengen summiert (ältere Berichte ohne Menge zählen 1)</span></div>
+    ${matListe.length ? matListe.map(m => `
+      <details class="stn-ma">
+        <summary>
+          <div class="stn-kopf">
+            <span class="stn-name">${esc(m.label)}</span>
+            <span class="stn-summe">${fmtMenge(m.summe)} Stk</span>
+          </div>
+          <div class="stn-meta">${m.n} Einsätze · zuletzt ${fmtTag(m.zuletzt)}</div>
+          <div class="stn-balken"><i style="width:${Math.round(m.summe / matMax * 100)}%"></i></div>
+        </summary>
+        <div class="stn-tage">
+          ${m.einsaetze.sort((a, z) => z.tag.localeCompare(a.tag)).slice(0, 30).map(e => `
+            <div class="stn-tag"><span class="d">${fmtTag(e.tag)}</span><span class="bv">${esc(e.bv)}${e.menge && e.menge !== 1 ? ' · ' + fmtMenge(e.menge) + ' Stk' : ''}</span></div>`).join('')}
+        </div>
+      </details>`).join('')
+      : '<div class="leer">Kein Material im gewählten Zeitraum.</div>'}
+    <div class="ausw-abschnitt" style="margin-top:18px">Artikel aus CRM-Aktivitäten</div>
+    ${artListe.length ? `<div class="artchips" style="padding:2px 2px 12px">
+        ${artListe.map(a => `<span class="chip">${esc(a.nr)}${a.key ? ' · ' + esc(a.key) : ''} — ${a.n}×</span>`).join('')}
+      </div>`
+      : '<div class="leer">Keine Artikel an Aktivitäten im Zeitraum.</div>'}`;
+  setStatus(true, matListe.length + ' Materialpositionen');
+}
+
+/* ================= ANSICHT: STUNDEN-AUSWERTUNG ================= */
+/* Datenquelle: Tabelle `berichte` (Arbeitsbericht). Die Zeiten liegen in
+   daten.zeiterfassung = [{techniker, primary, tage:[{datum, stunden, wegepauschale}]}].
+   `stunden` ist Freitext vom Techniker — wird tolerant geparst (Komma/Punkt). */
+let stnPreset = 'monat';
+let stnVon = null, stnBis = null;
+
+function stnHeute(){ return new Date().toISOString().slice(0,10); }
+function stnMonatsanfang(offset = 0){
+  const d = new Date(); d.setDate(1); d.setMonth(d.getMonth() + offset);
+  return d.toISOString().slice(0,10);
+}
+function stnMonatsende(offset = 0){
+  const d = new Date(); d.setDate(1); d.setMonth(d.getMonth() + offset + 1); d.setDate(0);
+  return d.toISOString().slice(0,10);
+}
+function stnPresetGrenzen(p){
+  if(p === 'monat')       return [stnMonatsanfang(0),  stnMonatsende(0)];
+  if(p === 'letzter')     return [stnMonatsanfang(-1), stnMonatsende(-1)];
+  if(p === 'jahr')        return [stnHeute().slice(0,4) + '-01-01', stnHeute().slice(0,4) + '-12-31'];
+  return [null, null]; // alles
+}
+function parseStunden(v){
+  if(v === null || v === undefined) return NaN;
+  const n = parseFloat(String(v).trim().replace(',', '.'));
+  return isFinite(n) && n >= 0 && n <= 24 ? n : NaN;
+}
+function fmtStd(n){
+  return (Math.round(n * 100) / 100).toLocaleString('de-DE', { maximumFractionDigits: 2 });
+}
+function fmtTag(iso){
+  if(!iso) return '—';
+  const [j, m, t] = iso.split('-');
+  return `${t}.${m}.${j.slice(2)}`;
+}
+
+async function zeigStunden(){
+  const v = $('#auswInhalt');
+  v.innerHTML = `
+    <div class="stn-filter" id="stnChips">
+      ${[['monat','Dieser Monat'],['letzter','Letzter Monat'],['jahr','Dieses Jahr'],['alles','Alles'],['eigen','Zeitraum …']]
+        .map(([k, t]) => `<button class="stn-chip ${stnPreset === k ? 'aktiv' : ''}" data-p="${k}">${t}</button>`).join('')}
+    </div>
+    <div class="stn-range" id="stnRange" style="display:${stnPreset === 'eigen' ? 'flex' : 'none'}">
+      <input type="date" id="stnVon" value="${stnVon || stnMonatsanfang(0)}">
+      <input type="date" id="stnBis" value="${stnBis || stnHeute()}">
+    </div>
+    <div id="stnErgebnis"><div class="leer">Lade Arbeitsberichte …</div></div>`;
+
+  $('#stnChips').addEventListener('click', e => {
+    const b = e.target.closest('[data-p]'); if(!b) return;
+    stnPreset = b.dataset.p;
+    document.querySelectorAll('.stn-chip').forEach(c => c.classList.toggle('aktiv', c.dataset.p === stnPreset));
+    $('#stnRange').style.display = stnPreset === 'eigen' ? 'flex' : 'none';
+    renderStunden();
+  });
+  ['stnVon', 'stnBis'].forEach(id => $('#' + id).addEventListener('change', () => {
+    stnVon = $('#stnVon').value; stnBis = $('#stnBis').value; renderStunden();
+  }));
+
+  try{
+    cache.berichte = await sb('berichte?select=id,angebotsnr,bauvorhaben,kunde,daten,created_at&order=created_at.desc');
+    setStatus(true, cache.berichte.length + ' Berichte');
+  }catch(e){
+    $('#stnErgebnis').innerHTML = `<div class="hinweis fehler">Berichte konnten nicht geladen werden:<br>
+      <span style="font-family:var(--mono);font-size:.75rem">${esc(e.message.slice(0,120))}</span></div>`;
+    return;
+  }
+  renderStunden();
+}
+
+function renderStunden(){
+  const ziel = $('#stnErgebnis');
+  if(!cache.berichte){ return; }
+  let von, bis;
+  if(stnPreset === 'eigen'){
+    von = $('#stnVon') ? $('#stnVon').value : stnVon;
+    bis = $('#stnBis') ? $('#stnBis').value : stnBis;
+  } else {
+    [von, bis] = stnPresetGrenzen(stnPreset);
+  }
+
+  const ma = {}; // name -> Aggregat
+  let ohneDatum = 0, unlesbar = 0;
+
+  for(const b of cache.berichte){
+    const ze = (b.daten && Array.isArray(b.daten.zeiterfassung)) ? b.daten.zeiterfassung : [];
+    for(const block of ze){
+      const name = (block.techniker || '').trim() || '(ohne Name)';
+      const key = name.toLowerCase(); // gleiche Person trotz abweichender Schreibweise zusammenfassen
+      for(const row of (block.tage || [])){
+        if(!row.datum){ ohneDatum++; continue; }
+        if(von && row.datum < von) continue;
+        if(bis && row.datum > bis) continue;
+        const h = parseStunden(row.stunden);
+        if(isNaN(h)){ unlesbar++; continue; }
+        if(!ma[key]) ma[key] = { name, stunden: 0, tage: 0, wegep: 0, berichte: new Set(), zeilen: [] };
+        const m = ma[key];
+        m.stunden += h; m.tage++;
+        if(row.wegepauschale) m.wegep++;
+        m.berichte.add(b.id);
+        m.zeilen.push({ datum: row.datum, h, wegep: !!row.wegepauschale,
+          bv: b.bauvorhaben || b.kunde || b.angebotsnr || '—' });
+      }
+    }
+  }
+
+  const liste = Object.values(ma).sort((a, z) => z.stunden - a.stunden);
+  if(!liste.length){
+    ziel.innerHTML = '<div class="leer">Keine Arbeitszeiten im gewählten Zeitraum.</div>';
+    return;
+  }
+  const max = Math.max(...liste.map(m => m.stunden), 0.001);
+  const gesamt = liste.reduce((a, m) => a + m.stunden, 0);
+  const gesamtWegep = liste.reduce((a, m) => a + m.wegep, 0);
+
+  ziel.innerHTML = liste.map(m => `
+    <details class="stn-ma">
+      <summary>
+        <div class="stn-kopf">
+          <span class="stn-name">${esc(m.name)}</span>
+          <span class="stn-summe">${fmtStd(m.stunden)} h</span>
+        </div>
+        <div class="stn-meta">${m.berichte.size} Bericht${m.berichte.size === 1 ? '' : 'e'} ·
+          ${m.tage} Tag${m.tage === 1 ? '' : 'e'} · ${m.wegep} Wegepauschale${m.wegep === 1 ? '' : 'n'}</div>
+        <div class="stn-balken"><i style="width:${Math.round(m.stunden / max * 100)}%"></i></div>
+      </summary>
+      <div class="stn-tage">
+        ${m.zeilen.sort((a, z) => z.datum.localeCompare(a.datum)).map(r => `
+          <div class="stn-tag">
+            <span class="d">${fmtTag(r.datum)}</span>
+            <span class="bv">${esc(r.bv)}${r.wegep ? ' · WP' : ''}</span>
+            <span class="h">${fmtStd(r.h)} h</span>
+          </div>`).join('')}
+      </div>
+    </details>`).join('') + `
+    <div class="stn-gesamt">
+      <span>Gesamt (${liste.length} Mitarbeiter)</span>
+      <span>${fmtStd(gesamt)} h · ${gesamtWegep} WP</span>
+    </div>` +
+    ((ohneDatum || unlesbar) ? `<div class="stn-gesamt" style="color:var(--rot)">
+      <span>Nicht auswertbar übersprungen</span>
+      <span>${ohneDatum ? ohneDatum + '× ohne Datum ' : ''}${unlesbar ? unlesbar + '× Stunden unlesbar' : ''}</span>
+    </div>` : '');
+}
+
+/* ================= NAVIGATION + START ================= */
+
+const NAV = [
+  ['kunden',  'Kunden',        '<circle cx="12" cy="8" r="4"/><path d="M4 21v-1a8 8 0 0 1 16 0v1"/>'],
+  ['wv',      'Wiedervorlagen','<rect x="4" y="5" width="16" height="16" rx="2"/><path d="M8 3v4M16 3v4M4 11h16"/>'],
+  ['artikel', 'Artikel',       '<path d="M21 8l-9-5-9 5 9 5 9-5zM3 8v8l9 5 9-5V8"/><path d="M12 13v8"/>'],
+  ['preise',  'Preise',        '<path d="M3 3v7.586a2 2 0 0 0 .586 1.414l9 9a2 2 0 0 0 2.828 0l6-6a2 2 0 0 0 0-2.828l-9-9A2 2 0 0 0 10.586 3H3z"/><circle cx="8" cy="8" r="1.5"/>'],
+  ['auswertung', 'Auswertung',  '<path d="M4 20V10M10 20V4M16 20v-8M21 20H3"/>']
+];
+$('#nav').innerHTML = NAV.map(([ziel, txt, icon]) => `
+  <button data-ziel="${ziel}" onclick="navigiere('#/${ziel}')">
+    <svg viewBox="0 0 24 24">${icon}</svg>${txt}
+    ${ziel === 'wv' ? '<span class="badge" id="wvBadge" style="display:none"></span>' : ''}
+  </button>`).join('');
+
+(async function start(){
+  setStatus(null, 'verbinde …');
+  await ladeArtikel();
+  route();
+  holeKunden().catch(()=>{});
+  holeOffeneWV().then(aktualisiereBadge).catch(()=>{});
+})();
+</script>
+</body>
+</html>
