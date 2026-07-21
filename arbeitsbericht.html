@@ -1212,6 +1212,29 @@ async function generateReport(){
           alert('❌ Trello-Rückmeldung fehlgeschlagen:\n\n' + (trelloResult.reason || trelloResult.error || 'unbekannter Fehler') + '\n\nDer Bericht selbst wurde trotzdem gespeichert.');
         }
       }
+      if(reportData.angebotsnr){
+        genStatus.textContent += ' · Suche Trello-Karte zu Angebotsnr. …';
+        const angebotResult = await meldeAngebotAnTrello({
+          angebotsnr: reportData.angebotsnr,
+          techniker: reportData.techniker || '–',
+          datum: val('fDatum') || null,
+          notiz: reportData.daten.taetigkeit ? reportData.daten.taetigkeit.slice(0, 300) : null
+        });
+        genStatus.textContent = genStatus.textContent.replace(' · Suche Trello-Karte zu Angebotsnr. …', '');
+        if(angebotResult.trello){
+          genStatus.textContent += ' · Trello-Karte "' + angebotResult.card_name + '" erledigt markiert.';
+          alert('✅ Trello-Karte gefunden und erledigt markiert:\n\n"' + angebotResult.card_name + '"');
+        } else if(angebotResult.ok){
+          // Kein Fehler, aber auch kein eindeutiger Treffer (0 oder mehrere Karten).
+          genStatus.textContent += ' · ' + (angebotResult.message || 'Keine eindeutige Trello-Karte gefunden.');
+          console.warn(angebotResult.message, angebotResult.karten);
+          alert('ℹ️ ' + (angebotResult.message || 'Keine eindeutige Trello-Karte gefunden.'));
+        } else {
+          genStatus.textContent += ' · Trello-Suche fehlgeschlagen: ' + (angebotResult.reason || angebotResult.error || 'unbekannter Fehler');
+          console.error('Trello-Angebot-Suche fehlgeschlagen:', angebotResult);
+          alert('❌ Trello-Suche nach Angebotsnummer fehlgeschlagen:\n\n' + (angebotResult.reason || angebotResult.error || 'unbekannter Fehler'));
+        }
+      }
     } else if(sendResult.reason === 'not-configured'){
       genStatus.textContent = 'Bericht lokal gespeichert: ' + filename + ' (Server noch nicht eingerichtet)';
     } else {
@@ -1631,9 +1654,10 @@ async function sendeBerichtAnServer(reportData){
   }
 }
 
-/* Best effort: Kommentar + grünes Label auf der verknüpften Trello-Karte.
-   Der Arbeitsbericht ist zu diesem Zeitpunkt schon sicher gespeichert —
-   schlägt dieser Aufruf fehl, bleibt trotzdem alles Wichtige erhalten. */
+/* Best effort: Kommentar + "erledigt"-Häkchen (dueComplete) auf der
+   verknüpften Trello-Karte. Der Arbeitsbericht ist zu diesem Zeitpunkt
+   schon sicher gespeichert — schlägt dieser Aufruf fehl, bleibt
+   trotzdem alles Wichtige erhalten. */
 async function meldeWartungAnTrello(payload){
   if(!SUPABASE_CONFIGURED) return { ok: false, reason: 'not-configured' };
   try{
@@ -1646,6 +1670,26 @@ async function meldeWartungAnTrello(payload){
     return ergebnis || { ok: false, reason: 'invalid-response' };
   } catch(err){
     console.error('Trello-Rückmeldung fehlgeschlagen (unkritisch):', err);
+    return { ok: false, reason: err.message };
+  }
+}
+
+/* Best effort, Weg A ("Namens-Matching"): sucht per Angebots-/Auftragsnummer
+   eine passende offene Trello-Karte und markiert sie bei eindeutigem
+   Treffer als erledigt. Anders als bei der Wartung gibt es hier keine
+   feste Karten-ID — die Function sucht selbst im Board. */
+async function meldeAngebotAnTrello(payload){
+  if(!SUPABASE_CONFIGURED) return { ok: false, reason: 'not-configured' };
+  try{
+    const res = await fetch(`${SUPABASE_URL}/functions/v1/trello-angebot-abschliessen`, {
+      method: 'POST',
+      headers: supabaseHeaders(),
+      body: JSON.stringify(payload)
+    });
+    const ergebnis = await res.json().catch(() => null);
+    return ergebnis || { ok: false, reason: 'invalid-response' };
+  } catch(err){
+    console.error('Trello-Angebot-Suche fehlgeschlagen (unkritisch):', err);
     return { ok: false, reason: err.message };
   }
 }
