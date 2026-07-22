@@ -280,9 +280,9 @@
     <label>Bauvorhaben</label>
     <input type="text" id="fBauvorhaben" placeholder="z. B. Karlsburg BA3 BS-Sanierung">
 
-    <label>Zugehörige Wartungsposition <span style="color:var(--muted);font-weight:normal;">(optional)</span></label>
-    <select id="fWartungsposition">
-      <option value="">– keine Wartungsposition / nicht zutreffend –</option>
+    <label>Zugehöriger Vorgang <span style="color:var(--muted);font-weight:normal;">(optional)</span></label>
+    <select id="fVorgang">
+      <option value="">– kein Vorgang / nicht zutreffend –</option>
     </select>
 
     <div id="lieferanschriftBlock" style="display:none;">
@@ -534,7 +534,11 @@ function wendeAuftragAn(daten){
   if(daten.email)        document.getElementById('fEmail').value = daten.email;
   if(daten.hinweis)      document.getElementById('fHinweis').value = daten.hinweis;
   importierteKundeId = daten.kunde_id || null;
-  ladeWartungspositionenFuerKunde(importierteKundeId, daten.wartungsposition_id || null);
+  // Rückwärtskompatibel: alte Links/Auftragsdateien kennen nur
+  // wartungsposition_id, neue liefern vorgang_typ + vorgang_id.
+  const vorauswahlTyp = daten.vorgang_typ || (daten.wartungsposition_id ? 'wartungsposition' : null);
+  const vorauswahlId = daten.vorgang_id || daten.wartungsposition_id || null;
+  ladeVorgaengeFuerKunde(importierteKundeId, vorauswahlTyp, vorauswahlId);
 
   auftragStatus.textContent = `Auftrag geladen: ${daten.bauvorhaben || '–'} · ${daten.kunde || 'ohne Kunde'}`;
   auftragStatus.className = 'pdf-status ok';
@@ -568,18 +572,20 @@ async function handleAuftragsdatei(file){
     email: p.get('email') || null,
     hinweis: p.get('hinweis') || null,
     kunde_id: p.get('kunde_id') || null,
-    wartungsposition_id: p.get('wartungsposition_id') || null
+    vorgang_typ: p.get('vorgang_typ') || null,
+    vorgang_id: p.get('vorgang_id') || null,
+    wartungsposition_id: p.get('wartungsposition_id') || null // Legacy-Fallback
   });
   history.replaceState(null, '', location.pathname); // URL wieder sauber, Werte bleiben im Formular
 })();
 /* Manuelle Korrektur nach dem Laden hebt die sichere Zuordnung wieder auf,
    dann greift beim Speichern wieder der normale Namensabgleich. */
-function setzeWartungspositionAuswahlZurueck(){
-  document.getElementById('fWartungsposition').innerHTML =
-    '<option value="">– keine Wartungsposition / nicht zutreffend –</option>';
+function setzeVorgangAuswahlZurueck(){
+  document.getElementById('fVorgang').innerHTML =
+    '<option value="">– kein Vorgang / nicht zutreffend –</option>';
 }
-document.getElementById('fKunde').addEventListener('input', () => { importierteKundeId = null; setzeWartungspositionAuswahlZurueck(); });
-document.getElementById('fBauvorhaben').addEventListener('input', () => { importierteKundeId = null; setzeWartungspositionAuswahlZurueck(); });
+document.getElementById('fKunde').addEventListener('input', () => { importierteKundeId = null; setzeVorgangAuswahlZurueck(); });
+document.getElementById('fBauvorhaben').addEventListener('input', () => { importierteKundeId = null; setzeVorgangAuswahlZurueck(); });
 
 async function handlePdf(file){
   pdfStatus.textContent = 'Lese PDF ...';
@@ -1128,12 +1134,22 @@ async function generateReport(){
       techniker: b.name, primary: b.primary,
       tage: b.rows.map(r => ({datum: r.datum, stunden: r.stunden, wegepauschale: r.wegepauschale}))
     }));
+    // Vereinheitlichtes Dropdown liefert "wartung:<id>" oder "wv:<id>" —
+    // hier in die generischen Felder auflösen. wartungsposition_id bleibt
+    // als abgeleitetes Kompatibilitätsfeld erhalten (u.a. für bestehende
+    // Auswertungen), wird aber nicht mehr direkt aus dem Formular gelesen.
+    const vorgangWert = val('fVorgang') || '';
+    let vorgang_typ = null, vorgang_id = null;
+    if(vorgangWert.startsWith('wartung:')) { vorgang_typ = 'wartungsposition'; vorgang_id = vorgangWert.slice(8); }
+    else if(vorgangWert.startsWith('wv:')) { vorgang_typ = 'wiedervorlage'; vorgang_id = vorgangWert.slice(3); }
     const reportData = {
       angebotsnr: val('fAngebotsnr') || null,
       bauvorhaben: val('fBauvorhaben') || null,
       kunde: val('fKunde') || null,
       techniker: val('fTechniker') || null,
-      wartungsposition_id: val('fWartungsposition') || null,
+      vorgang_typ,
+      vorgang_id,
+      wartungsposition_id: vorgang_typ === 'wartungsposition' ? vorgang_id : null,
       daten: {
         lieferanschrift: val('fLieferanschrift') || null,
         ansprechpartner: val('fAnsprechpartner') || null,
@@ -1185,14 +1201,16 @@ async function generateReport(){
         genStatus.textContent += ' — Achtung, Medien-Upload teilweise fehlgeschlagen: ' + medien.fehler.join('; ');
         genStatus.className = 'gen-status err';
       }
-      if(reportData.wartungsposition_id){
+      if(reportData.vorgang_typ && reportData.vorgang_id){
         genStatus.textContent += ' · Sende Trello-Rückmeldung …';
-        const trelloResult = await meldeWartungAnTrello({
-          wartungsposition_id: reportData.wartungsposition_id,
+        const trelloResult = await meldeVorgangAnTrello({
+          vorgang_typ: reportData.vorgang_typ,
+          vorgang_id: reportData.vorgang_id,
           techniker: reportData.techniker || '–',
           datum: val('fDatum') || null,
           notiz: reportData.daten.taetigkeit ? reportData.daten.taetigkeit.slice(0, 300) : null
         });
+        const vorgangLabel = reportData.vorgang_typ === 'wartungsposition' ? 'Die Wartungsposition' : 'Der Vorgang';
         // Egal welcher der drei möglichen Fälle eintritt, IMMER sichtbar machen —
         // vorher verschwand ein Netzwerkfehler (trelloResult.reason) komplett
         // lautlos, weil nur .trello und .warning geprüft wurden.
@@ -1201,11 +1219,11 @@ async function generateReport(){
         // weggetippt werden, verschwindet also nicht von selbst.
         if(trelloResult.trello){
           genStatus.textContent = genStatus.textContent.replace(' · Sende Trello-Rückmeldung …', '') + ' · Trello-Rückmeldung gesendet.';
-          alert('✅ Trello-Rückmeldung gesendet.\n\nDie Wartungsposition wurde aktualisiert und auf der Trello-Karte vermerkt.');
+          alert('✅ Trello-Rückmeldung gesendet.\n\n' + vorgangLabel + ' wurde aktualisiert und auf der Trello-Karte vermerkt.');
         } else if(trelloResult.warning){
-          genStatus.textContent = genStatus.textContent.replace(' · Sende Trello-Rückmeldung …', '') + ' · Wartung gespeichert, Trello-Rückmeldung nicht möglich.';
+          genStatus.textContent = genStatus.textContent.replace(' · Sende Trello-Rückmeldung …', '') + ' · gespeichert, Trello-Rückmeldung nicht möglich.';
           console.warn(trelloResult.warning);
-          alert('⚠️ Wartung wurde gespeichert, aber die Trello-Karte konnte nicht aktualisiert werden.\n\n' + trelloResult.warning);
+          alert('⚠️ ' + vorgangLabel + ' wurde gespeichert, aber die Trello-Karte konnte nicht aktualisiert werden.\n\n' + trelloResult.warning);
         } else {
           genStatus.textContent = genStatus.textContent.replace(' · Sende Trello-Rückmeldung …', '') + ' · Trello-Rückmeldung fehlgeschlagen: ' + (trelloResult.reason || trelloResult.error || 'unbekannter Fehler');
           console.error('Trello-Rückmeldung fehlgeschlagen:', trelloResult);
@@ -1474,18 +1492,27 @@ function autofillKontaktFuerBauvorhaben(){
   }
   if(eintrag.kunde_id){
     importierteKundeId = eintrag.kunde_id;
-    ladeWartungspositionenFuerKunde(eintrag.kunde_id);
+    ladeVorgaengeFuerKunde(eintrag.kunde_id);
   }
 }
 
-/* Lädt die offenen Wartungsverträge des Kunden ins Dropdown. vorauswahlId
-   kommt z.B. aus dem Link einer Trello-Karte und wird vorbelegt, sofern
-   sie zu den geladenen Verträgen des Kunden passt — der Techniker sieht
-   und bestätigt die Auswahl trotzdem im Formular, bevor er speichert. */
-async function ladeWartungspositionenFuerKunde(kundeId, vorauswahlId){
-  const sel = document.getElementById('fWartungsposition');
-  sel.innerHTML = '<option value="">– keine Wartungsposition / nicht zutreffend –</option>';
+/* Lädt sowohl offene Wartungspositionen als auch offene, an Trello
+   gesendete freie Wiedervorlagen (z.B. Reparaturen ohne Wartungsvertrag)
+   des Kunden in ein gemeinsames Dropdown. vorauswahlTyp/vorauswahlId
+   kommen z.B. aus dem Link einer Trello-Karte und werden vorbelegt,
+   sofern sie zu den geladenen Vorgängen des Kunden passen — der
+   Techniker sieht und bestätigt die Auswahl trotzdem im Formular,
+   bevor er speichert. Optionswert-Format: "wartung:<id>" bzw. "wv:<id>",
+   damit sich beim Speichern eindeutig zurückrechnen lässt, welche
+   Tabelle gemeint ist. */
+async function ladeVorgaengeFuerKunde(kundeId, vorauswahlTyp, vorauswahlId){
+  const sel = document.getElementById('fVorgang');
+  sel.innerHTML = '<option value="">– kein Vorgang / nicht zutreffend –</option>';
   if(!kundeId || !SUPABASE_CONFIGURED) return;
+
+  let wartungspositionen = [];
+  let wiedervorlagen = [];
+
   try{
     // Positionen hängen nicht direkt am Kunden, sondern über vertrag_id am
     // Wartungsvertrag (crm_wartungsplan) — gleiches zweistufiges Vorgehen wie im CRM.
@@ -1495,25 +1522,84 @@ async function ladeWartungspositionenFuerKunde(kundeId, vorauswahlId){
     );
     if(!vertragRes.ok) throw new Error('HTTP ' + vertragRes.status);
     const vertraege = await vertragRes.json();
-    if(!vertraege.length) return;
-    const vertragIds = vertraege.map(v => v.id).join(',');
-
-    const posRes = await fetch(
-      `${SUPABASE_URL}/rest/v1/crm_wartungspositionen?vertrag_id=in.(${vertragIds})&select=id,bezeichnung,intervall_monate,letzte_wartung&order=bezeichnung`,
-      { headers: supabaseHeaders() }
-    );
-    if(!posRes.ok) throw new Error('HTTP ' + posRes.status);
-    const rows = await posRes.json();
-    rows.forEach(r => {
-      const opt = document.createElement('option');
-      opt.value = r.id;
-      const letzte = r.letzte_wartung ? ` · zuletzt ${r.letzte_wartung}` : '';
-      opt.textContent = `${r.bezeichnung || 'Wartungsposition'} · alle ${r.intervall_monate} Mon.${letzte}`;
-      sel.appendChild(opt);
-    });
-    if(vorauswahlId && rows.some(r => r.id === vorauswahlId)) sel.value = vorauswahlId;
+    if(vertraege.length){
+      const vertragIds = vertraege.map(v => v.id).join(',');
+      const posRes = await fetch(
+        `${SUPABASE_URL}/rest/v1/crm_wartungspositionen?vertrag_id=in.(${vertragIds})&select=id,bezeichnung,intervall_monate,letzte_wartung&order=bezeichnung`,
+        { headers: supabaseHeaders() }
+      );
+      if(!posRes.ok) throw new Error('HTTP ' + posRes.status);
+      wartungspositionen = await posRes.json();
+    }
   } catch(err){
     console.error('Wartungspositionen konnten nicht geladen werden:', err);
+  }
+
+  try{
+    // Freie Wiedervorlagen können direkt kunde_id gesetzt haben, oder nur
+    // kontakt_id (verweist über kontakte.kunde_id auf den Kunden) — beide
+    // Fälle kommen in der Praxis vor, also beide abfragen und zusammenführen.
+    // Nur offene (nicht erledigte), an Trello gesendete Wiedervorlagen ohne
+    // Wartungsposition-Bezug sind hier relevant — die anderen laufen über
+    // den Wartungspositionen-Zweig oben.
+    const direktRes = await fetch(
+      `${SUPABASE_URL}/rest/v1/crm_wiedervorlagen?kunde_id=eq.${kundeId}&wartungsposition_id=is.null&erledigt=eq.false&trello_card_id=not.is.null&select=id,titel,faellig_am&order=faellig_am`,
+      { headers: supabaseHeaders() }
+    );
+    if(!direktRes.ok) throw new Error('HTTP ' + direktRes.status);
+    wiedervorlagen = await direktRes.json();
+
+    const kontakteRes = await fetch(
+      `${SUPABASE_URL}/rest/v1/kontakte?kunde_id=eq.${kundeId}&select=id`,
+      { headers: supabaseHeaders() }
+    );
+    if(kontakteRes.ok){
+      const kontakte = await kontakteRes.json();
+      if(kontakte.length){
+        const kontaktIds = kontakte.map(k => k.id).join(',');
+        const ueberKontaktRes = await fetch(
+          `${SUPABASE_URL}/rest/v1/crm_wiedervorlagen?kontakt_id=in.(${kontaktIds})&wartungsposition_id=is.null&erledigt=eq.false&trello_card_id=not.is.null&select=id,titel,faellig_am&order=faellig_am`,
+          { headers: supabaseHeaders() }
+        );
+        if(ueberKontaktRes.ok){
+          const ueberKontakt = await ueberKontaktRes.json();
+          const bekannteIds = new Set(wiedervorlagen.map(w => w.id));
+          ueberKontakt.forEach(w => { if(!bekannteIds.has(w.id)) wiedervorlagen.push(w); });
+        }
+      }
+    }
+  } catch(err){
+    console.error('Wiedervorlagen konnten nicht geladen werden:', err);
+  }
+
+  if(wartungspositionen.length){
+    const grp = document.createElement('optgroup');
+    grp.label = 'Wartungspositionen';
+    wartungspositionen.forEach(r => {
+      const opt = document.createElement('option');
+      opt.value = 'wartung:' + r.id;
+      const letzte = r.letzte_wartung ? ` · zuletzt ${r.letzte_wartung}` : '';
+      opt.textContent = `${r.bezeichnung || 'Wartungsposition'} · alle ${r.intervall_monate} Mon.${letzte}`;
+      grp.appendChild(opt);
+    });
+    sel.appendChild(grp);
+  }
+  if(wiedervorlagen.length){
+    const grp = document.createElement('optgroup');
+    grp.label = 'Freie Wiedervorlagen';
+    wiedervorlagen.forEach(w => {
+      const opt = document.createElement('option');
+      opt.value = 'wv:' + w.id;
+      const faellig = w.faellig_am ? ` · fällig ${w.faellig_am}` : '';
+      opt.textContent = `${w.titel || 'Wiedervorlage'}${faellig}`;
+      grp.appendChild(opt);
+    });
+    sel.appendChild(grp);
+  }
+
+  if(vorauswahlTyp && vorauswahlId){
+    const wert = (vorauswahlTyp === 'wartungsposition' ? 'wartung:' : 'wv:') + vorauswahlId;
+    if([...sel.options].some(o => o.value === wert)) sel.value = wert;
   }
 }
 
@@ -1523,7 +1609,7 @@ document.getElementById('fTelefon').addEventListener('blur', upsertKontakt);
 document.getElementById('fKunde').addEventListener('blur', () => {
   const kunde = document.getElementById('fKunde').value.trim();
   const kundeId = importierteKundeId || kundenNameZuId[normText(kunde)] || null;
-  ladeWartungspositionenFuerKunde(kundeId);
+  ladeVorgaengeFuerKunde(kundeId);
 });
 
 /* ---------- E-Mail-Format-Validierung ---------- */
@@ -1655,10 +1741,12 @@ async function sendeBerichtAnServer(reportData){
 }
 
 /* Best effort: Kommentar + "erledigt"-Häkchen (dueComplete) auf der
-   verknüpften Trello-Karte. Der Arbeitsbericht ist zu diesem Zeitpunkt
-   schon sicher gespeichert — schlägt dieser Aufruf fehl, bleibt
-   trotzdem alles Wichtige erhalten. */
-async function meldeWartungAnTrello(payload){
+   verknüpften Trello-Karte — für beide Vorgangstypen (Wartungsposition
+   oder freie Wiedervorlage), die Edge Function unterscheidet intern
+   über vorgang_typ. Der Arbeitsbericht ist zu diesem Zeitpunkt schon
+   sicher gespeichert — schlägt dieser Aufruf fehl, bleibt trotzdem
+   alles Wichtige erhalten. */
+async function meldeVorgangAnTrello(payload){
   if(!SUPABASE_CONFIGURED) return { ok: false, reason: 'not-configured' };
   try{
     const res = await fetch(`${SUPABASE_URL}/functions/v1/trello-wartung-abschliessen`, {

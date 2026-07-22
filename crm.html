@@ -1404,6 +1404,17 @@ async function wvAnTrelloAusfuehren(wvId, gewaehlteBauvorhabenId){
   if(email) berichtParams.set('email', email);
   if(hinweisText) berichtParams.set('hinweis', hinweisText);
   if(ku?.id) berichtParams.set('kunde_id', ku.id);
+  // Vorgangs-Bezug für die Vorauswahl im vereinheitlichten Dropdown im
+  // Arbeitsbericht — vorher wurde das hier gar nicht mitgegeben, obwohl
+  // arbeitsbericht.html es schon lesen konnte (Techniker musste immer
+  // manuell nachwählen, auch wenn der Bezug längst feststand).
+  if(w.wartungsposition_id){
+    berichtParams.set('vorgang_typ', 'wartungsposition');
+    berichtParams.set('vorgang_id', w.wartungsposition_id);
+  } else {
+    berichtParams.set('vorgang_typ', 'wiedervorlage');
+    berichtParams.set('vorgang_id', wvId);
+  }
   // Klammern werden von encodeURIComponent nicht escaped, könnten aber ein
   // Markdown-Link vorzeitig beenden — zur Sicherheit selbst kodieren.
   const berichtQuery = berichtParams.toString().replace(/\(/g, '%28').replace(/\)/g, '%29');
@@ -1447,16 +1458,23 @@ async function wvAnTrelloAusfuehren(wvId, gewaehlteBauvorhabenId){
     if(!res.ok) throw new Error(data.error || ('HTTP ' + res.status));
     await sb(`${KONFIG.TAB_WV}?id=eq.${wvId}`, { method:'PATCH',
       body: JSON.stringify({ an_trello_gesendet_am: new Date().toISOString() }) });
-    // Stammt die Wiedervorlage aus einer Wartungsposition, Karten-ID dort
-    // hinterlegen — der Arbeitsbericht schreibt später über diese ID die
-    // Rückmeldung (Kommentar + grünes Label) auf genau diese Karte.
+    // Karten-ID dort hinterlegen, wo der Arbeitsbericht sie später wieder
+    // findet — bei Wartungsposition wie bisher auf crm_wartungspositionen,
+    // bei freien Wiedervorlagen (z.B. Reparaturen) jetzt neu auf
+    // crm_wiedervorlagen selbst, damit auch die automatisch zurückgemeldet
+    // werden können.
     // ACHTUNG: data.id passt zum Standard-Rückgabeformat der Trello-API
     // (POST /1/cards liefert die neue Karte inkl. id). Falls eure
     // create-trello-card-Function das Ergebnis anders verpackt (z.B.
     // { card: {...} }), hier entsprechend anpassen.
-    if(w.wartungsposition_id && data.id){
-      await sb(`crm_wartungspositionen?id=eq.${w.wartungsposition_id}`, { method:'PATCH',
-        body: JSON.stringify({ trello_card_id: data.id }) });
+    if(data.id){
+      if(w.wartungsposition_id){
+        await sb(`crm_wartungspositionen?id=eq.${w.wartungsposition_id}`, { method:'PATCH',
+          body: JSON.stringify({ trello_card_id: data.id }) });
+      } else {
+        await sb(`${KONFIG.TAB_WV}?id=eq.${wvId}`, { method:'PATCH',
+          body: JSON.stringify({ trello_card_id: data.id }) });
+      }
     }
     cache.wv = null;
     toast('Trello-Karte angelegt ✓');
