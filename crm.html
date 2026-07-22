@@ -2103,6 +2103,8 @@ async function zeigMaterialAusw(){
   renderMaterial();
 }
 
+function fmtMenge(v){ return (Math.round(v * 100) / 100).toString().replace('.', ','); }
+let matListeAktuell = []; // letzte gerenderte Materialliste, für exportMaterialCsv()
 function renderMaterial(){
   const ziel = $('#matErgebnis'); if(!ziel) return;
   let von, bis;
@@ -2144,7 +2146,7 @@ function renderMaterial(){
   }
   const matListe = Object.values(mat).sort((a, z) => z.summe - a.summe || z.n - a.n);
   const matMax = Math.max(...matListe.map(m => m.summe), 1);
-  const fmtMenge = v => (Math.round(v * 100) / 100).toString().replace('.', ',');
+  matListeAktuell = matListe; // für exportMaterialCsv()
 
   // --- Artikel aus CRM-Aktivitäten ---
   const art = {};
@@ -2159,6 +2161,9 @@ function renderMaterial(){
   const artListe = Object.values(art).sort((a, z) => z.n - a.n);
 
   ziel.innerHTML = `
+    <div style="display:flex;justify-content:flex-end;margin:-2px 2px 6px">
+      <button class="stn-chip" onclick="exportMaterialCsv()">⬇️ Als CSV exportieren</button>
+    </div>
     <div class="ausw-abschnitt">Verbautes Material aus Arbeitsberichten
       <span class="ausw-sub">${berichteMit} Berichte mit Material · Mengen summiert (ältere Berichte ohne Menge zählen 1)</span></div>
     ${matListe.length ? matListe.map(m => `
@@ -2183,6 +2188,30 @@ function renderMaterial(){
       </div>`
       : '<div class="leer">Keine Artikel an Aktivitäten im Zeitraum.</div>'}`;
   setStatus(true, matListe.length + ' Materialpositionen');
+}
+
+/* CSV-Export der aktuell angezeigten Materialliste (gleicher Zeitraum wie
+   die Ansicht) — Semikolon-getrennt, mit BOM, damit Excel (auch die
+   deutsche Version mit Komma als Dezimaltrennzeichen) die Datei ohne
+   Umweg über den Import-Assistenten richtig öffnet. Dient zum Abgleich
+   mit einer eigenen Preisliste außerhalb der Suite (siehe echte
+   Materialkosten-Auswertung — noch nicht in der Suite selbst). */
+function exportMaterialCsv(){
+  if(!matListeAktuell.length){ toast('Kein Material im Zeitraum zum Exportieren.'); return; }
+  const zeilen = [['Artikel', 'Menge gesamt', 'Einsätze', 'Zuletzt verbaut']];
+  matListeAktuell.forEach(m => {
+    zeilen.push([m.label, fmtMenge(m.summe), String(m.n), m.zuletzt ? fmtTag(m.zuletzt) : '']);
+  });
+  const csvEsc = v => /[;"\n]/.test(v) ? '"' + v.replace(/"/g, '""') + '"' : v;
+  const csv = zeilen.map(z => z.map(csvEsc).join(';')).join('\r\n');
+  const blob = new Blob(['\uFEFF' + csv], { type: 'text/csv;charset=utf-8;' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `Ersatzteile_${new Date().toISOString().slice(0, 10)}.csv`;
+  document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
+  toast('CSV exportiert ✓');
 }
 
 /* ================= ANSICHT: STUNDEN-AUSWERTUNG ================= */
