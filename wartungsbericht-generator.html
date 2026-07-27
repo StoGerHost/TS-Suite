@@ -1,0 +1,503 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Wartungsbericht-Generator</title>
+<style>
+  :root{
+    --ink:#1b1e1c;
+    --paper:#f6f5f1;
+    --paper-raised:#ffffff;
+    --line:#d8d6ce;
+    --ok:#2f6b46;
+    --ok-bg:#e6efe8;
+    --bad:#a4321f;
+    --bad-bg:#f6e6e2;
+    --accent:#1f4e5f;
+    --accent-bg:#e4ecee;
+    --muted:#6b6a63;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0;
+    background:var(--paper);
+    color:var(--ink);
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+    line-height:1.4;
+    -webkit-font-smoothing:antialiased;
+  }
+  .mono{font-family:"SFMono-Regular",Consolas,"Liberation Mono",Menlo,monospace;}
+  header{
+    padding:20px 16px 16px;
+    border-bottom:3px solid var(--ink);
+    background:var(--paper-raised);
+  }
+  header h1{
+    margin:0 0 2px;
+    font-size:19px;
+    letter-spacing:.2px;
+  }
+  header .sub{
+    font-size:12.5px;
+    color:var(--muted);
+    text-transform:uppercase;
+    letter-spacing:.6px;
+  }
+  main{max-width:720px;margin:0 auto;padding:16px 16px 100px;}
+  section{margin-bottom:22px;}
+  .card{
+    background:var(--paper-raised);
+    border:1px solid var(--line);
+    border-radius:10px;
+    padding:14px;
+  }
+  .field-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+  .field-grid .full{grid-column:1/-1;}
+  label{
+    display:block;
+    font-size:11px;
+    text-transform:uppercase;
+    letter-spacing:.5px;
+    color:var(--muted);
+    margin-bottom:4px;
+  }
+  input[type=text],input[type=date],textarea,select{
+    width:100%;
+    padding:9px 10px;
+    border:1px solid var(--line);
+    border-radius:7px;
+    font-size:15px;
+    font-family:inherit;
+    background:#fff;
+    color:var(--ink);
+  }
+  textarea{resize:vertical;min-height:52px;}
+
+  .step-eyebrow{
+    font-size:11px;
+    text-transform:uppercase;
+    letter-spacing:.8px;
+    color:var(--muted);
+    margin-bottom:6px;
+    display:flex;
+    align-items:center;
+    gap:8px;
+  }
+  .step-eyebrow .n{
+    width:18px;height:18px;
+    border-radius:50%;
+    background:var(--ink);
+    color:var(--paper);
+    display:inline-flex;align-items:center;justify-content:center;
+    font-size:10px;
+  }
+  h2{font-size:15px;margin:0 0 10px;}
+
+  .anlagen-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+  .anlage-toggle{
+    border:1.5px solid var(--line);
+    border-radius:10px;
+    padding:12px 10px;
+    background:#fff;
+    cursor:pointer;
+    user-select:none;
+    transition:border-color .12s, background .12s;
+  }
+  .anlage-toggle .name{font-size:14px;font-weight:600;}
+  .anlage-toggle .norm{font-size:11px;color:var(--muted);margin-top:2px;}
+  .anlage-toggle.active{
+    border-color:var(--accent);
+    background:var(--accent-bg);
+  }
+
+  .block-title{
+    display:flex;
+    justify-content:space-between;
+    align-items:baseline;
+    margin:22px 0 8px;
+    padding-bottom:6px;
+    border-bottom:1.5px solid var(--ink);
+  }
+  .block-title .name{font-size:15px;font-weight:700;}
+  .block-title .norm-tag{
+    font-size:10.5px;
+    padding:2px 7px;
+    border-radius:999px;
+    background:var(--accent-bg);
+    color:var(--accent);
+  }
+
+  .point{
+    border:1px solid var(--line);
+    border-radius:9px;
+    padding:11px 12px;
+    margin-bottom:8px;
+    background:#fff;
+  }
+  .point .txt{font-size:14.5px;margin-bottom:4px;}
+  .hint{
+    font-size:12px;
+    color:var(--muted);
+    font-style:italic;
+    margin-bottom:9px;
+    line-height:1.35;
+  }
+  .toggle-row{display:flex;gap:8px;}
+  .toggle-btn{
+    flex:1;
+    padding:9px 0;
+    border-radius:7px;
+    border:1.5px solid var(--line);
+    background:#fafaf8;
+    font-size:13px;
+    font-weight:600;
+    text-align:center;
+    cursor:pointer;
+  }
+  .toggle-btn.ok.sel{border-color:var(--ok);background:var(--ok-bg);color:var(--ok);}
+  .toggle-btn.bad.sel{border-color:var(--bad);background:var(--bad-bg);color:var(--bad);}
+  .toggle-btn.na.sel{border-color:var(--muted);background:#ecebe6;color:var(--ink);}
+  .note-wrap{margin-top:8px;display:none;}
+  .note-wrap.show{display:block;}
+  .note-wrap textarea{border-color:var(--line);}
+
+  .summary-bar{
+    position:fixed;bottom:0;left:0;right:0;
+    background:var(--paper-raised);
+    border-top:2px solid var(--ink);
+    padding:10px 16px;
+    display:flex;
+    gap:10px;
+    align-items:center;
+  }
+  .summary-bar .status{font-size:12.5px;color:var(--muted);flex:1;}
+  .summary-bar .status b{color:var(--ink);}
+  .gen-btn{
+    background:var(--ink);
+    color:var(--paper);
+    border:none;
+    padding:12px 18px;
+    border-radius:8px;
+    font-size:14px;
+    font-weight:700;
+    cursor:pointer;
+  }
+  .gen-btn:disabled{opacity:.4;}
+
+  .output-wrap{display:none;margin-top:20px;}
+  .output-wrap.show{display:block;}
+  .output-head{
+    display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;
+  }
+  .copy-btn{
+    background:var(--accent);color:#fff;border:none;
+    padding:8px 14px;border-radius:7px;font-size:13px;font-weight:600;cursor:pointer;
+  }
+  pre.report{
+    white-space:pre-wrap;
+    background:var(--paper-raised);
+    border:1px solid var(--line);
+    border-radius:10px;
+    padding:16px;
+    font-size:13.5px;
+    line-height:1.55;
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>Wartungsbericht-Generator</h1>
+  <div class="sub">Prüfpunkte nach Norm · ohne KI · lokal im Browser</div>
+</header>
+
+<main>
+
+  <section>
+    <div class="step-eyebrow"><span class="n">1</span> Anlagentyp(en) auswählen — kombinierbar</div>
+    <div class="anlagen-grid" id="anlagen-grid"></div>
+  </section>
+
+  <section id="checkliste-section" style="display:none;">
+    <div class="step-eyebrow"><span class="n">2</span> Prüfpunkte</div>
+    <div id="checkliste"></div>
+  </section>
+
+  <div class="output-wrap" id="output-wrap">
+    <div class="output-head">
+      <h2 style="margin:0;">Generierter Bericht</h2>
+      <button class="copy-btn" id="copy-btn">Text kopieren</button>
+    </div>
+    <pre class="report" id="report-text"></pre>
+  </div>
+
+</main>
+
+<div class="summary-bar">
+  <div class="status" id="status-text">Wähle mindestens einen Anlagentyp.</div>
+  <button class="gen-btn" id="gen-btn" disabled>Bericht erstellen</button>
+</div>
+
+<script>
+// ---------- Datenmodell: modulare Prüfpunkt-Blöcke ----------
+// Jeder Punkt: { text, hint } — hint = bekannte Ausnahme/Bedingung lt. Norm, optional
+const ANLAGEN = {
+  drehtuer: {
+    name: "Drehtürantrieb (automatisch)",
+    norm: "EN 16005 / DIN 18650-1,2 / ASR A1.7",
+    points: [
+      { text: "Sichtprüfung Türblatt und Rahmen auf Beschädigungen" },
+      { text: "Funktionsprüfung Öffnungs- und Schließbewegung" },
+      { text: "Prüfung Sicherheitssensoren (Haupt- und Nebenschließkante)" },
+      { text: "Prüfung Kraftbegrenzung / Einklemmschutz" },
+      { text: "Prüfung Notöffnung bzw. Fluchtwegfunktion",
+        hint: "Nur erforderlich, wenn die Tür Teil eines Flucht-/Rettungswegs ist." },
+      { text: "Prüfung Verriegelung und Betriebswahlschalter (Tag/Nacht/Aus)",
+        hint: "Nur erforderlich, wenn die Anlage über eine verriegelbare Betriebsart verfügt." },
+      { text: "Schmierung und Sichtprüfung Verschleißteile (Rollen, Führung, Lager)" },
+      { text: "Prüfung elektrischer Anschlüsse und Steuerung" },
+      { text: "Kennzeichnung / Piktogramme vorhanden und lesbar" },
+      { text: "Prüfbuch-Eintrag aktualisiert" }
+    ]
+  },
+  schiebetuer: {
+    name: "Schiebetürantrieb (automatisch)",
+    norm: "EN 16005 / DIN 18650-1,2 / ASR A1.7 / AutSchR (Rettungsweg)",
+    points: [
+      { text: "Sichtprüfung Laufschienen und Türflügel" },
+      { text: "Funktionsprüfung Öffnungs- und Schließbewegung inkl. Endlagen" },
+      { text: "Prüfung Sicherheitssensoren (Bewegungsmelder, Schließkanten)" },
+      { text: "Prüfung Kraftbegrenzung / Einklemmschutz" },
+      { text: "Prüfung Fluchtwegfunktion / Notentriegelung",
+        hint: "Nur erforderlich, wenn die Tür Teil eines Flucht-/Rettungswegs ist (AutSchR)." },
+      { text: "Prüfung Verriegelung und Betriebswahlschalter (Tag/Nacht/Aus)",
+        hint: "Nur erforderlich, wenn die Anlage über eine verriegelbare Betriebsart verfügt." },
+      { text: "Schmierung Laufwagen, Rollen, Führungsschienen" },
+      { text: "Prüfung elektrischer Anschlüsse und Steuerung" },
+      { text: "Kennzeichnung / Piktogramme vorhanden und lesbar" },
+      { text: "Prüfbuch-Eintrag aktualisiert" }
+    ]
+  },
+  feststellanlage: {
+    name: "Feststellanlage",
+    norm: "DIN 14677-1,2",
+    points: [
+      { text: "Sichtprüfung Feststellvorrichtung (Magnet/Ankerplatte oder Türschließer mit Feststellung)" },
+      { text: "Funktionsprüfung Auslösung über Rauchschalter/Brandmelder" },
+      { text: "Funktionsprüfung Handauslösetaster",
+        hint: "Entfällt, wenn die Feststellung bereits durch geringen Druck auf das Türblatt aufgehoben werden kann (z.B. Freilauftürschließer/Haftmagnet-Ausführung)." },
+      { text: "Prüfung Schließfolge und vollständiges Schließen des Türblatts" },
+      { text: "Prüfung Stromversorgung / Netzgerät / Notstromfunktion" },
+      { text: "Prüfung Ankopplung Brandmeldeanlage",
+        hint: "Nur bei Feststellanlage Typ 2/4 (Anbindung an BMA); entfällt bei Typ 1/3 (autarke Anlage)." },
+      { text: "Sichtprüfung Schließbereich auf Fremdkörper/Blockaden" },
+      { text: "Prüfbuch-Eintrag der Feststellanlage aktualisiert" }
+    ]
+  },
+  brandschutztuer: {
+    name: "Brandschutztür (baulich)",
+    norm: "DIBt-Zulassung / Feuerwiderstandsklasse",
+    points: [
+      { text: "Sichtprüfung Türblatt, Zarge und Dichtungen auf Beschädigung" },
+      { text: "Prüfung Selbstschließer / vollständiges, dichtes Schließen" },
+      { text: "Prüfung Kennzeichnungsschild (CE, Feuerwiderstandsklasse) vorhanden und lesbar" },
+      { text: "Prüfung auf unzulässige Veränderungen (Bohrungen, Anbauten, Keile)" },
+      { text: "Prüfung Brand-/Rauchschutzdichtungen auf Vollständigkeit" },
+      { text: "Freihaltung des Schließbereichs geprüft" },
+      { text: "Prüfbuch-Eintrag aktualisiert" }
+    ]
+  }
+};
+
+const state = {
+  selectedTypes: new Set(),
+  results: {} // key: "typeKey|pointIndex" -> {status:'ok'|'bad'|'na', note:''}
+};
+
+// ---------- Anlagen-Auswahl rendern ----------
+const grid = document.getElementById('anlagen-grid');
+Object.entries(ANLAGEN).forEach(([key, a]) => {
+  const div = document.createElement('div');
+  div.className = 'anlage-toggle';
+  div.dataset.key = key;
+  div.innerHTML = `<div class="name">${a.name}</div><div class="norm mono">${a.norm}</div>`;
+  div.addEventListener('click', () => toggleAnlage(key, div));
+  grid.appendChild(div);
+});
+
+function toggleAnlage(key, el) {
+  if (state.selectedTypes.has(key)) {
+    state.selectedTypes.delete(key);
+    el.classList.remove('active');
+  } else {
+    state.selectedTypes.add(key);
+    el.classList.add('active');
+  }
+  renderChecklist();
+}
+
+// ---------- Checkliste rendern ----------
+const checklisteSection = document.getElementById('checkliste-section');
+const checklisteEl = document.getElementById('checkliste');
+
+function renderChecklist() {
+  checklisteEl.innerHTML = '';
+  if (state.selectedTypes.size === 0) {
+    checklisteSection.style.display = 'none';
+    updateStatus();
+    return;
+  }
+  checklisteSection.style.display = 'block';
+
+  state.selectedTypes.forEach(typeKey => {
+    const a = ANLAGEN[typeKey];
+    const blockTitle = document.createElement('div');
+    blockTitle.className = 'block-title';
+    blockTitle.innerHTML = `<span class="name">${a.name}</span><span class="norm-tag mono">${a.norm}</span>`;
+    checklisteEl.appendChild(blockTitle);
+
+    a.points.forEach((point, idx) => {
+      const rk = `${typeKey}|${idx}`;
+      if (!state.results[rk]) state.results[rk] = { status: null, note: '' };
+
+      const hintHtml = point.hint
+        ? `<div class="hint">${point.hint}</div>`
+        : '';
+
+      const pointEl = document.createElement('div');
+      pointEl.className = 'point';
+      pointEl.innerHTML = `
+        <div class="txt">${point.text}</div>
+        ${hintHtml}
+        <div class="toggle-row">
+          <div class="toggle-btn ok" data-rk="${rk}" data-val="ok">OK</div>
+          <div class="toggle-btn bad" data-rk="${rk}" data-val="bad">Nicht OK</div>
+          <div class="toggle-btn na" data-rk="${rk}" data-val="na">Entfällt</div>
+        </div>
+        <div class="note-wrap" data-rk-note="${rk}">
+          <label data-label-for="${rk}">Mangel / Anmerkung</label>
+          <textarea placeholder="Kurz beschreiben..."></textarea>
+        </div>
+      `;
+      checklisteEl.appendChild(pointEl);
+    });
+  });
+
+  // Listener für Toggle-Buttons
+  checklisteEl.querySelectorAll('.toggle-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const rk = btn.dataset.rk;
+      const val = btn.dataset.val;
+      state.results[rk].status = val;
+
+      const parent = btn.closest('.point');
+      parent.querySelectorAll('.toggle-btn').forEach(b => b.classList.remove('sel'));
+      btn.classList.add('sel');
+
+      const noteWrap = parent.querySelector('.note-wrap');
+      const label = parent.querySelector(`[data-label-for="${rk}"]`);
+      const textarea = noteWrap.querySelector('textarea');
+
+      if (val === 'bad') {
+        noteWrap.classList.add('show');
+        label.textContent = 'Mangel / Anmerkung';
+        textarea.placeholder = 'Kurz beschreiben, was festgestellt wurde...';
+      } else if (val === 'na') {
+        noteWrap.classList.add('show');
+        label.textContent = 'Begründung (optional)';
+        textarea.placeholder = 'z.B. nicht verbaut / laut Bauartgenehmigung nicht erforderlich...';
+      } else {
+        noteWrap.classList.remove('show');
+        state.results[rk].note = '';
+        textarea.value = '';
+      }
+      updateStatus();
+    });
+  });
+
+  checklisteEl.querySelectorAll('.note-wrap textarea').forEach(ta => {
+    ta.addEventListener('input', (e) => {
+      const rk = e.target.closest('.note-wrap').dataset.rkNote;
+      state.results[rk].note = e.target.value;
+    });
+  });
+
+  updateStatus();
+}
+
+// ---------- Status / Fortschritt ----------
+const statusText = document.getElementById('status-text');
+const genBtn = document.getElementById('gen-btn');
+
+function updateStatus() {
+  const totalPoints = [...state.selectedTypes].reduce((sum, k) => sum + ANLAGEN[k].points.length, 0);
+  const relevantAnswered = [...state.selectedTypes].reduce((sum, k) => {
+    return sum + ANLAGEN[k].points.filter((_, idx) => state.results[`${k}|${idx}`]?.status !== null).length;
+  }, 0);
+
+  if (state.selectedTypes.size === 0) {
+    statusText.innerHTML = 'Wähle mindestens einen Anlagentyp.';
+    genBtn.disabled = true;
+    return;
+  }
+  statusText.innerHTML = `<b>${relevantAnswered}/${totalPoints}</b> Prüfpunkte erfasst`;
+  genBtn.disabled = relevantAnswered === 0;
+}
+
+// ---------- Berichtstext generieren ----------
+genBtn.addEventListener('click', generateReport);
+
+function generateReport() {
+  let lines = [];
+  let maengelListe = [];
+
+  state.selectedTypes.forEach(typeKey => {
+    const a = ANLAGEN[typeKey];
+    lines.push(`${a.name}:`);
+
+    a.points.forEach((point, idx) => {
+      const r = state.results[`${typeKey}|${idx}`];
+      if (!r || r.status === null) return;
+
+      if (r.status === 'ok') {
+        lines.push(`- ${point.text}: OK`);
+      } else if (r.status === 'na') {
+        const note = r.note?.trim();
+        lines.push(`- ${point.text}: entfällt${note ? ' — ' + note : ''}`);
+      } else {
+        const note = r.note?.trim() || 'ohne weitere Anmerkung';
+        lines.push(`- ${point.text}: NICHT OK — ${note}`);
+        maengelListe.push(`${point.text} — ${note}`);
+      }
+    });
+    lines.push('');
+  });
+
+  if (maengelListe.length === 0) {
+    lines.push('Ergebnis: keine Mängel festgestellt, Anlage(n) betriebsbereit.');
+  } else {
+    lines.push(`Ergebnis: ${maengelListe.length} Mangel/Mängel festgestellt, Nachbesserung erforderlich.`);
+  }
+
+  const reportText = lines.join('\n').trim();
+  document.getElementById('report-text').textContent = reportText;
+  document.getElementById('output-wrap').classList.add('show');
+  document.getElementById('output-wrap').scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
+// ---------- Kopieren ----------
+document.getElementById('copy-btn').addEventListener('click', () => {
+  const text = document.getElementById('report-text').textContent;
+  navigator.clipboard.writeText(text).then(() => {
+    const btn = document.getElementById('copy-btn');
+    const old = btn.textContent;
+    btn.textContent = 'Kopiert ✓';
+    setTimeout(() => btn.textContent = old, 1500);
+  });
+});
+
+</script>
+
+</body>
+</html>
