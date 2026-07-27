@@ -196,6 +196,29 @@
   .wg-anlage .norm{font-family:"IBM Plex Mono",monospace;font-size:10.5px;color:var(--muted);margin-top:3px;}
   .wg-anlage.active{border-color:var(--blue); background:rgba(74,144,184,0.12);}
 
+  .wg-instance{
+    border:1px solid var(--line); border-radius:var(--radius);
+    background:var(--panel-2); margin-bottom:16px; overflow:hidden;
+  }
+  .wg-instance-header{
+    display:flex; align-items:center; gap:8px; padding:10px 10px;
+    border-bottom:1px solid var(--line); background:var(--panel);
+  }
+  .wg-instance-label{
+    flex:1; background:transparent; border:none; color:var(--amber);
+    font-family:"IBM Plex Mono",monospace; font-size:13px; font-weight:600;
+    padding:4px 2px; border-bottom:1px dashed var(--line);
+  }
+  .wg-instance-label:focus{outline:none; border-bottom-color:var(--blue);}
+  .wg-instance-norm{font-family:"IBM Plex Mono",monospace;font-size:10px;color:var(--muted);white-space:nowrap;}
+  .wg-instance-toggle, .wg-instance-remove{
+    background:transparent; border:1px solid var(--line); color:var(--muted);
+    width:28px; height:28px; border-radius:var(--radius); cursor:pointer; font-size:14px; flex-shrink:0;
+  }
+  .wg-instance-remove:hover{border-color:var(--danger); color:var(--danger);}
+  .wg-instance-body{padding:12px 10px;}
+  .wg-instance-body.collapsed{display:none;}
+
   .wg-block-title{
     display:flex; justify-content:space-between; align-items:baseline;
     margin:20px 0 8px; padding-bottom:6px; border-bottom:1px solid var(--line);
@@ -464,17 +487,17 @@
     </div>
 
     <div style="padding:16px 18px 120px;max-width:640px;margin:0 auto;width:100%;">
-      <div style="font-size:12px;color:var(--muted);margin-bottom:12px;letter-spacing:.03em;">Anlagentyp(en) wählen — kombinierbar</div>
+      <div style="font-size:12px;color:var(--muted);margin-bottom:12px;letter-spacing:.03em;">Anlage hinzufügen — auch mehrfach (z.B. mehrere Drehtüren)</div>
       <div id="wgAnlagenGrid" style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:20px;"></div>
 
-      <div id="wgChecklisteWrap" style="display:none;">
-        <div id="wgChecklist"></div>
+      <div id="wgInstancesWrap" style="display:none;">
+        <div id="wgInstances"></div>
       </div>
     </div>
 
     <div style="position:sticky;bottom:0;background:linear-gradient(transparent, var(--bg) 35%);padding:14px 18px 20px;">
       <div style="max-width:640px;margin:0 auto;display:flex;gap:8px;align-items:center;">
-        <div id="wgStatus" style="flex:1;font-size:12px;color:var(--muted);">Wähle mindestens einen Anlagentyp.</div>
+        <div id="wgStatus" style="flex:1;font-size:12px;color:var(--muted);">Füge mindestens eine Anlage hinzu.</div>
         <button type="button" class="add-btn" id="wgApply" style="text-align:center;" disabled>In Bericht übernehmen</button>
       </div>
     </div>
@@ -2090,14 +2113,15 @@ const WG_ANLAGEN = {
 };
 
 const wgState = {
-  selectedTypes: new Set(),
-  results: {} // "typeKey|idx" -> {status:'ok'|'bad'|'na', note:''}
+  instances: [], // {id, typeKey, label, results:{idx:{status,note}}, collapsed:false}
+  counters: {}   // typeKey -> laufende Nummer für Default-Label
 };
+let wgIdSeq = 1;
 
 const wgModal = document.getElementById('wartungModal');
 const wgGrid = document.getElementById('wgAnlagenGrid');
-const wgChecklisteWrap = document.getElementById('wgChecklisteWrap');
-const wgChecklist = document.getElementById('wgChecklist');
+const wgInstancesWrap = document.getElementById('wgInstancesWrap');
+const wgInstancesEl = document.getElementById('wgInstances');
 const wgStatusEl = document.getElementById('wgStatus');
 const wgApplyBtn = document.getElementById('wgApply');
 
@@ -2105,42 +2129,57 @@ Object.entries(WG_ANLAGEN).forEach(([key, a]) => {
   const div = document.createElement('div');
   div.className = 'wg-anlage';
   div.dataset.key = key;
-  div.innerHTML = `<div class="name">${a.name}</div><div class="norm">${a.norm}</div>`;
-  div.addEventListener('click', () => wgToggleAnlage(key, div));
+  div.innerHTML = `<div class="name">+ ${a.name}</div><div class="norm">${a.norm}</div>`;
+  div.addEventListener('click', () => wgAddInstance(key));
   wgGrid.appendChild(div);
 });
 
-function wgToggleAnlage(key, el){
-  if(wgState.selectedTypes.has(key)){
-    wgState.selectedTypes.delete(key);
-    el.classList.remove('active');
-  } else {
-    wgState.selectedTypes.add(key);
-    el.classList.add('active');
-  }
-  wgRenderChecklist();
+function wgAddInstance(typeKey){
+  wgState.counters[typeKey] = (wgState.counters[typeKey] || 0) + 1;
+  const a = WG_ANLAGEN[typeKey];
+  const shortName = a.name.split(' (')[0].split(' —')[0];
+  wgState.instances.push({
+    id: wgIdSeq++,
+    typeKey,
+    label: `${shortName} ${wgState.counters[typeKey]}`,
+    results: {},
+    collapsed: false
+  });
+  wgRenderInstances();
 }
 
-function wgRenderChecklist(){
-  wgChecklist.innerHTML = '';
-  if(wgState.selectedTypes.size === 0){
-    wgChecklisteWrap.style.display = 'none';
+function wgRemoveInstance(id){
+  wgState.instances = wgState.instances.filter(i => i.id !== id);
+  wgRenderInstances();
+}
+
+function wgRenderInstances(){
+  wgInstancesEl.innerHTML = '';
+  if(wgState.instances.length === 0){
+    wgInstancesWrap.style.display = 'none';
     wgUpdateStatus();
     return;
   }
-  wgChecklisteWrap.style.display = 'block';
+  wgInstancesWrap.style.display = 'block';
 
-  wgState.selectedTypes.forEach(typeKey => {
-    const a = WG_ANLAGEN[typeKey];
-    const title = document.createElement('div');
-    title.className = 'wg-block-title';
-    title.innerHTML = `<span class="name">${a.name}</span><span class="norm">${a.norm}</span>`;
-    wgChecklist.appendChild(title);
+  wgState.instances.forEach(inst => {
+    const a = WG_ANLAGEN[inst.typeKey];
+    const card = document.createElement('div');
+    card.className = 'wg-instance';
+    card.innerHTML = `
+      <div class="wg-instance-header">
+        <input type="text" class="wg-instance-label" data-inst="${inst.id}" value="${inst.label}">
+        <span class="wg-instance-norm">${a.norm}</span>
+        <button type="button" class="wg-instance-toggle" data-inst-toggle="${inst.id}">${inst.collapsed ? '▸' : '▾'}</button>
+        <button type="button" class="wg-instance-remove" data-inst-remove="${inst.id}">×</button>
+      </div>
+      <div class="wg-instance-body${inst.collapsed ? ' collapsed' : ''}" data-inst-body="${inst.id}"></div>
+    `;
+    wgInstancesEl.appendChild(card);
 
+    const body = card.querySelector(`[data-inst-body="${inst.id}"]`);
     a.points.forEach((point, idx) => {
-      const rk = `${typeKey}|${idx}`;
-      if(!wgState.results[rk]) wgState.results[rk] = { status: null, note: '' };
-
+      if(!inst.results[idx]) inst.results[idx] = { status: null, note: '' };
       const hintHtml = point.hint ? `<div class="hint">${point.hint}</div>` : '';
       const el = document.createElement('div');
       el.className = 'wg-point';
@@ -2148,23 +2187,48 @@ function wgRenderChecklist(){
         <div class="txt">${point.text}</div>
         ${hintHtml}
         <div class="wg-toggle-row">
-          <div class="wg-toggle-btn ok" data-rk="${rk}" data-val="ok">OK</div>
-          <div class="wg-toggle-btn bad" data-rk="${rk}" data-val="bad">Nicht OK</div>
-          <div class="wg-toggle-btn na" data-rk="${rk}" data-val="na">Entfällt</div>
+          <div class="wg-toggle-btn ok" data-inst="${inst.id}" data-idx="${idx}" data-val="ok">OK</div>
+          <div class="wg-toggle-btn bad" data-inst="${inst.id}" data-idx="${idx}" data-val="bad">Nicht OK</div>
+          <div class="wg-toggle-btn na" data-inst="${inst.id}" data-idx="${idx}" data-val="na">Entfällt</div>
         </div>
-        <div class="wg-note" data-rk-note="${rk}">
+        <div class="wg-note" data-inst-note="${inst.id}|${idx}">
           <textarea placeholder="Anmerkung / Begründung ..."></textarea>
         </div>
       `;
-      wgChecklist.appendChild(el);
+      body.appendChild(el);
     });
   });
 
-  wgChecklist.querySelectorAll('.wg-toggle-btn').forEach(btn => {
+  // Label-Änderung (z.B. Türnummer)
+  wgInstancesEl.querySelectorAll('.wg-instance-label').forEach(input => {
+    input.addEventListener('input', e => {
+      const inst = wgState.instances.find(i => i.id == e.target.dataset.inst);
+      if(inst) inst.label = e.target.value;
+    });
+  });
+
+  // Ein-/Ausklappen
+  wgInstancesEl.querySelectorAll('[data-inst-toggle]').forEach(btn => {
     btn.addEventListener('click', () => {
-      const rk = btn.dataset.rk;
+      const inst = wgState.instances.find(i => i.id == btn.dataset.instToggle);
+      inst.collapsed = !inst.collapsed;
+      wgRenderInstances();
+    });
+  });
+
+  // Entfernen
+  wgInstancesEl.querySelectorAll('[data-inst-remove]').forEach(btn => {
+    btn.addEventListener('click', () => wgRemoveInstance(parseInt(btn.dataset.instRemove)));
+  });
+
+  // OK / Nicht OK / Entfällt
+  wgInstancesEl.querySelectorAll('.wg-toggle-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const instId = btn.dataset.inst;
+      const idx = btn.dataset.idx;
       const val = btn.dataset.val;
-      wgState.results[rk].status = val;
+      const inst = wgState.instances.find(i => i.id == instId);
+      inst.results[idx].status = val;
 
       const parent = btn.closest('.wg-point');
       parent.querySelectorAll('.wg-toggle-btn').forEach(b => b.classList.remove('sel'));
@@ -2180,17 +2244,18 @@ function wgRenderChecklist(){
         ta.placeholder = 'Begründung (optional), z.B. nicht verbaut...';
       } else {
         note.classList.remove('show');
-        wgState.results[rk].note = '';
+        inst.results[idx].note = '';
         ta.value = '';
       }
       wgUpdateStatus();
     });
   });
 
-  wgChecklist.querySelectorAll('.wg-note textarea').forEach(ta => {
+  wgInstancesEl.querySelectorAll('.wg-note textarea').forEach(ta => {
     ta.addEventListener('input', e => {
-      const rk = e.target.closest('.wg-note').dataset.rkNote;
-      wgState.results[rk].note = e.target.value;
+      const [instId, idx] = e.target.closest('.wg-note').dataset.instNote.split('|');
+      const inst = wgState.instances.find(i => i.id == instId);
+      inst.results[idx].note = e.target.value;
     });
   });
 
@@ -2198,27 +2263,26 @@ function wgRenderChecklist(){
 }
 
 function wgUpdateStatus(){
-  const total = [...wgState.selectedTypes].reduce((s,k) => s + WG_ANLAGEN[k].points.length, 0);
-  const answered = [...wgState.selectedTypes].reduce((s,k) => {
-    return s + WG_ANLAGEN[k].points.filter((_, idx) => wgState.results[`${k}|${idx}`]?.status !== null).length;
-  }, 0);
-
-  if(wgState.selectedTypes.size === 0){
-    wgStatusEl.textContent = 'Wähle mindestens einen Anlagentyp.';
+  if(wgState.instances.length === 0){
+    wgStatusEl.textContent = 'Füge mindestens eine Anlage hinzu.';
     wgApplyBtn.disabled = true;
     return;
   }
-  wgStatusEl.textContent = `${answered}/${total} Prüfpunkte erfasst`;
+  const total = wgState.instances.reduce((s, inst) => s + WG_ANLAGEN[inst.typeKey].points.length, 0);
+  const answered = wgState.instances.reduce((s, inst) => {
+    return s + Object.values(inst.results).filter(r => r.status !== null).length;
+  }, 0);
+  wgStatusEl.textContent = `${wgState.instances.length} Anlage(n) — ${answered}/${total} Prüfpunkte erfasst`;
   wgApplyBtn.disabled = answered === 0;
 }
 
 function wgGenerateText(){
   let lines = [];
-  wgState.selectedTypes.forEach(typeKey => {
-    const a = WG_ANLAGEN[typeKey];
-    lines.push(`${a.name}:`);
+  wgState.instances.forEach(inst => {
+    const a = WG_ANLAGEN[inst.typeKey];
+    lines.push(`${inst.label || a.name}:`);
     a.points.forEach((point, idx) => {
-      const r = wgState.results[`${typeKey}|${idx}`];
+      const r = inst.results[idx];
       if(!r || r.status === null) return;
       if(r.status === 'ok'){
         lines.push(`- ${point.text}: OK`);
