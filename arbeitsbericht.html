@@ -2180,19 +2180,21 @@ function wgRenderInstances(){
     const body = card.querySelector(`[data-inst-body="${inst.id}"]`);
     a.points.forEach((point, idx) => {
       if(!inst.results[idx]) inst.results[idx] = { status: null, note: '' };
+      const r = inst.results[idx];
       const hintHtml = point.hint ? `<div class="hint">${point.hint}</div>` : '';
+      const noteVisible = (r.status === 'bad' || r.status === 'na');
       const el = document.createElement('div');
       el.className = 'wg-point';
       el.innerHTML = `
         <div class="txt">${point.text}</div>
         ${hintHtml}
         <div class="wg-toggle-row">
-          <div class="wg-toggle-btn ok" data-inst="${inst.id}" data-idx="${idx}" data-val="ok">OK</div>
-          <div class="wg-toggle-btn bad" data-inst="${inst.id}" data-idx="${idx}" data-val="bad">Nicht OK</div>
-          <div class="wg-toggle-btn na" data-inst="${inst.id}" data-idx="${idx}" data-val="na">Entfällt</div>
+          <div class="wg-toggle-btn ok${r.status === 'ok' ? ' sel' : ''}" data-inst="${inst.id}" data-idx="${idx}" data-val="ok">OK</div>
+          <div class="wg-toggle-btn bad${r.status === 'bad' ? ' sel' : ''}" data-inst="${inst.id}" data-idx="${idx}" data-val="bad">Nicht OK</div>
+          <div class="wg-toggle-btn na${r.status === 'na' ? ' sel' : ''}" data-inst="${inst.id}" data-idx="${idx}" data-val="na">Entfällt</div>
         </div>
-        <div class="wg-note" data-inst-note="${inst.id}|${idx}">
-          <textarea placeholder="Anmerkung / Begründung ..."></textarea>
+        <div class="wg-note${noteVisible ? ' show' : ''}" data-inst-note="${inst.id}|${idx}">
+          <textarea placeholder="${r.status === 'na' ? 'Begründung (optional), z.B. nicht verbaut...' : 'Kurz beschreiben, was festgestellt wurde...'}">${r.note || ''}</textarea>
         </div>
       `;
       body.appendChild(el);
