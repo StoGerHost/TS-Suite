@@ -8,6 +8,7 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="config.js"></script>
+<script src="ts-auth.js" data-gate data-title="Kundenimport (gevis)"></script>
 <style>
   :root{
     --bg:#0a0a0c;
@@ -222,8 +223,7 @@
 <script>
 // ============================================================
 // KONFIGURATION – kommt aus config.js (TENANT), nichts hier
-// duplizieren. Nur LOGIN_URL ggf. anpassen, falls die Login-
-// Seite bei euch anders heißt als index.html.
+// duplizieren. Login-Gate übernimmt ts-auth.js (siehe <head>).
 // ============================================================
 function setzeStatus(text, farbe) {
   const el = document.getElementById('init-status');
@@ -240,7 +240,7 @@ window.addEventListener('error', function (e) {
 });
 
 let sb = null;
-let SUPABASE_URL, SUPABASE_ANON_KEY, LOGIN_URL;
+let SUPABASE_URL, SUPABASE_ANON_KEY;
 let parsedRows = [];
 let csvHeaders = [];
 let mapping = {};
@@ -268,7 +268,6 @@ try {
   }
   SUPABASE_URL = TENANT.supabaseUrl;
   SUPABASE_ANON_KEY = TENANT.supabaseKey;
-  LOGIN_URL = 'index.html';
 
   if (typeof window.supabase === 'undefined' || !window.supabase.createClient) {
     throw new Error('supabase-js nicht geladen (CDN blockiert oder kein Internet).');
@@ -281,21 +280,19 @@ try {
   console.error('Initialisierung fehlgeschlagen:', err);
 }
 
-// --- Auth-Gate: ohne aktive Session zurück zum Login ---
-(async function checkAuth() {
-  if (!sb) return; // Client fehlt bereits — Status zeigt das schon an
-  try {
-    const { data: { session } } = await sb.auth.getSession();
-    if (!session) {
-      setzeStatus('Keine Anmeldung gefunden — leite zum Login weiter …', 'var(--warn)');
-      window.location.href = LOGIN_URL;
-      return;
-    }
-    setzeStatus('Angemeldet ✓ — Admin-Code eingeben.', 'var(--glow)');
-  } catch (err) {
-    setzeStatus('Fehler bei der Session-Prüfung: ' + (err.message || err), 'var(--danger)');
-    console.error('Session-Prüfung fehlgeschlagen:', err);
+// --- Auth-Gate: übernimmt ts-auth.js (data-gate) ---
+// Fehlt die Session, zeigt ts-auth.js automatisch das Login-Overlay direkt
+// auf dieser Seite — kein Redirect mehr auf index.html. Nach erfolgreichem
+// Login lädt ts-auth.js die Seite neu, danach greift sb.auth.getSession()
+// (gleicher localStorage-Key wie ts-auth.js) auf eine gültige Sitzung zu.
+(async function warteAufAnmeldung() {
+  if (!window.TSAuth) {
+    setzeStatus('Fehler: ts-auth.js nicht geladen.', 'var(--danger)');
+    return;
   }
+  await TSAuth.ready;
+  if (!TSAuth.isUnlocked()) return; // Login-Overlay ist bereits sichtbar
+  setzeStatus('Angemeldet ✓ — Admin-Code eingeben.', 'var(--glow)');
 })();
 
 // --- Admin-Code-Gate ---
