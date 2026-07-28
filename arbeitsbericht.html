@@ -219,6 +219,42 @@
   .wg-instance-body{padding:12px 10px;}
   .wg-instance-body.collapsed{display:none;}
 
+  .wg-einsatzart-row{
+    display:flex; width:100%; gap:6px; margin-top:8px; flex-basis:100%;
+  }
+  .wg-einsatzart-btn{
+    flex:1; padding:6px 0; border-radius:var(--radius); border:1px solid var(--line);
+    background:var(--panel-2); font-size:12px; font-weight:600; text-align:center; cursor:pointer;
+    color:var(--muted);
+  }
+  .wg-einsatzart-btn.sel{border-color:var(--blue); background:rgba(74,144,184,0.14); color:var(--text);}
+
+  .wg-general-block{
+    border:1px solid var(--line); border-radius:var(--radius);
+    padding:11px 10px; margin-bottom:14px; background:var(--panel);
+  }
+  .wg-general-title{
+    font-size:11px; text-transform:uppercase; letter-spacing:.4px; color:var(--muted); margin-bottom:9px;
+  }
+  .wg-general-row{margin-bottom:9px;}
+  .wg-general-row:last-child{margin-bottom:0;}
+  .wg-general-label{font-size:12.5px;font-weight:600;color:var(--text);margin-bottom:5px;}
+  .wg-general-pair{display:flex;gap:6px;}
+  .wg-general-btn{
+    flex:1; padding:8px 0; border-radius:var(--radius); border:1px solid var(--line);
+    background:var(--panel-2); font-size:12px; font-weight:600; text-align:center; cursor:pointer;
+    color:var(--muted);
+  }
+  .wg-general-btn.pos.sel{border-color:var(--ok); color:var(--ok); background:rgba(92,158,124,0.12);}
+  .wg-general-btn.neg.sel{border-color:var(--danger); color:var(--danger); background:rgba(201,96,79,0.12);}
+
+  .wg-sub-title{
+    font-size:11px; text-transform:uppercase; letter-spacing:.4px; color:var(--muted);
+    margin:14px 0 8px;
+  }
+  .wg-stoerung-field{margin-bottom:12px;}
+  .wg-stoerung-field:last-child{margin-bottom:0;}
+
   .wg-block-title{
     display:flex; justify-content:space-between; align-items:baseline;
     margin:20px 0 8px; padding-bottom:6px; border-bottom:1px solid var(--line);
@@ -2112,8 +2148,16 @@ const WG_ANLAGEN = {
   }
 };
 
+// Allgemeinzustand: gilt für jede Anlage, unabhängig von Wartung/Störung
+const WG_GENERAL_FIELDS = [
+  { key: 'eintreffen', label: 'Zustand bei Eintreffen', pos: 'In Funktion', neg: 'Ohne Funktion' },
+  { key: 'elektrisch', label: 'Elektrischer Zustand', pos: 'Elektrisch OK', neg: 'Elektrisch defekt' },
+  { key: 'mechanisch', label: 'Mechanischer Zustand', pos: 'Mechanisch OK', neg: 'Mechanisch defekt' },
+  { key: 'verlassen', label: 'Zustand bei Verlassen', pos: 'In Funktion', neg: 'Ohne Funktion' }
+];
+
 const wgState = {
-  instances: [], // {id, typeKey, label, results:{idx:{status,note}}, collapsed:false}
+  instances: [], // {id, typeKey, label, mode:'wartung'|'stoerung', general:{}, results:{}, stoerung:{}, collapsed}
   counters: {}   // typeKey -> laufende Nummer für Default-Label
 };
 let wgIdSeq = 1;
@@ -2142,7 +2186,10 @@ function wgAddInstance(typeKey){
     id: wgIdSeq++,
     typeKey,
     label: `${shortName} ${wgState.counters[typeKey]}`,
+    mode: 'wartung',
+    general: {},
     results: {},
+    stoerung: { gemeldet: '', ursache: '', massnahme: '' },
     collapsed: false
   });
   wgRenderInstances();
@@ -2172,33 +2219,82 @@ function wgRenderInstances(){
         <span class="wg-instance-norm">${a.norm}</span>
         <button type="button" class="wg-instance-toggle" data-inst-toggle="${inst.id}">${inst.collapsed ? '▸' : '▾'}</button>
         <button type="button" class="wg-instance-remove" data-inst-remove="${inst.id}">×</button>
+        <div class="wg-einsatzart-row">
+          <div class="wg-einsatzart-btn${inst.mode === 'wartung' ? ' sel' : ''}" data-inst-mode="${inst.id}" data-mode="wartung">Wartung</div>
+          <div class="wg-einsatzart-btn${inst.mode === 'stoerung' ? ' sel' : ''}" data-inst-mode="${inst.id}" data-mode="stoerung">Störung</div>
+        </div>
       </div>
       <div class="wg-instance-body${inst.collapsed ? ' collapsed' : ''}" data-inst-body="${inst.id}"></div>
     `;
     wgInstancesEl.appendChild(card);
 
     const body = card.querySelector(`[data-inst-body="${inst.id}"]`);
-    a.points.forEach((point, idx) => {
-      if(!inst.results[idx]) inst.results[idx] = { status: null, note: '' };
-      const r = inst.results[idx];
-      const hintHtml = point.hint ? `<div class="hint">${point.hint}</div>` : '';
-      const noteVisible = (r.status === 'bad' || r.status === 'na');
-      const el = document.createElement('div');
-      el.className = 'wg-point';
-      el.innerHTML = `
-        <div class="txt">${point.text}</div>
-        ${hintHtml}
-        <div class="wg-toggle-row">
-          <div class="wg-toggle-btn ok${r.status === 'ok' ? ' sel' : ''}" data-inst="${inst.id}" data-idx="${idx}" data-val="ok">OK</div>
-          <div class="wg-toggle-btn bad${r.status === 'bad' ? ' sel' : ''}" data-inst="${inst.id}" data-idx="${idx}" data-val="bad">Nicht OK</div>
-          <div class="wg-toggle-btn na${r.status === 'na' ? ' sel' : ''}" data-inst="${inst.id}" data-idx="${idx}" data-val="na">Entfällt</div>
+
+    // Allgemeinzustand (immer sichtbar)
+    const genBlock = document.createElement('div');
+    genBlock.className = 'wg-general-block';
+    genBlock.innerHTML = `<div class="wg-general-title">Allgemeinzustand</div>` + WG_GENERAL_FIELDS.map(f => `
+      <div class="wg-general-row">
+        <div class="wg-general-label">${f.label}</div>
+        <div class="wg-general-pair">
+          <div class="wg-general-btn pos${inst.general[f.key] === 'pos' ? ' sel' : ''}" data-inst="${inst.id}" data-field="${f.key}" data-val="pos">${f.pos}</div>
+          <div class="wg-general-btn neg${inst.general[f.key] === 'neg' ? ' sel' : ''}" data-inst="${inst.id}" data-field="${f.key}" data-val="neg">${f.neg}</div>
         </div>
-        <div class="wg-note${noteVisible ? ' show' : ''}" data-inst-note="${inst.id}|${idx}">
-          <textarea placeholder="${r.status === 'na' ? 'Begründung (optional), z.B. nicht verbaut...' : 'Kurz beschreiben, was festgestellt wurde...'}">${r.note || ''}</textarea>
+      </div>
+    `).join('');
+    body.appendChild(genBlock);
+
+    if(inst.mode === 'wartung'){
+      const h = document.createElement('div');
+      h.className = 'wg-sub-title';
+      h.textContent = 'Prüfpunkte (Norm-Wartung)';
+      body.appendChild(h);
+
+      a.points.forEach((point, idx) => {
+        if(!inst.results[idx]) inst.results[idx] = { status: null, note: '' };
+        const r = inst.results[idx];
+        const hintHtml = point.hint ? `<div class="hint">${point.hint}</div>` : '';
+        const noteVisible = (r.status === 'bad' || r.status === 'na');
+        const el = document.createElement('div');
+        el.className = 'wg-point';
+        el.innerHTML = `
+          <div class="txt">${point.text}</div>
+          ${hintHtml}
+          <div class="wg-toggle-row">
+            <div class="wg-toggle-btn ok${r.status === 'ok' ? ' sel' : ''}" data-inst="${inst.id}" data-idx="${idx}" data-val="ok">OK</div>
+            <div class="wg-toggle-btn bad${r.status === 'bad' ? ' sel' : ''}" data-inst="${inst.id}" data-idx="${idx}" data-val="bad">Nicht OK</div>
+            <div class="wg-toggle-btn na${r.status === 'na' ? ' sel' : ''}" data-inst="${inst.id}" data-idx="${idx}" data-val="na">Entfällt</div>
+          </div>
+          <div class="wg-note${noteVisible ? ' show' : ''}" data-inst-note="${inst.id}|${idx}">
+            <textarea placeholder="${r.status === 'na' ? 'Begründung (optional), z.B. nicht verbaut...' : 'Kurz beschreiben, was festgestellt wurde...'}">${r.note || ''}</textarea>
+          </div>
+        `;
+        body.appendChild(el);
+      });
+    } else {
+      const h = document.createElement('div');
+      h.className = 'wg-sub-title';
+      h.textContent = 'Störungsdetails';
+      body.appendChild(h);
+
+      const stBlock = document.createElement('div');
+      stBlock.className = 'wg-stoerung-block';
+      stBlock.innerHTML = `
+        <div class="wg-stoerung-field">
+          <div class="wg-general-label">Gemeldeter Fehler / Symptom</div>
+          <textarea data-inst-stoerung="${inst.id}|gemeldet" placeholder="Was wurde gemeldet bzw. beim Eintreffen festgestellt?">${inst.stoerung.gemeldet || ''}</textarea>
+        </div>
+        <div class="wg-stoerung-field">
+          <div class="wg-general-label">Festgestellte Ursache</div>
+          <textarea data-inst-stoerung="${inst.id}|ursache" placeholder="z.B. defekter Sensor, gerissener Riemen, Kurzschluss ...">${inst.stoerung.ursache || ''}</textarea>
+        </div>
+        <div class="wg-stoerung-field">
+          <div class="wg-general-label">Durchgeführte Maßnahme</div>
+          <textarea data-inst-stoerung="${inst.id}|massnahme" placeholder="z.B. Bauteil getauscht, provisorisch instand gesetzt, Ersatzteil bestellt ...">${inst.stoerung.massnahme || ''}</textarea>
         </div>
       `;
-      body.appendChild(el);
-    });
+      body.appendChild(stBlock);
+    }
   });
 
   // Label-Änderung (z.B. Türnummer)
@@ -2223,7 +2319,30 @@ function wgRenderInstances(){
     btn.addEventListener('click', () => wgRemoveInstance(parseInt(btn.dataset.instRemove)));
   });
 
-  // OK / Nicht OK / Entfällt
+  // Einsatzart wechseln (Wartung/Störung)
+  wgInstancesEl.querySelectorAll('[data-inst-mode]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const inst = wgState.instances.find(i => i.id == btn.dataset.instMode);
+      inst.mode = btn.dataset.mode;
+      wgRenderInstances();
+    });
+  });
+
+  // Allgemeinzustand-Buttons
+  wgInstancesEl.querySelectorAll('.wg-general-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const inst = wgState.instances.find(i => i.id == btn.dataset.inst);
+      const field = btn.dataset.field;
+      inst.general[field] = btn.dataset.val;
+
+      const row = btn.closest('.wg-general-row');
+      row.querySelectorAll('.wg-general-btn').forEach(b => b.classList.remove('sel'));
+      btn.classList.add('sel');
+      wgUpdateStatus();
+    });
+  });
+
+  // OK / Nicht OK / Entfällt (Wartung)
   wgInstancesEl.querySelectorAll('.wg-toggle-btn').forEach(btn => {
     btn.addEventListener('click', () => {
       const instId = btn.dataset.inst;
@@ -2261,6 +2380,16 @@ function wgRenderInstances(){
     });
   });
 
+  // Störungsfelder
+  wgInstancesEl.querySelectorAll('[data-inst-stoerung]').forEach(ta => {
+    ta.addEventListener('input', e => {
+      const [instId, field] = e.target.dataset.instStoerung.split('|');
+      const inst = wgState.instances.find(i => i.id == instId);
+      inst.stoerung[field] = e.target.value;
+      wgUpdateStatus();
+    });
+  });
+
   wgUpdateStatus();
 }
 
@@ -2270,11 +2399,22 @@ function wgUpdateStatus(){
     wgApplyBtn.disabled = true;
     return;
   }
-  const total = wgState.instances.reduce((s, inst) => s + WG_ANLAGEN[inst.typeKey].points.length, 0);
-  const answered = wgState.instances.reduce((s, inst) => {
-    return s + Object.values(inst.results).filter(r => r.status !== null).length;
-  }, 0);
-  wgStatusEl.textContent = `${wgState.instances.length} Anlage(n) — ${answered}/${total} Prüfpunkte erfasst`;
+  let total = 0;
+  let answered = 0;
+  wgState.instances.forEach(inst => {
+    total += WG_GENERAL_FIELDS.length;
+    answered += WG_GENERAL_FIELDS.filter(f => inst.general[f.key]).length;
+
+    if(inst.mode === 'wartung'){
+      const pts = WG_ANLAGEN[inst.typeKey].points;
+      total += pts.length;
+      answered += Object.values(inst.results).filter(r => r.status !== null).length;
+    } else {
+      total += 3;
+      answered += ['gemeldet','ursache','massnahme'].filter(k => inst.stoerung[k]?.trim()).length;
+    }
+  });
+  wgStatusEl.textContent = `${wgState.instances.length} Anlage(n) — ${answered}/${total} Angaben erfasst`;
   wgApplyBtn.disabled = answered === 0;
 }
 
@@ -2282,20 +2422,36 @@ function wgGenerateText(){
   let lines = [];
   wgState.instances.forEach(inst => {
     const a = WG_ANLAGEN[inst.typeKey];
-    lines.push(`${inst.label || a.name}:`);
-    a.points.forEach((point, idx) => {
-      const r = inst.results[idx];
-      if(!r || r.status === null) return;
-      if(r.status === 'ok'){
-        lines.push(`- ${point.text}: OK`);
-      } else if(r.status === 'na'){
-        const note = r.note?.trim();
-        lines.push(`- ${point.text}: entfällt${note ? ' — ' + note : ''}`);
-      } else {
-        const note = r.note?.trim() || 'ohne weitere Anmerkung';
-        lines.push(`- ${point.text}: NICHT OK — ${note}`);
-      }
+    const modeLabel = inst.mode === 'wartung' ? 'Wartung' : 'Störung';
+    lines.push(`${inst.label || a.name} — ${modeLabel}:`);
+
+    WG_GENERAL_FIELDS.forEach(f => {
+      const v = inst.general[f.key];
+      if(!v) return;
+      lines.push(`${f.label}: ${v === 'pos' ? f.pos : f.neg}`);
     });
+
+    if(inst.mode === 'wartung'){
+      let hasPoints = false;
+      a.points.forEach((point, idx) => {
+        const r = inst.results[idx];
+        if(!r || r.status === null) return;
+        if(!hasPoints){ lines.push('Prüfpunkte:'); hasPoints = true; }
+        if(r.status === 'ok'){
+          lines.push(`- ${point.text}: OK`);
+        } else if(r.status === 'na'){
+          const note = r.note?.trim();
+          lines.push(`- ${point.text}: entfällt${note ? ' — ' + note : ''}`);
+        } else {
+          const note = r.note?.trim() || 'ohne weitere Anmerkung';
+          lines.push(`- ${point.text}: NICHT OK — ${note}`);
+        }
+      });
+    } else {
+      if(inst.stoerung.gemeldet?.trim()) lines.push(`Gemeldeter Fehler / Symptom: ${inst.stoerung.gemeldet.trim()}`);
+      if(inst.stoerung.ursache?.trim()) lines.push(`Festgestellte Ursache: ${inst.stoerung.ursache.trim()}`);
+      if(inst.stoerung.massnahme?.trim()) lines.push(`Durchgeführte Maßnahme: ${inst.stoerung.massnahme.trim()}`);
+    }
     lines.push('');
   });
   return lines.join('\n').trim();
@@ -2313,6 +2469,7 @@ wgApplyBtn.addEventListener('click', () => {
   feld.value = feld.value.trim() ? feld.value.trim() + '\n\n' + text : text;
   wgModal.style.display = 'none';
 });
+
 </script>
 </body>
 </html>

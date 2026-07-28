@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Wartungsbericht-Generator</title>
+<title>Anlagenbericht-Generator</title>
 <style>
   :root{
     --ink:#1b1e1c;
@@ -53,6 +53,7 @@
     font-size:10px;
   }
   h2{font-size:15px;margin:0 0 10px;}
+  h3{font-size:12.5px;margin:0 0 8px;text-transform:uppercase;letter-spacing:.4px;color:var(--muted);}
 
   .anlagen-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
   .anlage-add{
@@ -71,9 +72,10 @@
   .instance-header{
     display:flex; align-items:center; gap:8px; padding:10px 12px;
     border-bottom:1px solid var(--line); background:var(--paper);
+    flex-wrap:wrap;
   }
   .instance-label{
-    flex:1; background:transparent; border:none; border-bottom:1px dashed var(--line);
+    flex:1; min-width:100px; background:transparent; border:none; border-bottom:1px dashed var(--line);
     font-size:14px; font-weight:700; color:var(--accent); padding:3px 2px;
   }
   .instance-label:focus{outline:none; border-bottom-color:var(--accent);}
@@ -83,8 +85,32 @@
     width:28px; height:28px; border-radius:7px; cursor:pointer; font-size:14px; flex-shrink:0;
   }
   .instance-remove:hover{border-color:var(--bad); color:var(--bad);}
-  .instance-body{padding:12px;}
+  .instance-body{padding:14px 12px;}
   .instance-body.collapsed{display:none;}
+
+  .einsatzart-row{
+    display:flex; width:100%; gap:6px; margin-top:2px;
+  }
+  .einsatzart-btn{
+    flex:1; padding:6px 0; border-radius:7px; border:1.5px solid var(--line);
+    background:#fafaf8; font-size:12px; font-weight:600; text-align:center; cursor:pointer;
+    color:var(--muted);
+  }
+  .einsatzart-btn.sel{border-color:var(--accent); background:var(--accent-bg); color:var(--accent);}
+
+  .general-block{
+    border:1px solid var(--line); border-radius:9px; padding:12px; margin-bottom:14px; background:var(--paper);
+  }
+  .general-row{margin-bottom:10px;}
+  .general-row:last-child{margin-bottom:0;}
+  .general-row .label{font-size:12.5px; font-weight:600; margin-bottom:5px;}
+  .general-row .pair{display:flex;gap:8px;}
+  .general-btn{
+    flex:1; padding:8px 0; border-radius:7px; border:1.5px solid var(--line);
+    background:#fff; font-size:12.5px; font-weight:600; text-align:center; cursor:pointer;
+  }
+  .general-btn.pos.sel{border-color:var(--ok);background:var(--ok-bg);color:var(--ok);}
+  .general-btn.neg.sel{border-color:var(--bad);background:var(--bad-bg);color:var(--bad);}
 
   .point{
     border:1px solid var(--line); border-radius:9px;
@@ -102,10 +128,14 @@
   .toggle-btn.na.sel{border-color:var(--muted);background:#ecebe6;color:var(--ink);}
   .note-wrap{margin-top:8px;display:none;}
   .note-wrap.show{display:block;}
-  .note-wrap textarea{
+  .note-wrap textarea, .stoerung-block textarea{
     width:100%; padding:9px 10px; border:1px solid var(--line); border-radius:7px;
     font-size:14px; font-family:inherit; min-height:52px; resize:vertical;
   }
+
+  .stoerung-block .field{margin-bottom:12px;}
+  .stoerung-block .field:last-child{margin-bottom:0;}
+  .stoerung-block label{display:block;font-size:12.5px;font-weight:600;margin-bottom:5px;}
 
   .summary-bar{
     position:fixed;bottom:0;left:0;right:0;
@@ -135,8 +165,8 @@
 <body>
 
 <header>
-  <h1>Wartungsbericht-Generator</h1>
-  <div class="sub">Prüfpunkte nach Norm · mehrere Anlagen möglich · lokal im Browser</div>
+  <h1>Anlagenbericht-Generator</h1>
+  <div class="sub">Wartung &amp; Störung · mehrere Anlagen möglich · lokal im Browser</div>
 </header>
 
 <main>
@@ -147,7 +177,7 @@
   </section>
 
   <section id="instances-section" style="display:none;">
-    <div class="step-eyebrow"><span class="n">2</span> Prüfpunkte je Anlage</div>
+    <div class="step-eyebrow"><span class="n">2</span> Zustand &amp; Details je Anlage</div>
     <div id="instances"></div>
   </section>
 
@@ -167,7 +197,7 @@
 </div>
 
 <script>
-// ---------- Datenmodell: modulare Prüfpunkt-Blöcke je Anlagentyp ----------
+// ---------- Datenmodell: modulare Prüfpunkt-Blöcke je Anlagentyp (nur für Einsatzart "Wartung") ----------
 const ANLAGEN = {
   drehtuer: {
     name: "Drehtürantrieb (automatisch)",
@@ -236,9 +266,17 @@ const ANLAGEN = {
   }
 };
 
+// Allgemeinzustand: gilt für jede Anlage, unabhängig von Wartung/Störung
+const GENERAL_FIELDS = [
+  { key: 'eintreffen', label: 'Zustand bei Eintreffen', pos: 'In Funktion', neg: 'Ohne Funktion' },
+  { key: 'elektrisch', label: 'Elektrischer Zustand', pos: 'Elektrisch OK', neg: 'Elektrisch defekt' },
+  { key: 'mechanisch', label: 'Mechanischer Zustand', pos: 'Mechanisch OK', neg: 'Mechanisch defekt' },
+  { key: 'verlassen', label: 'Zustand bei Verlassen', pos: 'In Funktion', neg: 'Ohne Funktion' }
+];
+
 // ---------- Zustand: Liste von Anlagen-Instanzen ----------
 const state = {
-  instances: [], // {id, typeKey, label, results:{idx:{status,note}}, collapsed}
+  instances: [], // {id, typeKey, label, mode:'wartung'|'stoerung', general:{}, results:{}, stoerung:{}, collapsed}
   counters: {}
 };
 let idSeq = 1;
@@ -265,7 +303,10 @@ function addInstance(typeKey){
     id: idSeq++,
     typeKey,
     label: `${shortName} ${state.counters[typeKey]}`,
-    results: {},
+    mode: 'wartung',
+    general: {}, // key -> 'pos'|'neg'|null
+    results: {}, // idx -> {status,note}  (Wartung)
+    stoerung: { gemeldet: '', ursache: '', massnahme: '' },
     collapsed: false
   });
   renderInstances();
@@ -295,33 +336,82 @@ function renderInstances(){
         <span class="instance-norm mono">${a.norm}</span>
         <button type="button" class="instance-toggle" data-inst-toggle="${inst.id}">${inst.collapsed ? '▸' : '▾'}</button>
         <button type="button" class="instance-remove" data-inst-remove="${inst.id}">×</button>
+        <div class="einsatzart-row">
+          <div class="einsatzart-btn${inst.mode === 'wartung' ? ' sel' : ''}" data-inst-mode="${inst.id}" data-mode="wartung">Wartung</div>
+          <div class="einsatzart-btn${inst.mode === 'stoerung' ? ' sel' : ''}" data-inst-mode="${inst.id}" data-mode="stoerung">Störung</div>
+        </div>
       </div>
       <div class="instance-body${inst.collapsed ? ' collapsed' : ''}" data-inst-body="${inst.id}"></div>
     `;
     instancesEl.appendChild(card);
 
     const body = card.querySelector(`[data-inst-body="${inst.id}"]`);
-    a.points.forEach((point, idx) => {
-      if(!inst.results[idx]) inst.results[idx] = { status: null, note: '' };
-      const r = inst.results[idx];
-      const hintHtml = point.hint ? `<div class="hint">${point.hint}</div>` : '';
-      const noteVisible = (r.status === 'bad' || r.status === 'na');
-      const el = document.createElement('div');
-      el.className = 'point';
-      el.innerHTML = `
-        <div class="txt">${point.text}</div>
-        ${hintHtml}
-        <div class="toggle-row">
-          <div class="toggle-btn ok${r.status === 'ok' ? ' sel' : ''}" data-inst="${inst.id}" data-idx="${idx}" data-val="ok">OK</div>
-          <div class="toggle-btn bad${r.status === 'bad' ? ' sel' : ''}" data-inst="${inst.id}" data-idx="${idx}" data-val="bad">Nicht OK</div>
-          <div class="toggle-btn na${r.status === 'na' ? ' sel' : ''}" data-inst="${inst.id}" data-idx="${idx}" data-val="na">Entfällt</div>
+
+    // --- Allgemeinzustand (immer sichtbar) ---
+    const genBlock = document.createElement('div');
+    genBlock.className = 'general-block';
+    genBlock.innerHTML = `<h3>Allgemeinzustand</h3>` + GENERAL_FIELDS.map(f => `
+      <div class="general-row">
+        <div class="label">${f.label}</div>
+        <div class="pair">
+          <div class="general-btn pos${inst.general[f.key] === 'pos' ? ' sel' : ''}" data-inst="${inst.id}" data-field="${f.key}" data-val="pos">${f.pos}</div>
+          <div class="general-btn neg${inst.general[f.key] === 'neg' ? ' sel' : ''}" data-inst="${inst.id}" data-field="${f.key}" data-val="neg">${f.neg}</div>
         </div>
-        <div class="note-wrap${noteVisible ? ' show' : ''}" data-inst-note="${inst.id}|${idx}">
-          <textarea placeholder="${r.status === 'na' ? 'Begründung (optional), z.B. nicht verbaut...' : 'Kurz beschreiben, was festgestellt wurde...'}">${r.note || ''}</textarea>
+      </div>
+    `).join('');
+    body.appendChild(genBlock);
+
+    if(inst.mode === 'wartung'){
+      const h = document.createElement('h3');
+      h.textContent = 'Prüfpunkte (Norm-Wartung)';
+      h.style.marginTop = '16px';
+      body.appendChild(h);
+
+      a.points.forEach((point, idx) => {
+        if(!inst.results[idx]) inst.results[idx] = { status: null, note: '' };
+        const r = inst.results[idx];
+        const hintHtml = point.hint ? `<div class="hint">${point.hint}</div>` : '';
+        const noteVisible = (r.status === 'bad' || r.status === 'na');
+        const el = document.createElement('div');
+        el.className = 'point';
+        el.innerHTML = `
+          <div class="txt">${point.text}</div>
+          ${hintHtml}
+          <div class="toggle-row">
+            <div class="toggle-btn ok${r.status === 'ok' ? ' sel' : ''}" data-inst="${inst.id}" data-idx="${idx}" data-val="ok">OK</div>
+            <div class="toggle-btn bad${r.status === 'bad' ? ' sel' : ''}" data-inst="${inst.id}" data-idx="${idx}" data-val="bad">Nicht OK</div>
+            <div class="toggle-btn na${r.status === 'na' ? ' sel' : ''}" data-inst="${inst.id}" data-idx="${idx}" data-val="na">Entfällt</div>
+          </div>
+          <div class="note-wrap${noteVisible ? ' show' : ''}" data-inst-note="${inst.id}|${idx}">
+            <textarea placeholder="${r.status === 'na' ? 'Begründung (optional), z.B. nicht verbaut...' : 'Kurz beschreiben, was festgestellt wurde...'}">${r.note || ''}</textarea>
+          </div>
+        `;
+        body.appendChild(el);
+      });
+    } else {
+      const h = document.createElement('h3');
+      h.textContent = 'Störungsdetails';
+      h.style.marginTop = '16px';
+      body.appendChild(h);
+
+      const stBlock = document.createElement('div');
+      stBlock.className = 'stoerung-block';
+      stBlock.innerHTML = `
+        <div class="field">
+          <label>Gemeldeter Fehler / Symptom</label>
+          <textarea data-inst-stoerung="${inst.id}|gemeldet" placeholder="Was wurde gemeldet bzw. beim Eintreffen festgestellt?">${inst.stoerung.gemeldet || ''}</textarea>
+        </div>
+        <div class="field">
+          <label>Festgestellte Ursache</label>
+          <textarea data-inst-stoerung="${inst.id}|ursache" placeholder="z.B. defekter Sensor, gerissener Riemen, Kurzschluss ...">${inst.stoerung.ursache || ''}</textarea>
+        </div>
+        <div class="field">
+          <label>Durchgeführte Maßnahme</label>
+          <textarea data-inst-stoerung="${inst.id}|massnahme" placeholder="z.B. Bauteil getauscht, provisorisch instand gesetzt, Ersatzteil bestellt ...">${inst.stoerung.massnahme || ''}</textarea>
         </div>
       `;
-      body.appendChild(el);
-    });
+      body.appendChild(stBlock);
+    }
   });
 
   // Label bearbeiten (z.B. Türnummer eintragen)
@@ -346,7 +436,30 @@ function renderInstances(){
     btn.addEventListener('click', () => removeInstance(parseInt(btn.dataset.instRemove)));
   });
 
-  // OK / Nicht OK / Entfällt
+  // Einsatzart wechseln (Wartung/Störung)
+  instancesEl.querySelectorAll('[data-inst-mode]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const inst = state.instances.find(i => i.id == btn.dataset.instMode);
+      inst.mode = btn.dataset.mode;
+      renderInstances();
+    });
+  });
+
+  // Allgemeinzustand-Buttons
+  instancesEl.querySelectorAll('.general-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const inst = state.instances.find(i => i.id == btn.dataset.inst);
+      const field = btn.dataset.field;
+      inst.general[field] = btn.dataset.val;
+
+      const row = btn.closest('.general-row');
+      row.querySelectorAll('.general-btn').forEach(b => b.classList.remove('sel'));
+      btn.classList.add('sel');
+      updateStatus();
+    });
+  });
+
+  // OK / Nicht OK / Entfällt (Wartung)
   instancesEl.querySelectorAll('.toggle-btn').forEach(btn => {
     btn.addEventListener('click', () => {
       const instId = btn.dataset.inst;
@@ -384,6 +497,16 @@ function renderInstances(){
     });
   });
 
+  // Störungsfelder
+  instancesEl.querySelectorAll('[data-inst-stoerung]').forEach(ta => {
+    ta.addEventListener('input', e => {
+      const [instId, field] = e.target.dataset.instStoerung.split('|');
+      const inst = state.instances.find(i => i.id == instId);
+      inst.stoerung[field] = e.target.value;
+      updateStatus();
+    });
+  });
+
   updateStatus();
 }
 
@@ -393,12 +516,27 @@ function updateStatus(){
     genBtn.disabled = true;
     return;
   }
-  const total = state.instances.reduce((s, inst) => s + ANLAGEN[inst.typeKey].points.length, 0);
-  const answered = state.instances.reduce((s, inst) => {
-    return s + Object.values(inst.results).filter(r => r.status !== null).length;
-  }, 0);
-  statusText.innerHTML = `${state.instances.length} Anlage(n) — <b>${answered}/${total}</b> Prüfpunkte erfasst`;
-  genBtn.disabled = answered === 0;
+  let answeredAny = false;
+  let totalFields = 0;
+  let answeredFields = 0;
+
+  state.instances.forEach(inst => {
+    totalFields += GENERAL_FIELDS.length;
+    answeredFields += GENERAL_FIELDS.filter(f => inst.general[f.key]).length;
+
+    if(inst.mode === 'wartung'){
+      const pts = ANLAGEN[inst.typeKey].points;
+      totalFields += pts.length;
+      answeredFields += Object.values(inst.results).filter(r => r.status !== null).length;
+    } else {
+      totalFields += 3;
+      answeredFields += ['gemeldet','ursache','massnahme'].filter(k => inst.stoerung[k]?.trim()).length;
+    }
+  });
+  answeredAny = answeredFields > 0;
+
+  statusText.innerHTML = `${state.instances.length} Anlage(n) — <b>${answeredFields}/${totalFields}</b> Angaben erfasst`;
+  genBtn.disabled = !answeredAny;
 }
 
 // ---------- Berichtstext generieren ----------
@@ -406,33 +544,41 @@ genBtn.addEventListener('click', generateReport);
 
 function generateReport(){
   let lines = [];
-  let maengelListe = [];
 
   state.instances.forEach(inst => {
     const a = ANLAGEN[inst.typeKey];
-    lines.push(`${inst.label || a.name}:`);
-    a.points.forEach((point, idx) => {
-      const r = inst.results[idx];
-      if(!r || r.status === null) return;
-      if(r.status === 'ok'){
-        lines.push(`- ${point.text}: OK`);
-      } else if(r.status === 'na'){
-        const note = r.note?.trim();
-        lines.push(`- ${point.text}: entfällt${note ? ' — ' + note : ''}`);
-      } else {
-        const note = r.note?.trim() || 'ohne weitere Anmerkung';
-        lines.push(`- ${point.text}: NICHT OK — ${note}`);
-        maengelListe.push(`${inst.label}: ${point.text} — ${note}`);
-      }
+    const modeLabel = inst.mode === 'wartung' ? 'Wartung' : 'Störung';
+    lines.push(`${inst.label || a.name} — ${modeLabel}:`);
+
+    GENERAL_FIELDS.forEach(f => {
+      const v = inst.general[f.key];
+      if(!v) return;
+      lines.push(`${f.label}: ${v === 'pos' ? f.pos : f.neg}`);
     });
+
+    if(inst.mode === 'wartung'){
+      let hasPoints = false;
+      a.points.forEach((point, idx) => {
+        const r = inst.results[idx];
+        if(!r || r.status === null) return;
+        if(!hasPoints){ lines.push('Prüfpunkte:'); hasPoints = true; }
+        if(r.status === 'ok'){
+          lines.push(`- ${point.text}: OK`);
+        } else if(r.status === 'na'){
+          const note = r.note?.trim();
+          lines.push(`- ${point.text}: entfällt${note ? ' — ' + note : ''}`);
+        } else {
+          const note = r.note?.trim() || 'ohne weitere Anmerkung';
+          lines.push(`- ${point.text}: NICHT OK — ${note}`);
+        }
+      });
+    } else {
+      if(inst.stoerung.gemeldet?.trim()) lines.push(`Gemeldeter Fehler / Symptom: ${inst.stoerung.gemeldet.trim()}`);
+      if(inst.stoerung.ursache?.trim()) lines.push(`Festgestellte Ursache: ${inst.stoerung.ursache.trim()}`);
+      if(inst.stoerung.massnahme?.trim()) lines.push(`Durchgeführte Maßnahme: ${inst.stoerung.massnahme.trim()}`);
+    }
     lines.push('');
   });
-
-  if(maengelListe.length === 0){
-    lines.push('Ergebnis: keine Mängel festgestellt, Anlage(n) betriebsbereit.');
-  } else {
-    lines.push(`Ergebnis: ${maengelListe.length} Mangel/Mängel festgestellt, Nachbesserung erforderlich.`);
-  }
 
   const reportText = lines.join('\n').trim();
   document.getElementById('report-text').textContent = reportText;
