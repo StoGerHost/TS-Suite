@@ -1,0 +1,617 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="theme-color" content="#0a0a0c">
+<title>TS-Suite – Wartungsprotokoll-Import (PDF)</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="config.js"></script>
+<script src="ts-auth.js" data-gate data-title="Wartungsprotokoll-Import"></script>
+<style>
+  :root{
+    --bg:#0a0a0c;
+    --surface:#111318;
+    --surface-alt:#0d0f13;
+    --ink:#e9edf2;
+    --ink-80:rgba(233,237,242,.8);
+    --ink-70:rgba(233,237,242,.7);
+    --ink-60:rgba(233,237,242,.6);
+    --ink-50:rgba(233,237,242,.5);
+    --ink-45:rgba(233,237,242,.45);
+    --ink-40:rgba(233,237,242,.4);
+    --accent:#3a7bd5;
+    --accent-dark:#2f66b3;
+    --glow:#5eead4;
+    --danger:#e05a4e;
+    --warn:#d9a441;
+    --line-20:rgba(58,123,213,.2);
+    --line-25:rgba(58,123,213,.25);
+    --line-30:rgba(58,123,213,.3);
+    --line-35:rgba(58,123,213,.35);
+    --font-display:'Inter',system-ui,-apple-system,'Segoe UI',Roboto,Arial,sans-serif;
+    --font-mono:ui-monospace,'JetBrains Mono','SFMono-Regular',Consolas,Menlo,monospace;
+  }
+  * { box-sizing: border-box; }
+  body {
+    font-family: var(--font-display);
+    max-width: 960px;
+    margin: 0 auto;
+    padding: 16px;
+    padding-bottom: 60px;
+    background: var(--bg);
+    color: var(--ink);
+    background-image:linear-gradient(rgba(255,255,255,.03) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.03) 1px,transparent 1px);
+    background-size:34px 34px;
+    -webkit-font-smoothing:antialiased;
+  }
+  .back-link{display:inline-flex;align-items:center;gap:6px;color:var(--ink-60);text-decoration:none;
+    font:600 12px var(--font-mono);letter-spacing:.03em;margin-bottom:16px;}
+  .back-link:hover{color:var(--accent);}
+  h1 { font-size: 1.3rem; margin-bottom: 4px; color: #fff; font-weight: 700; }
+  h2 { font-size: 1.05rem; margin-top: 28px; color: var(--ink); font-weight: 700; }
+  .karte {
+    background: var(--surface);
+    border: 1px solid var(--line-30);
+    border-radius: 2px;
+    padding: 20px;
+    margin-top: 12px;
+  }
+  label { display: block; font-size: 0.9rem; margin: 10px 0 4px; font-weight: 600; color: var(--ink-80); }
+  input[type=file], input[type=text], input[type=date], select {
+    width: 100%;
+    padding: 11px 12px;
+    border: 1px solid var(--line-30);
+    border-radius: 2px;
+    font-size: 1rem;
+    min-height: 44px;
+    background: var(--bg);
+    color: var(--ink);
+    outline: none;
+    font-family: inherit;
+  }
+  input:focus, select:focus { border-color: var(--accent); }
+  button {
+    background: var(--accent);
+    color: var(--bg);
+    border: none;
+    border-radius: 2px;
+    padding: 12px 18px;
+    font-size: 1rem;
+    font-weight: 700;
+    font-family: var(--font-mono);
+    letter-spacing: .02em;
+    min-height: 44px;
+    margin-top: 14px;
+    cursor: pointer;
+    width: 100%;
+    transition: filter .15s;
+  }
+  button:hover { filter: brightness(1.1); }
+  button.sekundaer {
+    background: transparent;
+    color: var(--accent);
+    border: 1px solid var(--line-30);
+  }
+  button.sekundaer:hover { border-color: var(--accent); }
+  button:disabled { background: var(--ink-40); color: var(--surface); cursor: not-allowed; filter: none; }
+  .zwei-spalten { display: flex; gap: 10px; }
+  .zwei-spalten > div { flex: 1; }
+  table { width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 0.78rem; }
+  th, td {
+    border: 1px solid var(--line-20);
+    padding: 6px 5px;
+    text-align: left;
+    vertical-align: top;
+    color: var(--ink-80);
+  }
+  th { background: var(--surface-alt); color: var(--ink-40); font: 600 9.5px var(--font-mono);
+    text-transform: uppercase; letter-spacing: .04em; position: sticky; top: 0; }
+  td input[type=text], td select { min-height: 34px; padding: 5px 6px; font-size: 0.78rem; }
+  td.uebernehmen { text-align: center; }
+  tr.uebersprungen { opacity: .45; }
+  tr.dublette td.ident { box-shadow: inset 0 0 0 1px var(--warn); }
+  .hinweis { color: var(--warn); font-size: 0.85rem; margin-top: 8px; min-height: 1.2em; }
+  .fehler { color: var(--danger); font-size: 0.9rem; margin-top: 6px; font-weight: 600; }
+  .erfolg { color: var(--glow); }
+  small.hilfe { color: var(--ink-45); display: block; margin-top: 4px; }
+  #fortschritt-hülle { background: var(--bg); border: 1px solid var(--line-30); border-radius: 2px; height: 10px; overflow: hidden; margin-top: 10px; }
+  #fortschritt-balken { background: var(--accent); height: 100%; width: 0%; transition: width 0.15s ease; }
+  #fortschritt-text { font-size: 0.85rem; margin-top: 6px; text-align: center; color: var(--ink-60); font-family: var(--font-mono); }
+  .table-scroll { overflow-x: auto; }
+</style>
+</head>
+<body>
+
+<a href="index.html" class="back-link">&larr; STOBER Werkzeuge</a>
+<h1>Wartungsprotokoll-Import (PDF)</h1>
+<p style="color:var(--ink-50); font-size:0.9rem;">Altbestand aus PDF-Wartungsprotokollen einlesen, prüfen, in die Datenbank übernehmen.</p>
+
+<!-- Admin-Code-Gate -->
+<div id="admin-gate" class="karte">
+  <p id="init-status" style="font-size:0.8rem;color:var(--ink-45);margin-bottom:14px;font-family:var(--font-mono);">Initialisiere …</p>
+  <label for="admin-code-input">Admin-Code</label>
+  <input type="text" id="admin-code-input" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false" style="font-family:var(--font-mono);letter-spacing:.05em;">
+  <small class="hilfe">Achtung: großes O, keine Null.</small>
+  <button onclick="pruefeAdminCode()">Freischalten</button>
+  <div id="admin-code-fehler" class="fehler"></div>
+</div>
+
+<!-- Eigentliches Tool, erst nach Freischaltung sichtbar -->
+<div id="import-tool" style="display:none;">
+
+  <div class="karte">
+    <h2 style="margin-top:0;">1. PDF laden</h2>
+    <label for="pdf-file">Wartungsprotokoll-PDF</label>
+    <input type="file" id="pdf-file" accept="application/pdf">
+
+    <label for="kunde-select">Kunde für alle Datensätze dieser Datei</label>
+    <select id="kunde-select">
+      <option value="">— Kunden werden geladen —</option>
+    </select>
+    <small class="hilfe">Gilt für den ganzen Import-Lauf. Falscher Kunde? Vor dem Einlesen hier korrigieren.</small>
+
+    <div class="hinweis" style="color:var(--ink-50);">
+      Hinweis: Aus dem PDF-Text werden Ident-Nr., Standort, Türnummer, Datum, Kontrolleur, Typ, Mängel und Hinweis erkannt.
+      Die einzelnen Prüfpunkte (iO/niO/NV) lassen sich aus reinem PDF-Text nicht zuverlässig einer Spalte zuordnen und bleiben daher leer —
+      die Datensätze dienen als Referenz für "Letzte Wartung laden", nicht als vollständiges Protokoll.
+    </div>
+
+    <button onclick="pdfEinlesen()" id="einlesen-btn">PDF einlesen</button>
+    <div class="fehler" id="einlese-fehler"></div>
+  </div>
+
+  <div class="karte" id="review-section" style="display:none;">
+    <h2 style="margin-top:0;">2. Erkannte Datensätze prüfen</h2>
+    <p style="font-size:0.85rem; color:var(--ink-50);"><span id="anzahl-erkannt">0</span> Datensätze erkannt. Bitte kurz durchsehen — Häkchen entfernen, um einzelne Zeilen vom Import auszuschließen; alle Felder sind direkt editierbar.</p>
+    <div class="table-scroll">
+      <table>
+        <thead>
+          <tr>
+            <th></th><th>Typ</th><th>Ident-Nr.</th><th>Standort</th><th>Türnummer</th><th>Datum</th><th>Kontrolleur</th><th>Mängel</th><th>Hinweis</th>
+          </tr>
+        </thead>
+        <tbody id="review-body"></tbody>
+      </table>
+    </div>
+    <div class="hinweis" id="review-hinweis"></div>
+    <button id="import-starten-btn" onclick="importStarten()">Ausgewählte importieren</button>
+  </div>
+
+  <div class="karte" id="import-status" style="display:none;">
+    <h2 style="margin-top:0;">Import läuft …</h2>
+    <div id="fortschritt-hülle"><div id="fortschritt-balken"></div></div>
+    <div id="fortschritt-text">0 / 0</div>
+  </div>
+
+  <div class="karte" id="ergebnis-box" style="display:none;"></div>
+
+</div>
+
+<script>
+// ============================================================
+// KONFIGURATION – kommt aus config.js (TENANT), nichts hier
+// duplizieren. Login-Gate übernimmt ts-auth.js (siehe <head>).
+// ============================================================
+function setzeStatus(text, farbe) {
+  const el = document.getElementById('init-status');
+  if (!el) return;
+  el.textContent = text;
+  el.style.color = farbe || 'var(--ink-45)';
+}
+
+window.addEventListener('error', function (e) {
+  setzeStatus('Unerwarteter Skriptfehler: ' + (e.message || e), 'var(--danger)');
+});
+
+pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+
+let sb = null;
+let SUPABASE_URL, SUPABASE_ANON_KEY;
+let parsedRecords = [];
+let vorhandeneIdentNrs = new Set();
+
+// Muss exakt den typ_key-Werten aus WG_ANLAGEN in arbeitsbericht.html entsprechen,
+// sonst passt "Letzte Wartung laden" später nicht mehr zusammen.
+const TYP_LISTE = [
+  { key: 'brandschutztuer', label: 'Brandschutztür' },
+  { key: 'schiebetuer', label: 'Schiebetür' },
+  { key: 'feststellanlage', label: 'Feststellanlage' },
+  { key: 'drehtuer', label: 'Drehflügelantrieb' },
+  { key: 'rwa', label: 'Rauchwärmeabzugsanlage' },
+  { key: 'eltvtr', label: 'Verriegelungssystem Rettungswege (EltVTR)' },
+  { key: 'tor', label: 'Schiebe-/Sektional-/Rolltor' }
+];
+const TYP_MUSTER = [
+  { key: 'brandschutztuer', test: /Brandschutzt[üu]r/i },
+  { key: 'schiebetuer', test: /Schiebet[üu]ren\s+nach/i },
+  { key: 'rwa', test: /Rauchw[äa]rmeabzugsanlage/i },
+  { key: 'feststellanlage', test: /Feststellanlagen/i },
+  { key: 'eltvtr', test: /Verriegelungssystem/i },
+  { key: 'drehtuer', test: /Drehfl[üu]gelantrieb/i },
+  { key: 'tor', test: /Rolltor|Sektional/i }
+];
+
+try {
+  if (typeof TENANT === 'undefined') {
+    throw new Error('config.js nicht geladen (TENANT fehlt) — liegt diese Datei im selben Ordner wie config.js?');
+  }
+  SUPABASE_URL = TENANT.supabaseUrl;
+  SUPABASE_ANON_KEY = TENANT.supabaseKey;
+
+  if (typeof window.supabase === 'undefined' || !window.supabase.createClient) {
+    throw new Error('supabase-js nicht geladen (CDN blockiert oder kein Internet).');
+  }
+  sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+  setzeStatus('Verbindung ok. Prüfe Anmeldung …');
+} catch (err) {
+  setzeStatus('Fehler beim Start: ' + (err.message || err), 'var(--danger)');
+  console.error('Initialisierung fehlgeschlagen:', err);
+}
+
+// --- Auth-Gate: übernimmt ts-auth.js (data-gate) ---
+(async function warteAufAnmeldung() {
+  if (!window.TSAuth) {
+    setzeStatus('Fehler: ts-auth.js nicht geladen.', 'var(--danger)');
+    return;
+  }
+  await TSAuth.ready;
+  if (!TSAuth.isUnlocked()) return; // Login-Overlay ist bereits sichtbar
+  setzeStatus('Angemeldet ✓ — Admin-Code eingeben.', 'var(--glow)');
+})();
+
+// --- Admin-Code-Gate ---
+async function pruefeAdminCode() {
+  const fehlerEl = document.getElementById('admin-code-fehler');
+  const btn = document.querySelector('#admin-gate button');
+  fehlerEl.textContent = '';
+  try {
+    if (!sb) {
+      fehlerEl.textContent = 'Fehler: Supabase konnte nicht geladen werden (siehe Statuszeile oben).';
+      return;
+    }
+    const eingabe = document.getElementById('admin-code-input').value.trim();
+    if (!eingabe) { fehlerEl.textContent = 'Bitte einen Code eingeben.'; return; }
+
+    btn.disabled = true;
+    fehlerEl.textContent = 'Prüfe …';
+
+    const { data: { session } } = await sb.auth.getSession();
+    if (!session) { fehlerEl.textContent = 'Anmeldung abgelaufen — Seite neu laden.'; return; }
+
+    const res = await fetch(`${SUPABASE_URL}/functions/v1/admin-code-pruefen`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer ' + session.access_token,
+        'apikey': SUPABASE_ANON_KEY
+      },
+      body: JSON.stringify({ code: eingabe })
+    });
+    const ergebnis = await res.json().catch(() => null);
+
+    if (ergebnis && ergebnis.ok) {
+      document.getElementById('admin-gate').style.display = 'none';
+      document.getElementById('import-tool').style.display = 'block';
+      ladeKunden();
+    } else {
+      fehlerEl.textContent = (ergebnis && ergebnis.error) ? ergebnis.error : 'Falscher Code.';
+    }
+  } catch (err) {
+    fehlerEl.textContent = 'Unerwarteter Fehler: ' + (err.message || err);
+    console.error('pruefeAdminCode:', err);
+  } finally {
+    btn.disabled = false;
+  }
+}
+
+async function ladeKunden() {
+  const sel = document.getElementById('kunde-select');
+  try {
+    const { data, error } = await sb.from('kunden').select('id,name').order('name');
+    if (error) throw error;
+    sel.innerHTML = '<option value="">— bitte wählen —</option>' +
+      data.map(k => `<option value="${k.id}">${k.name}</option>`).join('');
+  } catch (err) {
+    sel.innerHTML = '<option value="">Fehler beim Laden der Kunden</option>';
+    console.error('Kunden laden fehlgeschlagen:', err);
+  }
+}
+
+/* ============================================================
+   PDF-Text mit Positionsdaten auslesen: Textelemente werden per
+   Y-Koordinate zu Zeilen gruppiert (nicht nur aneinandergehängt),
+   damit die Tabellenstruktur des Originals erhalten bleibt. Für
+   die Ident-Nr./Standort/Türnummer/Datum/Kontrolleur-Zeile wird
+   zusätzlich die X-Koordinate der Label-Zeile genutzt, um die
+   Werte-Zeile spaltenweise zuzuordnen.
+   ============================================================ */
+async function extrahierePdfZeilen(file) {
+  const buf = await file.arrayBuffer();
+  const pdf = await pdfjsLib.getDocument({ data: buf }).promise;
+  const zeilen = [];
+  for (let p = 1; p <= pdf.numPages; p++) {
+    const page = await pdf.getPage(p);
+    const content = await page.getTextContent();
+    const items = content.items
+      .map(it => ({ str: it.str, x: it.transform[4], y: Math.round(it.transform[5]) }))
+      .filter(it => it.str.trim());
+    items.sort((a, b) => (b.y - a.y) || (a.x - b.x));
+    let aktuell = null;
+    items.forEach(it => {
+      if (!aktuell || Math.abs(it.y - aktuell.y) > 3) {
+        aktuell = { y: it.y, items: [] };
+        zeilen.push(aktuell);
+      }
+      aktuell.items.push(it);
+    });
+  }
+  return zeilen;
+}
+
+function zeilenText(zeile) {
+  return zeile.items.map(it => it.str).join(' ').replace(/\s+/g, ' ').trim();
+}
+
+function erkenneTyp(text) {
+  for (const t of TYP_MUSTER) { if (t.test.test(text)) return t.key; }
+  return '';
+}
+
+function datumZuIso(str) {
+  const m = (str || '').match(/(\d{1,2})\.(\d{1,2})\.(\d{4})/);
+  if (!m) return '';
+  return `${m[3]}-${m[2].padStart(2, '0')}-${m[1].padStart(2, '0')}`;
+}
+
+function parseDatensaetze(zeilen) {
+  const ergebnisse = [];
+  for (let i = 0; i < zeilen.length; i++) {
+    const kopfText = zeilenText(zeilen[i]);
+    if (!/^Wartungsprotokoll\b/i.test(kopfText)) continue;
+    const typKey = erkenneTyp(kopfText);
+
+    let headerIdx = -1;
+    for (let j = i + 1; j < Math.min(i + 4, zeilen.length); j++) {
+      const t = zeilenText(zeilen[j]);
+      if (/Ident-?Nr/i.test(t) && /Standort/i.test(t)) { headerIdx = j; break; }
+    }
+    if (headerIdx === -1) continue; // Kopfzeile nicht gefunden -> überspringen statt raten
+
+    const headerRow = zeilen[headerIdx];
+    const valueRow = zeilen[headerIdx + 1];
+    if (!valueRow) continue;
+
+    const anker = [
+      { key: 'ident_nr', re: /Ident-?Nr/i },
+      { key: 'standort', re: /^Standort/i },
+      { key: 'tuernummer', re: /^T[üu]rnummer/i },
+      { key: 'datum', re: /durchgef[üu]hrt/i },
+      { key: 'kontrolleur', re: /Kontrolleur/i }
+    ];
+    const spalten = [];
+    anker.forEach(a => {
+      const treffer = headerRow.items.find(it => a.re.test(it.str));
+      if (treffer) spalten.push({ key: a.key, x: treffer.x });
+    });
+    spalten.sort((a, b) => a.x - b.x);
+    if (spalten.length < 4) continue; // Kopf unvollständig erkannt -> überspringen
+
+    const werte = {};
+    spalten.forEach(s => { werte[s.key] = []; });
+    valueRow.items.forEach(it => {
+      let ziel = spalten[0];
+      for (const s of spalten) { if (it.x >= s.x - 5) ziel = s; }
+      werte[ziel.key].push(it.str);
+    });
+    const feld = k => (werte[k] || []).join(' ').replace(/\s+/g, ' ').trim();
+
+    let maengel = '', hinweis = '';
+    for (let j = headerIdx + 2; j < zeilen.length; j++) {
+      const t = zeilenText(zeilen[j]);
+      if (/^Wartungsprotokoll\b/i.test(t)) break;
+      if (/^Abzustellende\s*M[äa]ngel/i.test(t)) {
+        maengel = t.replace(/^Abzustellende\s*M[äa]ngel:?\s*/i, '').trim();
+        const naechste = zeilen[j + 1] ? zeilenText(zeilen[j + 1]) : '';
+        if (naechste && !/^(Hinweis|Ja\b|Anlage|Wartungsprotokoll|5\.0|\d{1,2}\.\d{1,2}\.\d{4})/i.test(naechste)) {
+          maengel += ' ' + naechste;
+        }
+      }
+      if (/^Hinweis:?/i.test(t)) {
+        hinweis = t.replace(/^Hinweis:?\s*/i, '').trim();
+      }
+    }
+
+    ergebnisse.push({
+      typ_key: typKey,
+      ident_nr: feld('ident_nr'),
+      standort: feld('standort'),
+      tuernummer: feld('tuernummer'),
+      datum: datumZuIso(feld('datum')),
+      kontrolleur: feld('kontrolleur'),
+      maengel: maengel || '',
+      hinweis: hinweis || '',
+      uebernehmen: true
+    });
+  }
+  return ergebnisse;
+}
+
+async function pdfEinlesen() {
+  const file = document.getElementById('pdf-file').files[0];
+  const fehlerEl = document.getElementById('einlese-fehler');
+  fehlerEl.textContent = '';
+  if (!file) { fehlerEl.textContent = 'Bitte zuerst eine PDF-Datei auswählen.'; return; }
+  if (!document.getElementById('kunde-select').value) { fehlerEl.textContent = 'Bitte zuerst einen Kunden auswählen.'; return; }
+
+  const btn = document.getElementById('einlesen-btn');
+  btn.disabled = true;
+  btn.textContent = 'Lese PDF …';
+  try {
+    const zeilen = await extrahierePdfZeilen(file);
+    parsedRecords = parseDatensaetze(zeilen);
+    if (parsedRecords.length === 0) {
+      fehlerEl.textContent = 'Keine Wartungsprotokolle im erwarteten Format erkannt. Layout weicht vom Muster ab?';
+      return;
+    }
+    await markiereDubletten();
+    zeigeReviewTabelle();
+  } catch (err) {
+    fehlerEl.textContent = 'PDF konnte nicht gelesen werden: ' + (err.message || err);
+    console.error(err);
+  } finally {
+    btn.disabled = false;
+    btn.textContent = 'PDF einlesen';
+  }
+}
+
+async function markiereDubletten() {
+  const identNrs = [...new Set(parsedRecords.map(r => r.ident_nr).filter(Boolean))];
+  vorhandeneIdentNrs = new Set();
+  if (!identNrs.length) return;
+  try {
+    const liste = identNrs.map(n => encodeURIComponent(n)).join(',');
+    const res = await fetch(`${SUPABASE_URL}/rest/v1/wartungsprotokolle?ident_nr=in.(${liste})&select=ident_nr`, {
+      headers: { 'apikey': SUPABASE_ANON_KEY, 'Authorization': 'Bearer ' + (await sb.auth.getSession()).data.session.access_token }
+    });
+    if (!res.ok) return;
+    const rows = await res.json();
+    vorhandeneIdentNrs = new Set(rows.map(r => r.ident_nr));
+  } catch (err) {
+    console.error('Dubletten-Check fehlgeschlagen:', err);
+  }
+}
+
+function zeigeReviewTabelle() {
+  const tbody = document.getElementById('review-body');
+  tbody.innerHTML = '';
+  parsedRecords.forEach((r, idx) => {
+    const tr = document.createElement('tr');
+    if (vorhandeneIdentNrs.has(r.ident_nr)) tr.classList.add('dublette');
+    tr.innerHTML = `
+      <td class="uebernehmen"><input type="checkbox" ${r.uebernehmen ? 'checked' : ''} data-f="uebernehmen" data-i="${idx}"></td>
+      <td>
+        <select data-f="typ_key" data-i="${idx}">
+          <option value="">— unbekannt —</option>
+          ${TYP_LISTE.map(t => `<option value="${t.key}" ${r.typ_key === t.key ? 'selected' : ''}>${t.label}</option>`).join('')}
+        </select>
+      </td>
+      <td class="ident"><input type="text" value="${escHtml(r.ident_nr)}" data-f="ident_nr" data-i="${idx}" style="width:70px;"></td>
+      <td><input type="text" value="${escHtml(r.standort)}" data-f="standort" data-i="${idx}" style="width:140px;"></td>
+      <td><input type="text" value="${escHtml(r.tuernummer)}" data-f="tuernummer" data-i="${idx}" style="width:140px;"></td>
+      <td><input type="date" value="${r.datum}" data-f="datum" data-i="${idx}" style="width:130px;"></td>
+      <td><input type="text" value="${escHtml(r.kontrolleur)}" data-f="kontrolleur" data-i="${idx}" style="width:80px;"></td>
+      <td><input type="text" value="${escHtml(r.maengel)}" data-f="maengel" data-i="${idx}" style="width:200px;"></td>
+      <td><input type="text" value="${escHtml(r.hinweis)}" data-f="hinweis" data-i="${idx}" style="width:160px;"></td>
+    `;
+    tbody.appendChild(tr);
+  });
+
+  tbody.querySelectorAll('[data-f]').forEach(el => {
+    el.addEventListener('input', () => {
+      const i = parseInt(el.dataset.i);
+      const f = el.dataset.f;
+      parsedRecords[i][f] = el.type === 'checkbox' ? el.checked : el.value;
+      el.closest('tr').classList.toggle('uebersprungen', !parsedRecords[i].uebernehmen);
+    });
+    el.addEventListener('change', () => {
+      const i = parseInt(el.dataset.i);
+      const f = el.dataset.f;
+      parsedRecords[i][f] = el.type === 'checkbox' ? el.checked : el.value;
+    });
+  });
+
+  const dublettenAnzahl = parsedRecords.filter(r => vorhandeneIdentNrs.has(r.ident_nr)).length;
+  document.getElementById('anzahl-erkannt').textContent = parsedRecords.length;
+  document.getElementById('review-hinweis').textContent = dublettenAnzahl
+    ? `${dublettenAnzahl} Ident-Nr.(n) haben bereits mindestens einen Datensatz in der Datenbank (gelb markiert) — wird trotzdem als neuer Eintrag importiert, falls angehakt.`
+    : '';
+  document.getElementById('review-section').style.display = 'block';
+}
+
+function escHtml(s) {
+  return (s || '').replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+}
+
+async function importStarten() {
+  const kundeSel = document.getElementById('kunde-select');
+  const kundeId = kundeSel.value;
+  const kundeName = kundeSel.options[kundeSel.selectedIndex]?.textContent || '';
+  if (!kundeId) { alert('Bitte einen Kunden auswählen.'); return; }
+
+  const btn = document.getElementById('import-starten-btn');
+  btn.disabled = true;
+  document.getElementById('import-status').style.display = 'block';
+  document.getElementById('ergebnis-box').style.display = 'none';
+
+  const zuImportieren = parsedRecords.filter(r => r.uebernehmen && r.ident_nr.trim());
+  let anzahlNeu = 0, anzahlFehler = 0;
+  const fehlerDetails = [];
+  const gesamt = zuImportieren.length;
+  const typNamen = Object.fromEntries(TYP_LISTE.map(t => [t.key, t.label]));
+
+  for (let i = 0; i < gesamt; i++) {
+    const r = zuImportieren[i];
+    try {
+      const payload = {
+        ident_nr: r.ident_nr.trim(),
+        typ_key: r.typ_key || null,
+        typ_name: r.typ_key ? typNamen[r.typ_key] : null,
+        standort: r.standort || null,
+        tuernummer: r.tuernummer || null,
+        kunde: kundeName,
+        kunde_id: parseInt(kundeId),
+        bauvorhaben: kundeName + ' (PDF-Import)',
+        kontrolleur: r.kontrolleur || null,
+        datum: r.datum || null,
+        ergebnisse: [],
+        maengel: r.maengel || null,
+        hinweis: r.hinweis || null,
+        erstellt_von: 'PDF-Import'
+      };
+      const { error } = await sb.from('wartungsprotokolle').insert(payload);
+      if (error) throw error;
+      anzahlNeu++;
+    } catch (err) {
+      anzahlFehler++;
+      fehlerDetails.push({ ident_nr: r.ident_nr, grund: err.message || String(err) });
+    }
+    aktualisiereFortschritt(i + 1, gesamt);
+  }
+
+  await sb.from('import_laeufe').insert({
+    quelle: 'wartungsprotokoll-pdf',
+    dateiname: document.getElementById('pdf-file').files[0]?.name || null,
+    anzahl_neu: anzahlNeu,
+    anzahl_update: 0,
+    anzahl_fehler: anzahlFehler,
+    fehler_details: fehlerDetails.length ? fehlerDetails : null,
+    beendet_am: new Date().toISOString()
+  });
+
+  zeigeErgebnis(anzahlNeu, anzahlFehler, fehlerDetails);
+  btn.disabled = false;
+}
+
+function aktualisiereFortschritt(aktuell, gesamt) {
+  const prozent = gesamt ? Math.round((aktuell / gesamt) * 100) : 0;
+  document.getElementById('fortschritt-balken').style.width = prozent + '%';
+  document.getElementById('fortschritt-text').textContent = `${aktuell} / ${gesamt}`;
+}
+
+function zeigeErgebnis(neu, fehler, fehlerDetails) {
+  const box = document.getElementById('ergebnis-box');
+  box.style.display = 'block';
+  box.innerHTML = `
+    <h2 style="margin-top:0;" class="${fehler ? '' : 'erfolg'}">Import abgeschlossen</h2>
+    <p><strong>${neu}</strong> Datensätze importiert, <strong>${fehler}</strong> Fehler.</p>
+    ${fehlerDetails.length ? '<details><summary>Fehlerdetails anzeigen</summary><ul>' +
+      fehlerDetails.map(f => `<li>${escHtml(f.ident_nr)}: ${escHtml(f.grund)}</li>`).join('') +
+      '</ul></details>' : ''}
+  `;
+}
+</script>
+</body>
+</html>
