@@ -298,6 +298,13 @@
   .wg-betrieb-row{display:flex;gap:6px;margin-bottom:9px;}
   .wg-maengel-field{margin-bottom:12px;}
   .wg-maengel-field textarea{min-height:46px;}
+  .wg-vorjahr-row{margin-top:2px;}
+  .wg-vorjahr-btn{display:inline-block;font-size:11.5px;border:1px solid var(--line);border-radius:7px;padding:6px 10px;color:var(--muted);cursor:pointer;background:transparent;}
+  .wg-vorjahr-btn:hover{border-color:var(--blue); color:var(--text);}
+  .wg-vorjahr-panel{margin-top:8px;font-size:12.5px;line-height:1.5;padding:9px 10px;border-radius:8px;}
+  .wg-vorjahr-panel.found{background:rgba(201,96,79,0.08);border:1px solid rgba(201,96,79,0.3);}
+  .wg-vorjahr-panel.notfound,.wg-vorjahr-panel.loading,.wg-vorjahr-panel.error,.wg-vorjahr-panel.no-ident{color:var(--muted);font-style:italic;}
+  .wg-vorjahr-panel .vj-head{font-weight:700;color:var(--text);margin-bottom:3px;font-style:normal;}
 </style>
 </head>
 <body>
@@ -2303,6 +2310,8 @@ function wgAddInstance(typeKey){
     betrieb: { elektrisch: null, mechanisch: null },
     extraValue: '',
     photoIds: [],
+    vorjahr: null,
+    vorjahrStatus: 'idle',
     collapsed: false
   });
   wgRenderInstances();
@@ -2311,6 +2320,33 @@ function wgAddInstance(typeKey){
 function wgRemoveInstance(id){
   wgState.instances = wgState.instances.filter(i => i.id !== id);
   wgRenderInstances();
+}
+
+function wgFormatDatumKurz(iso){
+  if(!iso) return '-';
+  const parts = String(iso).split('-');
+  if(parts.length !== 3) return iso;
+  return `${parts[2]}.${parts[1]}.${parts[0]}`;
+}
+
+function wgVorjahrPanelHtml(inst){
+  const status = inst.vorjahrStatus;
+  if(status === 'loading') return `<div class="wg-vorjahr-panel loading">Suche letzte Wartung …</div>`;
+  if(status === 'no-ident') return `<div class="wg-vorjahr-panel no-ident">Bitte zuerst Ident-Nr. eintragen.</div>`;
+  if(status === 'notfound') return `<div class="wg-vorjahr-panel notfound">Keine frühere Wartung zu dieser Ident-Nr. gefunden.</div>`;
+  if(status === 'error') return `<div class="wg-vorjahr-panel error">Abruf fehlgeschlagen — bitte erneut versuchen.</div>`;
+  if(status === 'found' && inst.vorjahr){
+    const v = inst.vorjahr;
+    const mText = (v.maengel && v.maengel.trim()) ? v.maengel.trim() : 'Gerät war ohne Mängel.';
+    return `
+      <div class="wg-vorjahr-panel found">
+        <div class="vj-head">Letzte Wartung: ${wgFormatDatumKurz(v.datum)}${v.kontrolleur ? ' — ' + v.kontrolleur : ''}</div>
+        <div>Mängel damals: ${mText}</div>
+        ${v.hinweis && v.hinweis.trim() ? `<div>Hinweis: ${v.hinweis.trim()}</div>` : ''}
+      </div>
+    `;
+  }
+  return '';
 }
 
 function wgRenderInstances(){
@@ -2354,23 +2390,30 @@ function wgRenderInstances(){
           <div><label>Standort</label><input type="text" data-inst-meta="${inst.id}|standort" value="${inst.meta.standort}"></div>
           <div><label>Kontrolleur</label><input type="text" data-inst-meta="${inst.id}|kontrolleur" value="${inst.meta.kontrolleur}"></div>
         </div>
+        <div class="wg-vorjahr-row">
+          <div class="wg-vorjahr-btn" data-vorjahr-load="${inst.id}">Letzte Wartung laden</div>
+          ${wgVorjahrPanelHtml(inst)}
+        </div>
       `;
       body.appendChild(metaBlock);
     }
 
-    // Allgemeinzustand (immer sichtbar)
-    const genBlock = document.createElement('div');
-    genBlock.className = 'wg-general-block';
-    genBlock.innerHTML = `<div class="wg-general-title">Allgemeinzustand</div>` + WG_GENERAL_FIELDS.map(f => `
-      <div class="wg-general-row">
-        <div class="wg-general-label">${f.label}</div>
-        <div class="wg-general-pair">
-          <div class="wg-general-btn pos${inst.general[f.key] === 'pos' ? ' sel' : ''}" data-inst="${inst.id}" data-field="${f.key}" data-val="pos">${f.pos}</div>
-          <div class="wg-general-btn neg${inst.general[f.key] === 'neg' ? ' sel' : ''}" data-inst="${inst.id}" data-field="${f.key}" data-val="neg">${f.neg}</div>
+    // Allgemeinzustand — nur bei Störung. Bei Wartung ist das über die
+    // Prüfpunkte + "Anlage elektrisch/mechanisch in Betrieb?" bereits abgedeckt.
+    if(inst.mode !== 'wartung'){
+      const genBlock = document.createElement('div');
+      genBlock.className = 'wg-general-block';
+      genBlock.innerHTML = `<div class="wg-general-title">Allgemeinzustand</div>` + WG_GENERAL_FIELDS.map(f => `
+        <div class="wg-general-row">
+          <div class="wg-general-label">${f.label}</div>
+          <div class="wg-general-pair">
+            <div class="wg-general-btn pos${inst.general[f.key] === 'pos' ? ' sel' : ''}" data-inst="${inst.id}" data-field="${f.key}" data-val="pos">${f.pos}</div>
+            <div class="wg-general-btn neg${inst.general[f.key] === 'neg' ? ' sel' : ''}" data-inst="${inst.id}" data-field="${f.key}" data-val="neg">${f.neg}</div>
+          </div>
         </div>
-      </div>
-    `).join('');
-    body.appendChild(genBlock);
+      `).join('');
+      body.appendChild(genBlock);
+    }
 
     if(inst.mode === 'wartung'){
       const h = document.createElement('div');
@@ -2586,6 +2629,11 @@ function wgRenderInstances(){
     });
   });
 
+  // Vorjahres-Protokoll laden
+  wgInstancesEl.querySelectorAll('[data-vorjahr-load]').forEach(btn => {
+    btn.addEventListener('click', () => wgLadeVorjahr(parseInt(btn.dataset.vorjahrLoad)));
+  });
+
   // Protokoll-Meta-Felder (Ident-Nr., Standort, Türnummer, Kontrolleur)
   wgInstancesEl.querySelectorAll('[data-inst-meta]').forEach(input => {
     input.addEventListener('input', e => {
@@ -2677,8 +2725,10 @@ function wgUpdateStatus(){
   let total = 0;
   let answered = 0;
   wgState.instances.forEach(inst => {
-    total += WG_GENERAL_FIELDS.length;
-    answered += WG_GENERAL_FIELDS.filter(f => inst.general[f.key]).length;
+    if(inst.mode !== 'wartung'){
+      total += WG_GENERAL_FIELDS.length;
+      answered += WG_GENERAL_FIELDS.filter(f => inst.general[f.key]).length;
+    }
 
     if(inst.mode === 'wartung'){
       const pts = WG_ANLAGEN[inst.typeKey].points;
@@ -2755,6 +2805,82 @@ function wgFormatDatum(iso){
   const parts = iso.split('-');
   if(parts.length !== 3) return iso;
   return `${parts[2]}.${parts[1]}.${parts[0]}`;
+}
+
+async function wgLadeVorjahr(instId){
+  const inst = wgState.instances.find(i => i.id == instId);
+  if(!inst) return;
+  const identNr = (inst.meta.identNr || '').trim();
+  if(!identNr){ inst.vorjahrStatus = 'no-ident'; wgRenderInstances(); return; }
+  if(!SUPABASE_CONFIGURED){ inst.vorjahrStatus = 'error'; wgRenderInstances(); return; }
+
+  inst.vorjahrStatus = 'loading';
+  wgRenderInstances();
+  try{
+    const res = await fetch(
+      `${SUPABASE_URL}/rest/v1/wartungsprotokolle?ident_nr=eq.${encodeURIComponent(identNr)}&select=*&order=erstellt_am.desc&limit=1`,
+      { headers: supabaseHeaders() }
+    );
+    if(!res.ok) throw new Error('HTTP ' + res.status);
+    const rows = await res.json();
+    if(rows.length){
+      inst.vorjahr = rows[0];
+      inst.vorjahrStatus = 'found';
+    } else {
+      inst.vorjahr = null;
+      inst.vorjahrStatus = 'notfound';
+    }
+  } catch(err){
+    console.error('Vorjahres-Protokoll laden fehlgeschlagen:', err);
+    inst.vorjahrStatus = 'error';
+  }
+  wgRenderInstances();
+}
+
+/* Speichert jedes Wartungsprotokoll mit Ident-Nr. in der Datenbank —
+   Grundlage für "Letzte Wartung laden" bei künftigen Terminen. Läuft
+   still im Hintergrund beim PDF-Export; ein Fehlschlag hier darf das
+   bereits erzeugte PDF nicht entwerten, daher nur Best-Effort. */
+async function wgSpeicherProtokolleInDb(wartungInstances){
+  if(!SUPABASE_CONFIGURED) return;
+  const rows = wartungInstances
+    .filter(inst => (inst.meta.identNr || '').trim())
+    .map(inst => {
+      const a = WG_ANLAGEN[inst.typeKey];
+      const ergebnisse = a.points.map((p, idx) => {
+        const r = inst.results[idx] || {};
+        return { nr: p.nr, text: p.text, status: r.status || null, note: r.note || '', value: r.value || '' };
+      });
+      return {
+        ident_nr: inst.meta.identNr.trim(),
+        typ_key: inst.typeKey,
+        typ_name: a.name,
+        standort: inst.meta.standort || null,
+        tuernummer: inst.meta.tuernummer || null,
+        kunde: val('fKunde') || null,
+        bauvorhaben: val('fBauvorhaben') || null,
+        kontrolleur: inst.meta.kontrolleur || null,
+        datum: inst.meta.datum || null,
+        ergebnisse,
+        maengel: inst.maengel || null,
+        hinweis: inst.hinweis || null,
+        betrieb_elektrisch: inst.betrieb.elektrisch,
+        betrieb_mechanisch: inst.betrieb.mechanisch,
+        extra_value: inst.extraValue || null,
+        erstellt_von: val('fTechniker') || null
+      };
+    });
+  if(!rows.length) return;
+  try{
+    const res = await fetch(`${SUPABASE_URL}/rest/v1/wartungsprotokolle`, {
+      method: 'POST',
+      headers: supabaseHeaders(),
+      body: JSON.stringify(rows)
+    });
+    if(!res.ok) throw new Error('HTTP ' + res.status);
+  } catch(err){
+    console.error('Wartungsprotokolle speichern fehlgeschlagen:', err);
+  }
 }
 
 function wgExportProtokollePdf(){
@@ -2950,6 +3076,8 @@ function wgExportProtokollePdf(){
 
   const dateiname = 'Wartungsprotokolle_' + (val('fBauvorhaben') || 'Bericht').replace(/[^\w\-]+/g, '_') + '.pdf';
   doc.save(dateiname);
+
+  wgSpeicherProtokolleInDb(wartungInstances);
 
   wgStatusEl.textContent = skipped
     ? `PDF erzeugt (${wartungInstances.length - skipped} Protokoll(e)). Störungs-Einträge wurden nicht mit exportiert.`
