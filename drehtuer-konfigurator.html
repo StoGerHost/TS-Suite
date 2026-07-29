@@ -11,6 +11,9 @@
   <link rel="apple-touch-icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'%3E%3Crect width='512' height='512' rx='112' fill='%231A2D44'/%3E%3Crect x='60' y='60' width='32' height='392' rx='10' fill='%23D95E1F'/%3E%3Ctext x='115' y='310' font-family='Arial' font-weight='900' font-size='200' fill='white'%3EED%3C/text%3E%3C/svg%3E">
   <title>STOBER – Drehtür Konfigurator</title>
 <script src="config.js"></script>
+<!-- Nur als API eingebunden (kein data-gate) — die Seite bleibt frei nutzbar,
+     Login wird erst beim Klick auf "Artikelnummern verwalten" verlangt. -->
+<script src="ts-auth.js"></script>
 <style>
   :root{
     --bg:#0a0a0c;--panel:#111318;--primary:#e9edf2;--accent:#3a7bd5;
@@ -616,10 +619,45 @@ function renderArtikelStatus(){
   }
 }
 
-function showArtikelUploadModal(){ document.getElementById('artikel-upload-overlay').classList.add('visible'); renderArtikelStatus(); }
+// Artikelnummern-Verwaltung ist nur für Admins gedacht. Der Rest des
+// Konfigurators bleibt komplett frei nutzbar (kein data-gate im <head>) —
+// Login wird erst hier, beim Klick auf das 📥-Icon, verlangt.
+var _artikelAdminGeprueft = false;
+async function showArtikelUploadModal(){
+  if(!window.TSAuth){ alert('Login-Modul konnte nicht geladen werden (Internetverbindung prüfen).'); return; }
+  await TSAuth.ready;
+  if(!TSAuth.isUnlocked()){
+    // Zeigt das Login-Overlay; nach erfolgreichem Login lädt ts-auth.js die
+    // Seite neu (Standardverhalten) — Icon danach einfach erneut anklicken.
+    TSAuth.showGate('Artikelnummern verwalten (nur Admin)');
+    return;
+  }
+  const admin = await pruefeIstArtikelAdmin();
+  if(!admin){
+    alert('Dieser Bereich ist nur für Admins.');
+    return;
+  }
+  _artikelAdminGeprueft = true;
+  document.getElementById('artikel-upload-overlay').classList.add('visible');
+  renderArtikelStatus();
+}
+async function pruefeIstArtikelAdmin(){
+  try{
+    if(typeof TENANT === 'undefined' || !TENANT.supabaseUrl) return false;
+    const res = await fetch(TENANT.supabaseUrl + '/functions/v1/mitarbeiter?me=1', {
+      headers: { 'Authorization': 'Bearer ' + TSAuth.getToken(), 'apikey': TENANT.supabaseKey }
+    });
+    const ich = await res.json().catch(function(){ return null; });
+    return !!(ich && ich.rolle === 'admin');
+  }catch(e){ console.error('Admin-Check fehlgeschlagen:', e); return false; }
+}
 function closeArtikelUploadModal(){ document.getElementById('artikel-upload-overlay').classList.remove('visible'); }
 
 function handleArtikelUpload(evt){
+  // Defensive Zweitprüfung: das Overlay ist nur nach bestätigtem Admin-Check
+  // erreichbar, aber der <input type=file> bleibt technisch im DOM. Ohne
+  // bestätigten Check hier abbrechen, statt der Modal-Sichtbarkeit blind zu vertrauen.
+  if(!_artikelAdminGeprueft){ alert('Nicht berechtigt.'); evt.target.value=''; return; }
   var file=evt.target.files && evt.target.files[0];
   if(!file) return;
   if(!/\.json$/i.test(file.name)){
