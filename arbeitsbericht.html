@@ -542,6 +542,7 @@
 
     <div style="padding:16px 18px 120px;max-width:640px;margin:0 auto;width:100%;">
       <div style="font-size:12px;color:var(--muted);margin-bottom:12px;letter-spacing:.03em;">Anlage hinzufügen — auch mehrfach (z.B. mehrere Drehtüren)</div>
+      <div style="font-size:11.5px;color:var(--muted);margin-bottom:16px;font-style:italic;">Bei Wartungen landen die Prüfpunkte nur im separaten Wartungsprotokoll-PDF — im Auftragstext steht dann nur der Kurzhinweis "Wartung gemäß Auftrag durchgeführt". Bei Störungen wird die volle Beschreibung in den Auftragstext übernommen.</div>
       <div id="wgAnlagenGrid" style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:20px;"></div>
 
       <div id="wgInstancesWrap" style="display:none;">
@@ -2702,8 +2703,17 @@ function wgGenerateText(){
   let lines = [];
   wgState.instances.forEach(inst => {
     const a = WG_ANLAGEN[inst.typeKey];
-    const modeLabel = inst.mode === 'wartung' ? 'Wartung' : 'Störung';
-    lines.push(`${inst.label || a.name} — ${modeLabel}:`);
+
+    if(inst.mode === 'wartung'){
+      // Bewusst kein Prüfpunkt-Detail im Auftragstext — das steht ausschließlich
+      // im separaten Wartungsprotokoll-PDF. Im Bericht nur der Kurzhinweis.
+      lines.push(`${inst.label || a.name}: Wartung gemäß Auftrag durchgeführt. Zustand der Anlage ist im Wartungsprotokoll dokumentiert.`);
+      lines.push('');
+      return;
+    }
+
+    // Störung: volle Beschreibung, das ist die eigentliche Tätigkeitsdokumentation.
+    lines.push(`${inst.label || a.name} — Störung:`);
 
     WG_GENERAL_FIELDS.forEach(f => {
       const v = inst.general[f.key];
@@ -2711,36 +2721,9 @@ function wgGenerateText(){
       lines.push(`${f.label}: ${v === 'pos' ? f.pos : f.neg}`);
     });
 
-    if(inst.mode === 'wartung'){
-      let hasPoints = false;
-      a.points.forEach((point, idx) => {
-        const r = inst.results[idx];
-        if(!r) return;
-        if(point.type === 'value'){
-          if(!r.value || !r.value.trim()) return;
-          if(!hasPoints){ lines.push('Prüfpunkte:'); hasPoints = true; }
-          lines.push(`- ${point.text}: ${r.value.trim()}${point.unit ? ' ' + point.unit : ''}`);
-          return;
-        }
-        if(r.status === null) return;
-        if(!hasPoints){ lines.push('Prüfpunkte:'); hasPoints = true; }
-        if(r.status === 'ok'){
-          lines.push(`- ${point.text}: iO`);
-        } else if(r.status === 'na'){
-          const note = r.note?.trim();
-          lines.push(`- ${point.text}: NV${note ? ' — ' + note : ''}`);
-        } else {
-          const note = r.note?.trim() || 'ohne weitere Anmerkung';
-          lines.push(`- ${point.text}: niO — ${note}`);
-        }
-      });
-      if(inst.maengel?.trim()) lines.push(`Abzustellende Mängel: ${inst.maengel.trim()}`);
-      if(inst.hinweis?.trim()) lines.push(`Hinweis: ${inst.hinweis.trim()}`);
-    } else {
-      if(inst.stoerung.gemeldet?.trim()) lines.push(`Gemeldeter Fehler / Symptom: ${inst.stoerung.gemeldet.trim()}`);
-      if(inst.stoerung.ursache?.trim()) lines.push(`Festgestellte Ursache: ${inst.stoerung.ursache.trim()}`);
-      if(inst.stoerung.massnahme?.trim()) lines.push(`Durchgeführte Maßnahme: ${inst.stoerung.massnahme.trim()}`);
-    }
+    if(inst.stoerung.gemeldet?.trim()) lines.push(`Gemeldeter Fehler / Symptom: ${inst.stoerung.gemeldet.trim()}`);
+    if(inst.stoerung.ursache?.trim()) lines.push(`Festgestellte Ursache: ${inst.stoerung.ursache.trim()}`);
+    if(inst.stoerung.massnahme?.trim()) lines.push(`Durchgeführte Maßnahme: ${inst.stoerung.massnahme.trim()}`);
     lines.push('');
   });
   return lines.join('\n').trim();
