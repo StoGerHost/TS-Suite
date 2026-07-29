@@ -181,6 +181,16 @@
 <script src="config.js"></script>
 <script src="ts-auth.js" data-gate data-title="Admin — Artikelnummern & MA-Codes"></script>
 
+<div id="admin-gate" style="position:fixed;inset:0;z-index:20000;background:rgba(0,0,0,.85);display:flex;align-items:center;justify-content:center;padding:20px;">
+  <div id="admin-gate-box">
+    <div class="gate-icon">🔒</div>
+    <h2 id="admin-gate-title">Prüfe Berechtigung …</h2>
+    <p id="admin-gate-text">Einen Moment.</p>
+  </div>
+</div>
+
+<div id="admin-content" style="display:none;">
+
 <div class="stober-backbar">
   <a href="index.html" class="stober-backbar__link">&larr; STOBER Werkzeuge</a>
   <span class="stober-backbar__slash" aria-hidden="true">/</span>
@@ -227,6 +237,12 @@
       <div class="row" style="margin-top:8px">
         <input id="ma-code" type="text" inputmode="numeric" maxlength="10" placeholder="Kürzel, z.B. 78090" autocomplete="off" enterkeyhint="next">
         <input id="ma-name" type="text" placeholder="Name, z.B. Max Mustermann" autocomplete="off" enterkeyhint="done">
+      </div>
+      <div class="row" style="margin-top:8px">
+        <select id="ma-rolle">
+          <option value="user" selected>Rolle: User</option>
+          <option value="admin">Rolle: Admin</option>
+        </select>
         <button class="btn" id="ma-add-btn" onclick="maAnlegen()">+ Anlegen</button>
       </div>
       <p class="hint" id="ma-status" style="margin-top:8px"></p>
@@ -236,7 +252,7 @@
       <h2>Mitarbeiter (Datenbank)</h2>
       <p class="hint">Konten samt Kürzel. Deaktivierte können sich nicht mehr anmelden und
         erscheinen nicht mehr in den Konfiguratoren.</p>
-      <table id="tbl-ma"><thead><tr><th>Kürzel</th><th>Name</th><th>E-Mail</th><th></th></tr></thead><tbody></tbody></table>
+      <table id="tbl-ma"><thead><tr><th>Kürzel</th><th>Name</th><th>E-Mail</th><th>Rolle</th><th></th></tr></thead><tbody></tbody></table>
       <p class="empty" id="ma-empty" style="display:none">Laden fehlgeschlagen oder keine Mitarbeiter vorhanden.</p>
       <div class="export-row">
         <button class="btn ghost" onclick="exportCodes()">Als ma-codes.json exportieren (Offline-Fallback)</button>
@@ -345,9 +361,15 @@ function renderMitarbeiter(){
   MA_LISTE.forEach(function(m){
     var tr = document.createElement('tr');
     if(!m.aktiv) tr.style.opacity = '.45';
+    var rolleSelect = '<select onchange="maRolleAendern(\'' + m.id + '\', this.value, this)" style="min-height:32px;padding:4px 6px;font-size:12.5px;' +
+      (m.rolle === 'admin' ? 'color:var(--accent);font-weight:700;' : '') + '">' +
+      '<option value="user"' + (m.rolle !== 'admin' ? ' selected' : '') + '>User</option>' +
+      '<option value="admin"' + (m.rolle === 'admin' ? ' selected' : '') + '>Admin</option>' +
+      '</select>';
     tr.innerHTML = '<td class="mono">' + esc(m.kuerzel || '—') + '</td>' +
       '<td>' + esc(m.name || '—') + (m.aktiv ? '' : ' <span class="mono">(deaktiviert)</span>') + '</td>' +
       '<td class="mono" style="font-size:12px">' + esc(m.email || '') + '</td>' +
+      '<td>' + rolleSelect + '</td>' +
       '<td style="text-align:right;white-space:nowrap">' +
         '<button class="btn ghost small" onclick="maBearbeiten(\'' + m.id + '\')">Ändern</button> ' +
         (m.aktiv
@@ -357,21 +379,36 @@ function renderMitarbeiter(){
     tb.appendChild(tr);
   });
 }
+function maRolleAendern(id, rolle, selectEl){
+  selectEl.disabled = true;
+  fetch(MA_FN_URL, { method:'PATCH', headers: maHeaders(),
+    body: JSON.stringify({ id: id, rolle: rolle }) })
+    .then(function(r){ return r.json().then(function(j){ return { ok: r.ok, j: j }; }); })
+    .then(function(res){
+      selectEl.disabled = false;
+      if(!res.ok){ toast(res.j.error || 'Rolle ändern fehlgeschlagen'); ladeMitarbeiter(); return; }
+      toast('Rolle geändert');
+      ladeMitarbeiter();
+    })
+    .catch(function(){ selectEl.disabled = false; toast('Netzwerkfehler'); ladeMitarbeiter(); });
+}
 function maAnlegen(){
   var email = document.getElementById('ma-email').value.trim();
   var pw    = document.getElementById('ma-pw').value;
   var code  = document.getElementById('ma-code').value.trim();
   var name  = document.getElementById('ma-name').value.trim();
+  var rolle = document.getElementById('ma-rolle').value;
   if(!email || !pw || !code || !name){ toast('Bitte alle vier Felder ausfüllen'); return; }
   var btn = document.getElementById('ma-add-btn'); btn.disabled = true;
   maStatus('Lege an ...');
   fetch(MA_FN_URL, { method:'POST', headers: maHeaders(),
-    body: JSON.stringify({ email: email, password: pw, kuerzel: code, name: name }) })
+    body: JSON.stringify({ email: email, password: pw, kuerzel: code, name: name, rolle: rolle }) })
     .then(function(r){ return r.json().then(function(j){ return { ok: r.ok, j: j }; }); })
     .then(function(res){
       btn.disabled = false;
       if(!res.ok){ maStatus(''); toast(res.j.error || 'Anlegen fehlgeschlagen'); return; }
       ['ma-email','ma-pw','ma-code','ma-name'].forEach(function(id){ document.getElementById(id).value = ''; });
+      document.getElementById('ma-rolle').value = 'user';
       maStatus('Angelegt — Zugangsdaten dem Mitarbeiter mitteilen.');
       ladeMitarbeiter();
     })
@@ -401,10 +438,44 @@ function exportCodes(){
 }
 /* Erst laden, wenn ts-auth die Sitzung geprüft/erneuert hat: */
 try{ localStorage.removeItem('stober_admin_unlocked'); }catch(e){}
-(window.TSAuth && TSAuth.ready ? TSAuth.ready : Promise.resolve()).then(ladeMitarbeiter);
-document.getElementById('new-code').addEventListener('keydown', function(e){
-  if(e.key==='Enter') document.getElementById('new-name').focus();
+
+// --- Rollen-Gate: nur Admins dürfen diesen Bereich überhaupt sehen ---
+// Kein Code mehr, kein Prompt — die Rolle liegt am eingeloggten Konto selbst
+// (app_metadata, nur serverseitig über die Edge Function "mitarbeiter"
+// änderbar, siehe dort). Diese Seite fragt beim Laden einfach "bin ich
+// Admin?" und schaltet den Bereich automatisch frei oder eben nicht.
+(window.TSAuth && TSAuth.ready ? TSAuth.ready : Promise.resolve()).then(function(){
+  if(!window.TSAuth || !TSAuth.isUnlocked()) return; // Login-Overlay von ts-auth.js übernimmt das
+  fetch(MA_FN_URL + '?me=1', { headers: maHeaders() })
+    .then(function(r){ return r.json().then(function(j){ return { ok: r.ok, j: j }; }); })
+    .then(function(res){
+      if(res.ok && res.j && res.j.rolle === 'admin'){
+        document.getElementById('admin-gate').style.display = 'none';
+        document.getElementById('admin-content').style.display = 'block';
+        ladeMitarbeiter();
+      } else {
+        document.getElementById('admin-gate-title').textContent = 'Kein Zugriff';
+        document.getElementById('admin-gate-text').textContent =
+          'Dieser Bereich ist nur für Admins' + (res.j && (res.j.name || res.j.email) ? ' — angemeldet als ' + (res.j.name || res.j.email) : '') +
+          '. Falls das nicht stimmen sollte, bei einem Admin melden.';
+      }
+    })
+    .catch(function(err){
+      console.error(err);
+      document.getElementById('admin-gate-title').textContent = 'Fehler';
+      document.getElementById('admin-gate-text').textContent = 'Berechtigung konnte nicht geprüft werden — Internetverbindung prüfen, Seite neu laden.';
+    });
 });
+
+// new-code/new-name gehören zu keinem Element mehr (Altlast) — defensiv,
+// damit ein fehlendes Element nicht das restliche Skript (Artikelnummern,
+// Sichtbarkeit) durch einen unbehandelten Fehler blockiert.
+var __newCodeEl = document.getElementById('new-code');
+if(__newCodeEl){
+  __newCodeEl.addEventListener('keydown', function(e){
+    if(e.key==='Enter') document.getElementById('new-name').focus();
+  });
+}
 
 // ═══════════════════ ARTIKELNUMMERN ═══════════════════
 var ART_LOCAL_KEY='stober_artikel';
@@ -655,5 +726,7 @@ function downloadJSON(obj, filename){
 
 
 </script>
+</div><!-- /admin-content -->
+
 </body>
 </html>

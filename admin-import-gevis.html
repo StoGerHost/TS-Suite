@@ -146,14 +146,10 @@
 <h1>Kundenimport aus gevis</h1>
 <p style="color:var(--ink-50); font-size:0.9rem;">CSV-Export laden, Spalten zuordnen, prüfen, importieren.</p>
 
-<!-- Admin-Code-Gate -->
+<!-- Rollen-Gate: automatischer Check nach Login, kein Code mehr nötig -->
 <div id="admin-gate" class="karte">
-  <p id="init-status" style="font-size:0.8rem;color:var(--ink-45);margin-bottom:14px;font-family:var(--font-mono);">Initialisiere …</p>
-  <label for="admin-code-input">Admin-Code</label>
-  <input type="text" id="admin-code-input" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false" style="font-family:var(--font-mono);letter-spacing:.05em;">
-  <small class="hilfe">Achtung: großes O, keine Null.</small>
-  <button onclick="pruefeAdminCode()">Freischalten</button>
-  <div id="admin-code-fehler" class="fehler"></div>
+  <p id="init-status" style="font-size:0.8rem;color:var(--ink-45);margin-bottom:6px;font-family:var(--font-mono);">Initialisiere …</p>
+  <div id="admin-gate-msg" style="font-size:0.9rem;color:var(--ink-70);"></div>
 </div>
 
 <!-- Eigentliches Tool, erst nach Freischaltung sichtbar -->
@@ -292,59 +288,38 @@ try {
   }
   await TSAuth.ready;
   if (!TSAuth.isUnlocked()) return; // Login-Overlay ist bereits sichtbar
-  setzeStatus('Angemeldet ✓ — Admin-Code eingeben.', 'var(--glow)');
+  setzeStatus('Angemeldet ✓ — prüfe Berechtigung …', 'var(--glow)');
+  pruefeAdminRolle();
 })();
 
-// --- Admin-Code-Gate ---
-// Der Vergleich läuft serverseitig in der Edge Function
-// admin-code-pruefen — der richtige Code steht nirgendwo in
-// dieser Datei oder in config.js, nur als Secret auf dem Server.
-async function pruefeAdminCode() {
-  const fehlerEl = document.getElementById('admin-code-fehler');
-  const btn = document.querySelector('#admin-gate button');
-  fehlerEl.textContent = '';
+// --- Rollen-Gate ---
+// Kein Code mehr — die Rolle liegt am eingeloggten Konto selbst (app_metadata,
+// nur serverseitig über die Edge Function "mitarbeiter" änderbar). Diese Seite
+// fragt beim Laden einfach "bin ich Admin?" und schaltet automatisch frei.
+async function pruefeAdminRolle() {
+  const msgEl = document.getElementById('admin-gate-msg');
   try {
-    if (!sb) {
-      fehlerEl.textContent = 'Fehler: Supabase konnte nicht geladen werden (siehe Statuszeile oben — Internetverbindung/CDN prüfen, Seite neu laden).';
-      return;
-    }
-    const eingabe = document.getElementById('admin-code-input').value.trim();
-    if (!eingabe) {
-      fehlerEl.textContent = 'Bitte einen Code eingeben.';
-      return;
-    }
-
-    btn.disabled = true;
-    fehlerEl.textContent = 'Prüfe …';
-
     const { data: { session } } = await sb.auth.getSession();
-    if (!session) {
-      fehlerEl.textContent = 'Anmeldung abgelaufen — Seite neu laden.';
-      return;
-    }
+    if (!session) { msgEl.textContent = 'Anmeldung abgelaufen — Seite neu laden.'; return; }
 
-    const res = await fetch(`${SUPABASE_URL}/functions/v1/admin-code-pruefen`, {
-      method: 'POST',
+    const res = await fetch(`${SUPABASE_URL}/functions/v1/mitarbeiter?me=1`, {
       headers: {
-        'Content-Type': 'application/json',
         'Authorization': 'Bearer ' + session.access_token,
         'apikey': SUPABASE_ANON_KEY
-      },
-      body: JSON.stringify({ code: eingabe })
+      }
     });
-    const ergebnis = await res.json().catch(() => null);
+    const ich = await res.json().catch(() => null);
 
-    if (ergebnis && ergebnis.ok) {
+    if (ich && ich.rolle === 'admin') {
       document.getElementById('admin-gate').style.display = 'none';
       document.getElementById('import-tool').style.display = 'block';
     } else {
-      fehlerEl.textContent = (ergebnis && ergebnis.error) ? ergebnis.error : 'Falscher Code.';
+      setzeStatus('Angemeldet als ' + ((ich && (ich.name || ich.email)) || 'Mitarbeiter') + '.', 'var(--ink-60)');
+      msgEl.innerHTML = '🔒 Dieser Bereich ist nur für Admins. Falls das nicht stimmen sollte, bei einem Admin melden.';
     }
   } catch (err) {
-    fehlerEl.textContent = 'Unerwarteter Fehler: ' + (err.message || err);
-    console.error('pruefeAdminCode:', err);
-  } finally {
-    btn.disabled = false;
+    msgEl.textContent = 'Berechtigung konnte nicht geprüft werden: ' + (err.message || err);
+    console.error('pruefeAdminRolle:', err);
   }
 }
 
