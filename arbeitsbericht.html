@@ -280,6 +280,24 @@
   .wg-note{margin-top:8px;display:none;}
   .wg-note.show{display:block;}
   .wg-note textarea{min-height:52px;}
+  .wg-section-title{font-size:11.5px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;color:var(--amber);margin:16px 0 8px;padding-top:10px;border-top:1px dashed var(--line);}
+  .wg-section-title:first-child{margin-top:0;padding-top:0;border-top:none;}
+  .wg-value-row{display:flex;align-items:center;gap:8px;}
+  .wg-value-row input[type="text"]{flex:1;background:var(--bg2,var(--panel));border:1px solid var(--line);border-radius:8px;color:var(--text);padding:8px 10px;font-size:13.5px;}
+  .wg-value-row .unit{font-size:12px;color:var(--muted);white-space:nowrap;}
+  .wg-meta-block{background:rgba(74,144,184,0.06);border:1px solid var(--line);border-radius:10px;padding:10px 10px 4px;margin-bottom:14px;}
+  .wg-meta-title{font-size:11px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;color:var(--muted);margin-bottom:8px;}
+  .wg-meta-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px;}
+  .wg-meta-grid input{background:var(--panel);border:1px solid var(--line);border-radius:8px;color:var(--text);padding:7px 9px;font-size:13px;}
+  .wg-meta-grid label{display:block;font-size:10.5px;color:var(--muted);margin-bottom:3px;}
+  .wg-photopick{display:flex;gap:8px;flex-wrap:wrap;margin:6px 0 14px;}
+  .wg-photopick .ph{position:relative;width:56px;height:56px;border-radius:8px;overflow:hidden;border:2px solid var(--line);cursor:pointer;opacity:.55;}
+  .wg-photopick .ph.sel{border-color:var(--blue); opacity:1;}
+  .wg-photopick .ph img{width:100%;height:100%;object-fit:cover;display:block;}
+  .wg-photopick .empty{font-size:12px;color:var(--muted);font-style:italic;}
+  .wg-betrieb-row{display:flex;gap:6px;margin-bottom:9px;}
+  .wg-maengel-field{margin-bottom:12px;}
+  .wg-maengel-field textarea{min-height:46px;}
 </style>
 </head>
 <body>
@@ -532,8 +550,9 @@
     </div>
 
     <div style="position:sticky;bottom:0;background:linear-gradient(transparent, var(--bg) 35%);padding:14px 18px 20px;">
-      <div style="max-width:640px;margin:0 auto;display:flex;gap:8px;align-items:center;">
-        <div id="wgStatus" style="flex:1;font-size:12px;color:var(--muted);">Füge mindestens eine Anlage hinzu.</div>
+      <div style="max-width:640px;margin:0 auto;display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
+        <div id="wgStatus" style="flex:1;font-size:12px;color:var(--muted);min-width:160px;">Füge mindestens eine Anlage hinzu.</div>
+        <button type="button" class="clear-link" id="wgExportPdf" style="border:1px solid var(--line);border-radius:8px;padding:9px 14px;" disabled>Wartungsprotokolle als PDF</button>
         <button type="button" class="add-btn" id="wgApply" style="text-align:center;" disabled>In Bericht übernehmen</button>
       </div>
     </div>
@@ -2082,68 +2101,152 @@ document.getElementById('addTechBtn').addEventListener('click', () => {
    ============================================================ */
 const WG_ANLAGEN = {
   drehtuer: {
-    name: "Drehtürantrieb (automatisch)",
-    norm: "EN 16005 / DIN 18650-1,2 / ASR A1.7",
+    name: "Drehflügelantrieb",
+    protokollTitel: "Wartungsprotokoll Drehflügelantrieb nach DIN 18650 / EN 16005",
+    norm: "DIN 18650 / EN 16005",
     points: [
-      { text: "Sichtprüfung Türblatt und Rahmen auf Beschädigungen" },
-      { text: "Funktionsprüfung Öffnungs- und Schließbewegung" },
-      { text: "Prüfung Sicherheitssensoren (Haupt- und Nebenschließkante)" },
-      { text: "Prüfung Kraftbegrenzung / Einklemmschutz" },
-      { text: "Prüfung Notöffnung bzw. Fluchtwegfunktion",
-        hint: "Nur erforderlich, wenn die Tür Teil eines Flucht-/Rettungswegs ist." },
-      { text: "Prüfung Verriegelung und Betriebswahlschalter (Tag/Nacht/Aus)",
-        hint: "Nur erforderlich, wenn die Anlage über eine verriegelbare Betriebsart verfügt." },
-      { text: "Schmierung und Sichtprüfung Verschleißteile (Rollen, Führung, Lager)" },
-      { text: "Prüfung elektrischer Anschlüsse und Steuerung" },
-      { text: "Kennzeichnung / Piktogramme vorhanden und lesbar" },
-      { text: "Prüfbuch-Eintrag aktualisiert" }
+      { nr: "1.1", text: "Montagemaße", section: "Funktionsprüfung" },
+      { nr: "1.2", text: "Befestigungsschrauben" },
+      { nr: "1.3", text: "Leichtgängigkeit Tür" },
+      { nr: "1.4", text: "Dichtigkeit Antrieb" },
+      { nr: "1.5", text: "Sensorik" },
+      { nr: "1.6", text: "Türöffner" },
+      { nr: "1.7", text: "Bedienungselemente" },
+      { nr: "1.8", text: "Nebenschließkante" },
+      { nr: "1.9", text: "Rauch- bzw. Thermomelder" },
+      { nr: "1.10", text: "\"Tür schließen\" Taster" },
+      { nr: "1.11", text: "Motorschloß" },
+      { nr: "1.12", text: "Riegelkontakt" },
+      { nr: "1.13", text: "Öffnungszyklus", type: "value" },
+      { nr: "1.14", text: "Wartungsaufkleber" },
+      { nr: "5.0", text: "Prüfbuch vorhanden" }
     ]
   },
   schiebetuer: {
-    name: "Schiebetürantrieb (automatisch)",
-    norm: "EN 16005 / DIN 18650-1,2 / ASR A1.7 / AutSchR (Rettungsweg)",
+    name: "Schiebetür",
+    protokollTitel: "Wartungsprotokoll Schiebetüren nach DIN 18650",
+    norm: "DIN 18650",
     points: [
-      { text: "Sichtprüfung Laufschienen und Türflügel" },
-      { text: "Funktionsprüfung Öffnungs- und Schließbewegung inkl. Endlagen" },
-      { text: "Prüfung Sicherheitssensoren (Bewegungsmelder, Schließkanten)" },
-      { text: "Prüfung Kraftbegrenzung / Einklemmschutz" },
-      { text: "Prüfung Fluchtwegfunktion / Notentriegelung",
-        hint: "Nur erforderlich, wenn die Tür Teil eines Flucht-/Rettungswegs ist (AutSchR)." },
-      { text: "Prüfung Verriegelung und Betriebswahlschalter (Tag/Nacht/Aus)",
-        hint: "Nur erforderlich, wenn die Anlage über eine verriegelbare Betriebsart verfügt." },
-      { text: "Schmierung Laufwagen, Rollen, Führungsschienen" },
-      { text: "Prüfung elektrischer Anschlüsse und Steuerung" },
-      { text: "Kennzeichnung / Piktogramme vorhanden und lesbar" },
-      { text: "Prüfbuch-Eintrag aktualisiert" }
+      { nr: "1.1", text: "Montagemaße Laufwerk", section: "Funktionsprüfung" },
+      { nr: "1.2", text: "Befestigungsschrauben" },
+      { nr: "1.3", text: "Leichtgängigkeit Tür" },
+      { nr: "1.4", text: "Zahnriemen" },
+      { nr: "1.5", text: "Türaufhängung" },
+      { nr: "1.6", text: "Bodenführung" },
+      { nr: "1.7", text: "Sicherheitseinrichtungen" },
+      { nr: "1.8", text: "Sicherheitsabstände" },
+      { nr: "1.9", text: "Bedienungselemente" },
+      { nr: "1.10", text: "Notöffnung" },
+      { nr: "1.11", text: "Wartungsaufkleber" },
+      { nr: "5.0", text: "Prüfbuch vorhanden" }
     ]
   },
   feststellanlage: {
     name: "Feststellanlage",
+    protokollTitel: "Wartungsprotokoll Feststellanlagen der Bauart 1",
     norm: "DIN 14677-1,2",
     points: [
-      { text: "Sichtprüfung Feststellvorrichtung (Magnet/Ankerplatte oder Türschließer mit Feststellung)" },
-      { text: "Funktionsprüfung Auslösung über Rauchschalter/Brandmelder" },
-      { text: "Funktionsprüfung Handauslösetaster",
-        hint: "Entfällt, wenn die Feststellung bereits durch geringen Druck auf das Türblatt aufgehoben werden kann (z.B. Freilauftürschließer/Haftmagnet-Ausführung)." },
-      { text: "Prüfung Schließfolge und vollständiges Schließen des Türblatts" },
-      { text: "Prüfung Stromversorgung / Netzgerät / Notstromfunktion" },
-      { text: "Prüfung Ankopplung Brandmeldeanlage",
-        hint: "Nur bei Feststellanlage Typ 2/4 (Anbindung an BMA); entfällt bei Typ 1/3 (autarke Anlage)." },
-      { text: "Sichtprüfung Schließbereich auf Fremdkörper/Blockaden" },
-      { text: "Prüfbuch-Eintrag der Feststellanlage aktualisiert" }
+      { nr: "1.1", text: "Handauslösung", section: "Funktionsprüfung" },
+      { nr: "1.2", text: "Auslösung d. Brandmelder" },
+      { nr: "1.3", text: "Rückstellung d. Brandmelder" },
+      { nr: "1.4", text: "Umgebungseinflüsse" },
+      { nr: "1.5", text: "Nutzung i. Umfeld" },
+      { nr: "1.6", text: "baul. Änderungen" },
+      { nr: "1.7", text: "Schließen v. Rauchabschluss" },
+      { nr: "1.8", text: "Schließfolgeregelung" },
+      { nr: "2.1", text: "Bauaufsichtl. Zulassung", section: "Wartung" },
+      { nr: "2.2", text: "Reinigen" },
+      { nr: "2.3", text: "Vorbeug. Austausch" },
+      { nr: "2.4", text: "Auslösung d. Anlage" },
+      { nr: "2.5", text: "Entfernen von Brandmelder" },
+      { nr: "2.6", text: "Akku getauscht" },
+      { nr: "5.0", text: "Prüfbuch vorhanden" }
     ]
   },
   brandschutztuer: {
-    name: "Brandschutztür (baulich)",
-    norm: "DIBt-Zulassung / Feuerwiderstandsklasse",
+    name: "Brandschutztür",
+    protokollTitel: "Wartungsprotokoll Brandschutztür",
+    norm: "DIBt-Zulassung",
     points: [
-      { text: "Sichtprüfung Türblatt, Zarge und Dichtungen auf Beschädigung" },
-      { text: "Prüfung Selbstschließer / vollständiges, dichtes Schließen" },
-      { text: "Prüfung Kennzeichnungsschild (CE, Feuerwiderstandsklasse) vorhanden und lesbar" },
-      { text: "Prüfung auf unzulässige Veränderungen (Bohrungen, Anbauten, Keile)" },
-      { text: "Prüfung Brand-/Rauchschutzdichtungen auf Vollständigkeit" },
-      { text: "Freihaltung des Schließbereichs geprüft" },
-      { text: "Prüfbuch-Eintrag aktualisiert" }
+      { nr: "1.1", text: "Zulassungsschild", section: "Funktionsprüfung" },
+      { nr: "1.2", text: "Einbausituation" },
+      { nr: "1.3", text: "Schloß und Drücker" },
+      { nr: "1.4", text: "Türschließer bzw. Federband" },
+      { nr: "1.5", text: "Beschädigung" },
+      { nr: "1.6", text: "Bodendichtung" },
+      { nr: "1.7", text: "Türöffner" },
+      { nr: "1.8", text: "Schließfolgeregelung" },
+      { nr: "1.9", text: "Glasscheiben" },
+      { nr: "1.10", text: "Panikfunktion" },
+      { nr: "1.11", text: "Mitnehmerklappe" },
+      { nr: "1.12", text: "Wartungsaufkleber" },
+      { nr: "1.13", text: "Zargendichtung/Promatect" },
+      { nr: "1.14", text: "Motorschloß" }
+    ]
+  },
+  rwa: {
+    name: "Rauchwärmeabzugsanlage",
+    protokollTitel: "Wartungsprotokoll Rauchwärmeabzugsanlage",
+    norm: "RWA",
+    points: [
+      { nr: "1.1", text: "Zulassungsschild vorhanden", section: "Funktionsprüfung" },
+      { nr: "1.2", text: "Sichtkontrolle Beschädigungen" },
+      { nr: "1.3", text: "Bewegliche Teile (Befestigung, Funktion)" },
+      { nr: "1.4", text: "Elektrische Anschlüsse (Befestigung)" },
+      { nr: "1.5", text: "Rauchmelder (Funktion)" },
+      { nr: "1.6", text: "Handauslösetaster (Funktion)" },
+      { nr: "1.7", text: "Lüftungstaster (Funktion)" },
+      { nr: "1.8", text: "Meldelinie (Funktion)" },
+      { nr: "1.9", text: "Akkuladespannung" },
+      { nr: "1.9.1", text: "Ist-Spannung", type: "value", unit: "Volt" },
+      { nr: "1.10", text: "Akkubetrieb" },
+      { nr: "1.10.1", text: "2x öffnen/ schließen" },
+      { nr: "1.81", text: "Wind u. Regen Melder" },
+      { nr: "5.0", text: "Prüfbuch vorhanden" }
+    ],
+    extraValue: { key: "akku15min", label: "Akkuspannung nach 15 min. Betrieb", unit: "Volt" }
+  },
+  eltvtr: {
+    name: "Verriegelungssystem Rettungswege (EltVTR)",
+    protokollTitel: "Wartungsprotokoll Verriegelungssystem von Türen in Rettungswegen (EltVTR)",
+    norm: "EltVTR",
+    points: [
+      { nr: "1.1", text: "Herstellerangaben/ Eignungsnachweis", section: "Systembezogene Prüfung der Rettungswegtechnik" },
+      { nr: "1.2", text: "Montagemaße" },
+      { nr: "1.3", text: "Kennzeichnung Notoffentaster" },
+      { nr: "1.4", text: "Entsichern d. Systems" },
+      { nr: "1.5", text: "LED-Anzeige beim Entsichern" },
+      { nr: "1.6", text: "Sichern des Systems" },
+      { nr: "1.7", text: "LED-Anzeige beim Sichern" },
+      { nr: "1.8", text: "Notoffentaste Türöffnung" },
+      { nr: "1.9", text: "Notoffentaste Alarm" },
+      { nr: "2.1", text: "Freischaltung Fluchttüren", section: "Prüfungen bei Anschluß an Brandmelde-/Gefahrenmeldeanlage" },
+      { nr: "2.2", text: "Türdrücker" },
+      { nr: "2.3", text: "Riegel" },
+      { nr: "4.1", text: "Akkuspannung", section: "Funktionsprüfung" },
+      { nr: "4.2", text: "Ist-Spannung", type: "value", unit: "Volt" },
+      { nr: "5.0", text: "Prüfbuch vorhanden" }
+    ],
+    extraValue: { key: "akku15min", label: "Akkuspannung nach 15 min. Betrieb", unit: "Volt" }
+  },
+  tor: {
+    name: "Schiebe-/Sektional-/Rolltor",
+    protokollTitel: "Wartungsprotokoll Schiebe-/ Sektional-/ Rolltor nach DIBT",
+    norm: "DIBt",
+    points: [
+      { nr: "1.1", text: "Kennzeichnungsschild", section: "Funktionsprüfung (Beschreibung siehe Rückseite)" },
+      { nr: "1.2", text: "Beschädigungen" },
+      { nr: "1.3", text: "Laufschiene, Laufrollen" },
+      { nr: "1.4", text: "Befestigungen" },
+      { nr: "1.5", text: "Schließgeschwindigkeit" },
+      { nr: "1.6", text: "Zugseil" },
+      { nr: "1.7", text: "Schloß und Drücker" },
+      { nr: "1.8", text: "Sicherheitseinrichtung" },
+      { nr: "1.9", text: "Bedienungselemente" },
+      { nr: "1.10", text: "Not-Aus" },
+      { nr: "1.11", text: "Handbetätigung, Schlupftür" },
+      { nr: "1.12", text: "Wartungsaufkleber" },
+      { nr: "5.0", text: "Prüfbuch vorhanden" }
     ]
   }
 };
@@ -2168,6 +2271,7 @@ const wgInstancesWrap = document.getElementById('wgInstancesWrap');
 const wgInstancesEl = document.getElementById('wgInstances');
 const wgStatusEl = document.getElementById('wgStatus');
 const wgApplyBtn = document.getElementById('wgApply');
+const wgExportPdfBtn = document.getElementById('wgExportPdf');
 
 Object.entries(WG_ANLAGEN).forEach(([key, a]) => {
   const div = document.createElement('div');
@@ -2190,6 +2294,14 @@ function wgAddInstance(typeKey){
     general: {},
     results: {},
     stoerung: { gemeldet: '', ursache: '', massnahme: '' },
+    meta: {
+      identNr: '', standort: '', tuernummer: '',
+      kontrolleur: val('fTechniker') || '', datum: val('fDatum') || ''
+    },
+    maengel: '', hinweis: '',
+    betrieb: { elektrisch: null, mechanisch: null },
+    extraValue: '',
+    photoIds: [],
     collapsed: false
   });
   wgRenderInstances();
@@ -2230,6 +2342,21 @@ function wgRenderInstances(){
 
     const body = card.querySelector(`[data-inst-body="${inst.id}"]`);
 
+    if(inst.mode === 'wartung'){
+      const metaBlock = document.createElement('div');
+      metaBlock.className = 'wg-meta-block';
+      metaBlock.innerHTML = `
+        <div class="wg-meta-title">Protokoll-Angaben</div>
+        <div class="wg-meta-grid">
+          <div><label>Ident-Nr.</label><input type="text" data-inst-meta="${inst.id}|identNr" value="${inst.meta.identNr}"></div>
+          <div><label>Türnummer</label><input type="text" data-inst-meta="${inst.id}|tuernummer" value="${inst.meta.tuernummer}"></div>
+          <div><label>Standort</label><input type="text" data-inst-meta="${inst.id}|standort" value="${inst.meta.standort}"></div>
+          <div><label>Kontrolleur</label><input type="text" data-inst-meta="${inst.id}|kontrolleur" value="${inst.meta.kontrolleur}"></div>
+        </div>
+      `;
+      body.appendChild(metaBlock);
+    }
+
     // Allgemeinzustand (immer sichtbar)
     const genBlock = document.createElement('div');
     genBlock.className = 'wg-general-block';
@@ -2247,30 +2374,108 @@ function wgRenderInstances(){
     if(inst.mode === 'wartung'){
       const h = document.createElement('div');
       h.className = 'wg-sub-title';
-      h.textContent = 'Prüfpunkte (Norm-Wartung)';
+      h.textContent = 'Prüfpunkte (iO / niO / NV)';
       body.appendChild(h);
 
       a.points.forEach((point, idx) => {
-        if(!inst.results[idx]) inst.results[idx] = { status: null, note: '' };
+        if(point.section){
+          const sec = document.createElement('div');
+          sec.className = 'wg-section-title';
+          sec.textContent = point.section;
+          body.appendChild(sec);
+        }
+        if(!inst.results[idx]) inst.results[idx] = { status: null, note: '', value: '' };
         const r = inst.results[idx];
         const hintHtml = point.hint ? `<div class="hint">${point.hint}</div>` : '';
-        const noteVisible = (r.status === 'bad' || r.status === 'na');
         const el = document.createElement('div');
         el.className = 'wg-point';
-        el.innerHTML = `
-          <div class="txt">${point.text}</div>
-          ${hintHtml}
-          <div class="wg-toggle-row">
-            <div class="wg-toggle-btn ok${r.status === 'ok' ? ' sel' : ''}" data-inst="${inst.id}" data-idx="${idx}" data-val="ok">OK</div>
-            <div class="wg-toggle-btn bad${r.status === 'bad' ? ' sel' : ''}" data-inst="${inst.id}" data-idx="${idx}" data-val="bad">Nicht OK</div>
-            <div class="wg-toggle-btn na${r.status === 'na' ? ' sel' : ''}" data-inst="${inst.id}" data-idx="${idx}" data-val="na">Entfällt</div>
-          </div>
-          <div class="wg-note${noteVisible ? ' show' : ''}" data-inst-note="${inst.id}|${idx}">
-            <textarea placeholder="${r.status === 'na' ? 'Begründung (optional), z.B. nicht verbaut...' : 'Kurz beschreiben, was festgestellt wurde...'}">${r.note || ''}</textarea>
-          </div>
-        `;
+
+        if(point.type === 'value'){
+          el.innerHTML = `
+            <div class="txt">${point.nr} ${point.text}</div>
+            <div class="wg-value-row">
+              <input type="text" data-inst-value="${inst.id}|${idx}" value="${r.value || ''}" placeholder="Messwert eintragen">
+              ${point.unit ? `<span class="unit">${point.unit}</span>` : ''}
+            </div>
+          `;
+        } else {
+          const noteVisible = (r.status === 'bad' || r.status === 'na');
+          el.innerHTML = `
+            <div class="txt">${point.nr} ${point.text}</div>
+            ${hintHtml}
+            <div class="wg-toggle-row">
+              <div class="wg-toggle-btn ok${r.status === 'ok' ? ' sel' : ''}" data-inst="${inst.id}" data-idx="${idx}" data-val="ok">iO</div>
+              <div class="wg-toggle-btn bad${r.status === 'bad' ? ' sel' : ''}" data-inst="${inst.id}" data-idx="${idx}" data-val="bad">niO</div>
+              <div class="wg-toggle-btn na${r.status === 'na' ? ' sel' : ''}" data-inst="${inst.id}" data-idx="${idx}" data-val="na">NV</div>
+            </div>
+            <div class="wg-note${noteVisible ? ' show' : ''}" data-inst-note="${inst.id}|${idx}">
+              <textarea placeholder="${r.status === 'na' ? 'Begründung (optional), z.B. nicht verbaut...' : 'Kurz beschreiben, was festgestellt wurde...'}">${r.note || ''}</textarea>
+            </div>
+          `;
+        }
         body.appendChild(el);
       });
+
+      if(a.extraValue){
+        const ev = document.createElement('div');
+        ev.className = 'wg-point';
+        ev.innerHTML = `
+          <div class="txt">${a.extraValue.label}</div>
+          <div class="wg-value-row">
+            <input type="text" data-inst-extraval="${inst.id}" value="${inst.extraValue || ''}" placeholder="Messwert eintragen">
+            ${a.extraValue.unit ? `<span class="unit">${a.extraValue.unit}</span>` : ''}
+          </div>
+        `;
+        body.appendChild(ev);
+      }
+
+      const maengelBlock = document.createElement('div');
+      maengelBlock.className = 'wg-maengel-field';
+      maengelBlock.innerHTML = `
+        <div class="wg-general-label" style="margin-top:14px;">Abzustellende Mängel</div>
+        <textarea data-inst-maengel="${inst.id}" placeholder="z.B. Gerät ist ohne Mängel">${inst.maengel || ''}</textarea>
+        <div class="wg-general-label" style="margin-top:10px;">Hinweis (optional)</div>
+        <textarea data-inst-hinweis="${inst.id}" placeholder="Zusätzlicher Hinweis, falls relevant">${inst.hinweis || ''}</textarea>
+      `;
+      body.appendChild(maengelBlock);
+
+      const betriebBlock = document.createElement('div');
+      betriebBlock.className = 'wg-general-block';
+      betriebBlock.innerHTML = `
+        <div class="wg-general-row">
+          <div class="wg-general-label">Anlage elektrisch in Betrieb?</div>
+          <div class="wg-general-pair">
+            <div class="wg-general-btn pos${inst.betrieb.elektrisch === 'ja' ? ' sel' : ''}" data-inst-betrieb="${inst.id}" data-field="elektrisch" data-val="ja">Ja</div>
+            <div class="wg-general-btn neg${inst.betrieb.elektrisch === 'nein' ? ' sel' : ''}" data-inst-betrieb="${inst.id}" data-field="elektrisch" data-val="nein">Nein</div>
+          </div>
+        </div>
+        <div class="wg-general-row">
+          <div class="wg-general-label">Anlage mechanisch in Betrieb?</div>
+          <div class="wg-general-pair">
+            <div class="wg-general-btn pos${inst.betrieb.mechanisch === 'ja' ? ' sel' : ''}" data-inst-betrieb="${inst.id}" data-field="mechanisch" data-val="ja">Ja</div>
+            <div class="wg-general-btn neg${inst.betrieb.mechanisch === 'nein' ? ' sel' : ''}" data-inst-betrieb="${inst.id}" data-field="mechanisch" data-val="nein">Nein</div>
+          </div>
+        </div>
+      `;
+      body.appendChild(betriebBlock);
+
+      const photoTitle = document.createElement('div');
+      photoTitle.className = 'wg-sub-title';
+      photoTitle.textContent = 'Fotos für dieses Protokoll';
+      body.appendChild(photoTitle);
+
+      const photoPick = document.createElement('div');
+      photoPick.className = 'wg-photopick';
+      if(photos.length === 0){
+        photoPick.innerHTML = `<div class="empty">Noch keine Fotos hochgeladen (Abschnitt "05 Fotos").</div>`;
+      } else {
+        photoPick.innerHTML = photos.map(p => `
+          <div class="ph${inst.photoIds.includes(p.id) ? ' sel' : ''}" data-inst-photo="${inst.id}" data-photo-id="${p.id}">
+            <img src="${p.dataUrl}">
+          </div>
+        `).join('');
+      }
+      body.appendChild(photoPick);
     } else {
       const h = document.createElement('div');
       h.className = 'wg-sub-title';
@@ -2380,6 +2585,74 @@ function wgRenderInstances(){
     });
   });
 
+  // Protokoll-Meta-Felder (Ident-Nr., Standort, Türnummer, Kontrolleur)
+  wgInstancesEl.querySelectorAll('[data-inst-meta]').forEach(input => {
+    input.addEventListener('input', e => {
+      const [instId, field] = e.target.dataset.instMeta.split('|');
+      const inst = wgState.instances.find(i => i.id == instId);
+      if(inst) inst.meta[field] = e.target.value;
+    });
+  });
+
+  // Wert-Felder je Prüfpunkt (z.B. Ist-Spannung, Öffnungszyklus)
+  wgInstancesEl.querySelectorAll('[data-inst-value]').forEach(input => {
+    input.addEventListener('input', e => {
+      const [instId, idx] = e.target.dataset.instValue.split('|');
+      const inst = wgState.instances.find(i => i.id == instId);
+      if(inst){ if(!inst.results[idx]) inst.results[idx] = { status:null, note:'', value:'' }; inst.results[idx].value = e.target.value; }
+      wgUpdateStatus();
+    });
+  });
+
+  // Extra-Wertfeld je Anlagentyp (z.B. Akkuspannung nach 15 min.)
+  wgInstancesEl.querySelectorAll('[data-inst-extraval]').forEach(input => {
+    input.addEventListener('input', e => {
+      const inst = wgState.instances.find(i => i.id == e.target.dataset.instExtraval);
+      if(inst) inst.extraValue = e.target.value;
+    });
+  });
+
+  // Abzustellende Mängel / Hinweis
+  wgInstancesEl.querySelectorAll('[data-inst-maengel]').forEach(ta => {
+    ta.addEventListener('input', e => {
+      const inst = wgState.instances.find(i => i.id == e.target.dataset.instMaengel);
+      if(inst) inst.maengel = e.target.value;
+    });
+  });
+  wgInstancesEl.querySelectorAll('[data-inst-hinweis]').forEach(ta => {
+    ta.addEventListener('input', e => {
+      const inst = wgState.instances.find(i => i.id == e.target.dataset.instHinweis);
+      if(inst) inst.hinweis = e.target.value;
+    });
+  });
+
+  // Anlage elektrisch/mechanisch in Betrieb?
+  wgInstancesEl.querySelectorAll('[data-inst-betrieb]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const inst = wgState.instances.find(i => i.id == btn.dataset.instBetrieb);
+      const field = btn.dataset.field;
+      inst.betrieb[field] = btn.dataset.val;
+      const row = btn.closest('.wg-general-row');
+      row.querySelectorAll('.wg-general-btn').forEach(b => b.classList.remove('sel'));
+      btn.classList.add('sel');
+    });
+  });
+
+  // Foto-Auswahl je Protokoll
+  wgInstancesEl.querySelectorAll('[data-inst-photo]').forEach(div => {
+    div.addEventListener('click', () => {
+      const inst = wgState.instances.find(i => i.id == div.dataset.instPhoto);
+      const pid = div.dataset.photoId;
+      const has = inst.photoIds.includes(pid);
+      if(has){ inst.photoIds = inst.photoIds.filter(x => x != pid); }
+      else {
+        if(inst.photoIds.length >= 3){ inst.photoIds.shift(); }
+        inst.photoIds.push(pid);
+      }
+      div.classList.toggle('sel', inst.photoIds.includes(pid));
+    });
+  });
+
   // Störungsfelder
   wgInstancesEl.querySelectorAll('[data-inst-stoerung]').forEach(ta => {
     ta.addEventListener('input', e => {
@@ -2397,6 +2670,7 @@ function wgUpdateStatus(){
   if(wgState.instances.length === 0){
     wgStatusEl.textContent = 'Füge mindestens eine Anlage hinzu.';
     wgApplyBtn.disabled = true;
+    wgExportPdfBtn.disabled = true;
     return;
   }
   let total = 0;
@@ -2408,7 +2682,12 @@ function wgUpdateStatus(){
     if(inst.mode === 'wartung'){
       const pts = WG_ANLAGEN[inst.typeKey].points;
       total += pts.length;
-      answered += Object.values(inst.results).filter(r => r.status !== null).length;
+      pts.forEach((p, idx) => {
+        const r = inst.results[idx];
+        if(!r) return;
+        if(p.type === 'value'){ if(r.value && r.value.trim()) answered++; }
+        else if(r.status !== null) answered++;
+      });
     } else {
       total += 3;
       answered += ['gemeldet','ursache','massnahme'].filter(k => inst.stoerung[k]?.trim()).length;
@@ -2416,6 +2695,7 @@ function wgUpdateStatus(){
   });
   wgStatusEl.textContent = `${wgState.instances.length} Anlage(n) — ${answered}/${total} Angaben erfasst`;
   wgApplyBtn.disabled = answered === 0;
+  wgExportPdfBtn.disabled = !wgState.instances.some(i => i.mode === 'wartung');
 }
 
 function wgGenerateText(){
@@ -2435,18 +2715,27 @@ function wgGenerateText(){
       let hasPoints = false;
       a.points.forEach((point, idx) => {
         const r = inst.results[idx];
-        if(!r || r.status === null) return;
+        if(!r) return;
+        if(point.type === 'value'){
+          if(!r.value || !r.value.trim()) return;
+          if(!hasPoints){ lines.push('Prüfpunkte:'); hasPoints = true; }
+          lines.push(`- ${point.text}: ${r.value.trim()}${point.unit ? ' ' + point.unit : ''}`);
+          return;
+        }
+        if(r.status === null) return;
         if(!hasPoints){ lines.push('Prüfpunkte:'); hasPoints = true; }
         if(r.status === 'ok'){
-          lines.push(`- ${point.text}: OK`);
+          lines.push(`- ${point.text}: iO`);
         } else if(r.status === 'na'){
           const note = r.note?.trim();
-          lines.push(`- ${point.text}: entfällt${note ? ' — ' + note : ''}`);
+          lines.push(`- ${point.text}: NV${note ? ' — ' + note : ''}`);
         } else {
           const note = r.note?.trim() || 'ohne weitere Anmerkung';
-          lines.push(`- ${point.text}: NICHT OK — ${note}`);
+          lines.push(`- ${point.text}: niO — ${note}`);
         }
       });
+      if(inst.maengel?.trim()) lines.push(`Abzustellende Mängel: ${inst.maengel.trim()}`);
+      if(inst.hinweis?.trim()) lines.push(`Hinweis: ${inst.hinweis.trim()}`);
     } else {
       if(inst.stoerung.gemeldet?.trim()) lines.push(`Gemeldeter Fehler / Symptom: ${inst.stoerung.gemeldet.trim()}`);
       if(inst.stoerung.ursache?.trim()) lines.push(`Festgestellte Ursache: ${inst.stoerung.ursache.trim()}`);
@@ -2469,6 +2758,222 @@ wgApplyBtn.addEventListener('click', () => {
   feld.value = feld.value.trim() ? feld.value.trim() + '\n\n' + text : text;
   wgModal.style.display = 'none';
 });
+
+/* ============================================================
+   Separater PDF-Export: Wartungsprotokolle im Look der bisherigen
+   Papierformulare (Kopf, Fotos, iO/niO/NV-Tabelle, Mängel/Hinweis,
+   Ja/Nein-Block). Läuft unabhängig vom Arbeitsbericht-PDF-Export.
+   Hinweis: Im Original sind die Prüfpunkte zweispaltig gespiegelt
+   (links + rechts nebeneinander); hier bewusst einspaltig, damit
+   der Tabellenaufbau ohne PDF-Tabellen-Plugin robust bleibt.
+   ============================================================ */
+function wgFormatDatum(iso){
+  if(!iso) return '-';
+  const parts = iso.split('-');
+  if(parts.length !== 3) return iso;
+  return `${parts[2]}.${parts[1]}.${parts[0]}`;
+}
+
+function wgExportProtokollePdf(){
+  const wartungInstances = wgState.instances.filter(i => i.mode === 'wartung');
+  if(!wartungInstances.length){
+    wgStatusEl.textContent = 'Keine Anlage im Modus "Wartung" — Protokolle gelten nur für Wartungen, nicht für Störungen.';
+    return;
+  }
+
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF({unit:'mm', format:'a4'});
+  const pageW = 210, margin = 16;
+  const usableW = pageW - margin * 2;
+  const statusW = 14;
+  const textW = usableW - statusW * 3;
+
+  let skipped = 0;
+
+  wartungInstances.forEach((inst, instIdx) => {
+    const a = WG_ANLAGEN[inst.typeKey];
+    if(!a){ skipped++; return; }
+    if(instIdx > 0) doc.addPage();
+    let y = 18;
+
+    // Kopf: Firmenname
+    doc.setFont('helvetica', 'bold'); doc.setFontSize(15);
+    doc.text(TENANT.name || 'TS-Suite', pageW - margin, y, { align: 'right' });
+    y += 9;
+
+    // Titel-Box
+    doc.setDrawColor(0); doc.setLineWidth(0.3);
+    doc.rect(margin, y, usableW, 9);
+    doc.setFont('helvetica', 'bold'); doc.setFontSize(12);
+    doc.text(a.protokollTitel || ('Wartungsprotokoll ' + a.name), pageW / 2, y + 6.2, { align: 'center' });
+    y += 9;
+
+    // Meta-Grid: Ident-Nr. / Standort / Türnummer / durchgeführt am / Kontrolleur
+    const metaCols = [
+      ['Ident-Nr.', inst.meta.identNr || '-'],
+      ['Standort', inst.meta.standort || '-'],
+      ['Türnummer', inst.meta.tuernummer || '-'],
+      ['durchgeführt am', wgFormatDatum(inst.meta.datum)],
+      ['Kontrolleur', inst.meta.kontrolleur || '-']
+    ];
+    const colW = usableW / metaCols.length;
+    const metaH = 14;
+    doc.rect(margin, y, usableW, metaH);
+    metaCols.forEach((c, i) => {
+      const cx = margin + i * colW;
+      if(i > 0) doc.line(cx, y, cx, y + metaH);
+      doc.setFont('helvetica', 'bold'); doc.setFontSize(7.5);
+      doc.text(c[0], cx + 2, y + 5);
+      doc.setFont('helvetica', 'normal'); doc.setFontSize(8.5);
+      doc.text(doc.splitTextToSize(c[1], colW - 4), cx + 2, y + 10);
+    });
+    y += metaH + 6;
+
+    // Fotos (max. 3, wie im Original)
+    const instPhotos = photos.filter(p => inst.photoIds.includes(String(p.id)));
+    if(instPhotos.length){
+      const imgW = 55, imgH = 42;
+      let x = margin;
+      instPhotos.slice(0, 3).forEach(p => {
+        try{ doc.addImage(p.dataUrl, 'JPEG', x, y, imgW, imgH); }catch(e){}
+        x += imgW + 6;
+      });
+      y += imgH + 8;
+    }
+
+    if(y > 250){ doc.addPage(); y = 18; }
+
+    // Prüfpunkte-Tabelle
+    function drawTableHead(){
+      const h = 7;
+      doc.setFillColor(235, 235, 235);
+      doc.rect(margin, y, usableW, h, 'F');
+      doc.rect(margin, y, usableW, h);
+      doc.setFont('helvetica', 'bold'); doc.setFontSize(9);
+      doc.text('Prüfpunkt', margin + 2, y + 5);
+      doc.line(margin + textW, y, margin + textW, y + h);
+      doc.text('iO', margin + textW + statusW * 0.5, y + 5, { align: 'center' });
+      doc.line(margin + textW + statusW, y, margin + textW + statusW, y + h);
+      doc.text('niO', margin + textW + statusW * 1.5, y + 5, { align: 'center' });
+      doc.line(margin + textW + statusW * 2, y, margin + textW + statusW * 2, y + h);
+      doc.text('NV', margin + textW + statusW * 2.5, y + 5, { align: 'center' });
+      y += h;
+    }
+    drawTableHead();
+    doc.setFont('helvetica', 'normal'); doc.setFontSize(9);
+
+    a.points.forEach((point, idx) => {
+      const r = inst.results[idx] || { status: null, note: '', value: '' };
+
+      if(point.section){
+        if(y > 265){ doc.addPage(); y = 18; drawTableHead(); doc.setFont('helvetica', 'normal'); doc.setFontSize(9); }
+        doc.setFillColor(245, 245, 245);
+        doc.rect(margin, y, usableW, 6, 'F');
+        doc.rect(margin, y, usableW, 6);
+        doc.setFont('helvetica', 'bold'); doc.setFontSize(8.5);
+        doc.text(point.section, margin + 2, y + 4.2);
+        doc.setFont('helvetica', 'normal'); doc.setFontSize(9);
+        y += 6;
+      }
+
+      const label = `${point.nr} ${point.text}`;
+      const textLines = doc.splitTextToSize(label, textW - 4);
+      const noteTxt = (r.note && (r.status === 'bad' || r.status === 'na')) ? r.note.trim() : '';
+      const noteLines = noteTxt ? doc.splitTextToSize('→ ' + noteTxt, textW - 4) : [];
+      const rowH = Math.max(7, (textLines.length + noteLines.length) * 4.2 + 3);
+
+      if(y + rowH > 280){ doc.addPage(); y = 18; drawTableHead(); doc.setFont('helvetica', 'normal'); doc.setFontSize(9); }
+
+      doc.rect(margin, y, usableW, rowH);
+      doc.setFont('helvetica', 'normal'); doc.setFontSize(9);
+      doc.text(textLines, margin + 2, y + 4.5);
+      if(noteLines.length){
+        doc.setFont('helvetica', 'italic'); doc.setFontSize(8);
+        doc.text(noteLines, margin + 2, y + 4.5 + textLines.length * 4.2);
+        doc.setFont('helvetica', 'normal'); doc.setFontSize(9);
+      }
+
+      if(point.type === 'value'){
+        const valTxt = (r.value && r.value.trim()) ? r.value.trim() + (point.unit ? ' ' + point.unit : '') : '–';
+        doc.text(valTxt, margin + usableW - 2, y + rowH / 2 + 1.5, { align: 'right' });
+      } else {
+        doc.line(margin + textW, y, margin + textW, y + rowH);
+        doc.line(margin + textW + statusW, y, margin + textW + statusW, y + rowH);
+        doc.line(margin + textW + statusW * 2, y, margin + textW + statusW * 2, y + rowH);
+        const markY = y + rowH / 2 + 1.5;
+        if(r.status === 'ok') doc.text('X', margin + textW + statusW * 0.5, markY, { align: 'center' });
+        if(r.status === 'bad') doc.text('X', margin + textW + statusW * 1.5, markY, { align: 'center' });
+        if(r.status === 'na') doc.text('X', margin + textW + statusW * 2.5, markY, { align: 'center' });
+      }
+      y += rowH;
+    });
+
+    if(a.extraValue){
+      if(y > 273){ doc.addPage(); y = 18; }
+      const h = 7;
+      doc.rect(margin, y, usableW, h);
+      doc.setFont('helvetica', 'normal'); doc.setFontSize(9);
+      doc.text(a.extraValue.label, margin + 2, y + 4.8);
+      const v = inst.extraValue && inst.extraValue.trim() ? inst.extraValue.trim() + (a.extraValue.unit ? ' ' + a.extraValue.unit : '') : '–';
+      doc.text(v, margin + usableW - 2, y + 4.8, { align: 'right' });
+      y += h + 2;
+    }
+
+    // Abzustellende Mängel
+    y += 2;
+    if(y > 260){ doc.addPage(); y = 18; }
+    const maengelTxt = (inst.maengel && inst.maengel.trim()) ? inst.maengel.trim() : 'Gerät ist ohne Mängel';
+    const mLines = doc.splitTextToSize(maengelTxt, usableW - 46);
+    const mH = Math.max(8, mLines.length * 4.2 + 3);
+    doc.rect(margin, y, usableW, mH);
+    doc.line(margin + 42, y, margin + 42, y + mH);
+    doc.setFont('helvetica', 'bold'); doc.setFontSize(9);
+    doc.text('Abzustellende Mängel', margin + 2, y + 5);
+    doc.setFont('helvetica', 'normal');
+    doc.text(mLines, margin + 45, y + 4.5);
+    y += mH + 2;
+
+    // Hinweis (nur wenn ausgefüllt)
+    if(inst.hinweis && inst.hinweis.trim()){
+      if(y > 265){ doc.addPage(); y = 18; }
+      const hLines = doc.splitTextToSize(inst.hinweis.trim(), usableW - 46);
+      const hH = Math.max(8, hLines.length * 4.2 + 3);
+      doc.rect(margin, y, usableW, hH);
+      doc.line(margin + 42, y, margin + 42, y + hH);
+      doc.setFont('helvetica', 'bold'); doc.setFontSize(9);
+      doc.text('Hinweis', margin + 2, y + 5);
+      doc.setFont('helvetica', 'normal');
+      doc.text(hLines, margin + 45, y + 4.5);
+      y += hH + 2;
+    }
+
+    // Ja/Nein: Anlage elektrisch/mechanisch in Betrieb?
+    y += 2;
+    if(y > 268){ doc.addPage(); y = 18; }
+    const jnRows = [
+      ['Anlage elektrisch in Betrieb?', inst.betrieb.elektrisch === 'ja' ? 'Ja' : (inst.betrieb.elektrisch === 'nein' ? 'Nein' : '–')],
+      ['Anlage mechanisch in Betrieb?', inst.betrieb.mechanisch === 'ja' ? 'Ja' : (inst.betrieb.mechanisch === 'nein' ? 'Nein' : '–')]
+    ];
+    const jnH = 7;
+    jnRows.forEach(row => {
+      doc.rect(margin, y, usableW, jnH);
+      doc.line(margin + usableW - 30, y, margin + usableW - 30, y + jnH);
+      doc.setFont('helvetica', 'normal'); doc.setFontSize(9);
+      doc.text(row[0], margin + 2, y + 4.8);
+      doc.text(row[1], margin + usableW - 15, y + 4.8, { align: 'center' });
+      y += jnH;
+    });
+  });
+
+  const dateiname = 'Wartungsprotokolle_' + (val('fBauvorhaben') || 'Bericht').replace(/[^\w\-]+/g, '_') + '.pdf';
+  doc.save(dateiname);
+
+  wgStatusEl.textContent = skipped
+    ? `PDF erzeugt (${wartungInstances.length - skipped} Protokoll(e)). Störungs-Einträge wurden nicht mit exportiert.`
+    : `PDF mit ${wartungInstances.length} Protokoll(en) erzeugt.`;
+}
+
+wgExportPdfBtn.addEventListener('click', wgExportProtokollePdf);
 
 </script>
 </body>
