@@ -476,7 +476,7 @@ const LM = {
   sensorFarbe:   { alu:"Aluminium",weiss:"Weiß",schwarz:"Schwarz" },
   projektart:    { neuanlage:"Neuanlage",modernisierung:"Modernisierung / Bestandsumbau" },
   eoeffner:      { ja:"Ja, vorhanden",nein:"Nicht vorhanden" },
-  eoeffnerSpannung:{ "12vdc":"12 V DC","24vdc":"24 V DC","12vac":"12 V AC","24vac":"24 V AC","230vac":"230 V AC" },
+  eoeffnerSpannung:{ "12vdc":"12 V DC","24vdc":"24 V DC","12vac":"12 V AC","24vac":"24 V AC" },
   motorschloss:  { ja:"Ja, vorhanden",nein:"Nicht vorhanden" },
   sensorAbsicherungSeite: { einseitig:"Einseitig",beidseitig:"Beidseitig" },
 };
@@ -1134,8 +1134,7 @@ function buildVerriegelung(){
   if(S.eoeffner==='ja'){
     html+=radio('Spannung E-Öffner',null,'eoeffnerSpannung',[
       {value:'12vdc',label:'12 V DC'},{value:'24vdc',label:'24 V DC'},
-      {value:'12vac',label:'12 V AC'},{value:'24vac',label:'24 V AC'},
-      {value:'230vac',label:'230 V AC'}])+
+      {value:'12vac',label:'12 V AC'},{value:'24vac',label:'24 V AC'}])+
     numInput('Einschaltdauer E-Öffner','Dauerstrom = 100 % ED, sonst reduzierte Einschaltdauer angeben','eoeffnerEinschaltdauer','% ED','z. B. 100');
   }
   html+=radio('Motorschloss vorhanden?','Alternative zur Verriegelung per E-Öffner','motorschloss',[
