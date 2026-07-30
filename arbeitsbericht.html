@@ -8,15 +8,15 @@
 <script src="ts-auth.js" data-gate data-title="Arbeitsbericht"></script>
 <style>
 /* --- Einheitliche TS-Suite-Backbar (auf allen Seiten identisch) --- */
-.stober-backbar{position:sticky;top:0;z-index:9999;display:flex;align-items:center;gap:10px;
+.ts-backbar{position:sticky;top:0;z-index:9999;display:flex;align-items:center;gap:10px;
   background:#0a0a0c;color:#e9edf2;padding:10px 16px;padding-top:calc(10px + env(safe-area-inset-top,0px));
   font:600 12px/1.4 ui-monospace,Menlo,monospace;letter-spacing:.03em;
   border-bottom:1px solid rgba(120,140,160,.35);flex-wrap:wrap;}
-.stober-backbar__link{color:#e9edf2;text-decoration:none;display:inline-flex;align-items:center;gap:6px;
+.ts-backbar__link{color:#e9edf2;text-decoration:none;display:inline-flex;align-items:center;gap:6px;
   transition:color .15s ease;white-space:nowrap;}
-@media(hover:hover){ .stober-backbar__link:hover{color:#3a7bd5;} }
-.stober-backbar__slash{color:rgba(233,237,242,.4);}
-.stober-backbar__current{color:#3a7bd5;font-weight:700;}
+@media(hover:hover){ .ts-backbar__link:hover{color:#3a7bd5;} }
+.ts-backbar__slash{color:rgba(233,237,242,.4);}
+.ts-backbar__current{color:#3a7bd5;font-weight:700;}
 </style>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
@@ -313,10 +313,10 @@
 </style>
 </head>
 <body>
-<div class="stober-backbar">
-  <a href="index.html" class="stober-backbar__link">&larr; STOBER Werkzeuge</a>
-  <span class="stober-backbar__slash" aria-hidden="true">/</span>
-  <span class="stober-backbar__current">Arbeitsbericht</span>
+<div class="ts-backbar">
+  <a href="index.html" class="ts-backbar__link">&larr; TS Suite Werkzeuge</a>
+  <span class="ts-backbar__slash" aria-hidden="true">/</span>
+  <span class="ts-backbar__current">Arbeitsbericht</span>
 </div>
 
 <header>

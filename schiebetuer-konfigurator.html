@@ -5,11 +5,11 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-  <meta name="apple-mobile-web-app-title" content="STOBER Schiebetür">
+  <meta name="apple-mobile-web-app-title" content="TS Suite Schiebetür">
   <meta name="mobile-web-app-capable" content="yes">
   <meta name="theme-color" content="#0a0a0c">
   <link rel="apple-touch-icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'%3E%3Crect width='512' height='512' rx='112' fill='%231A2D44'/%3E%3Crect x='40' y='60' width='20' height='392' rx='6' fill='%23D95E1F'/%3E%3Ctext x='75' y='310' font-family='Arial' font-weight='900' font-size='105' fill='white'%3ESCH%3C/text%3E%3C/svg%3E">
-  <title>STOBER – Schiebetür Konfigurator</title>
+  <title>TS Suite – Schiebetür Konfigurator</title>
 <script src="config.js"></script>
 <style>
   :root{
@@ -272,22 +272,22 @@
 </style>
 </head>
 <body>
-<div class="stober-backbar">
-  <a href="index.html" class="stober-backbar__link">&larr; STOBER Werkzeuge</a>
-  <span class="stober-backbar__slash" aria-hidden="true">/</span>
-  <span class="stober-backbar__current">Schiebetür-Konfigurator</span>
+<div class="ts-backbar">
+  <a href="index.html" class="ts-backbar__link">&larr; TS Suite Werkzeuge</a>
+  <span class="ts-backbar__slash" aria-hidden="true">/</span>
+  <span class="ts-backbar__current">Schiebetür-Konfigurator</span>
 </div>
 <style>
-  .stober-backbar{position:sticky;top:0;z-index:99999;display:flex;align-items:center;gap:10px;
+  .ts-backbar{position:sticky;top:0;z-index:99999;display:flex;align-items:center;gap:10px;
     background:#0a0a0c;color:#e9edf2;padding:10px 16px;
     font:600 12px/1.4 ui-monospace,'JetBrains Mono','SFMono-Regular',Consolas,monospace;
     letter-spacing:.03em;border-bottom:1px solid rgba(58,123,213,.35);}
-  .stober-backbar__link{color:#e9edf2;text-decoration:none;display:inline-flex;align-items:center;gap:6px;
+  .ts-backbar__link{color:#e9edf2;text-decoration:none;display:inline-flex;align-items:center;gap:6px;
     transition:color .15s ease;white-space:nowrap;}
-  @media(hover:hover){ .stober-backbar__link:hover{color:#3a7bd5;} }
-  .stober-backbar__slash{color:rgba(233,237,242,.35);}
-  .stober-backbar__current{color:#3a7bd5;font-weight:700;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
-  @media(max-width:480px){.stober-backbar{font-size:10.5px;padding:8px 12px;gap:8px;}}
+  @media(hover:hover){ .ts-backbar__link:hover{color:#3a7bd5;} }
+  .ts-backbar__slash{color:rgba(233,237,242,.35);}
+  .ts-backbar__current{color:#3a7bd5;font-weight:700;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+  @media(max-width:480px){.ts-backbar{font-size:10.5px;padding:8px 12px;gap:8px;}}
 </style>
 
 <!-- Vorlagen Modal -->
@@ -390,7 +390,7 @@
 <div id="hdr" class="dk">
   <div style="display:flex;align-items:center;flex:1;min-width:0">
     <div id="hdr-bar"></div>
-    <div style="min-width:0;flex:1"><div style="display:flex;align-items:center;gap:8px;min-width:0"><span style="background:#577496;color:#fff;font-weight:900;font-size:11px;padding:2px 7px;border-radius:3px;letter-spacing:.04em;flex-shrink:0">STOBER</span><span id="hdr-title" style="color:#fff;font-weight:800;font-size:16px;letter-spacing:-.02em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0">Schiebetür Konfigurator</span></div><div id="hdr-sub">Automatische Schiebetür &middot; Konfiguration</div></div>
+    <div style="min-width:0;flex:1"><div style="display:flex;align-items:center;gap:8px;min-width:0"><span style="background:#577496;color:#fff;font-weight:900;font-size:11px;padding:2px 7px;border-radius:3px;letter-spacing:.04em;flex-shrink:0">TS Suite</span><span id="hdr-title" style="color:#fff;font-weight:800;font-size:16px;letter-spacing:-.02em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0">Schiebetür Konfigurator</span></div><div id="hdr-sub">Automatische Schiebetür &middot; Konfiguration</div></div>
   </div>
   <div id="prog-ring"><div id="prog-inner"><span id="prog-pct">0%</span></div></div>
 </div>
@@ -1483,7 +1483,7 @@ function exportPDF(){
   var normen=isDK()?['DIN 18650','EN 16005','AutSchR','230V AC','1,5 Mio. Lastwechsel']:isRC()?['DIN 18650','EN 16005','230V AC']:isGI()?['DIN 18650','EN 16005','230V AC']:['DIN 18650','EN 16005','DIN EN ISO 13849 PL D','230V AC'];
   var html='<!DOCTYPE html><html lang="de"><head><meta charset="UTF-8"><title>'+hs+' '+prod+' – Konfiguration</title>'
     +'<style>*{box-sizing:border-box;margin:0;padding:0}body{font-family:Arial,sans-serif;color:#1A2D44;background:#fff;padding:20px}'
-    +'@page{size:A4;margin:15mm}@media print{body{-webkit-print-color-adjust:exact;print-color-adjust:exact}}</style></head><body><div style="position:fixed;top:50%;left:50%;transform:translate(-50%,-50%) rotate(-35deg);font-size:52px;font-weight:900;color:rgba(0,27,67,0.07);white-space:nowrap;pointer-events:none;z-index:9999;letter-spacing:.12em;font-family:Arial,sans-serif;text-align:center;line-height:1.3;">STOBER GmbH<br>Created by M.&#8201;G.</div>'
+    +'@page{size:A4;margin:15mm}@media print{body{-webkit-print-color-adjust:exact;print-color-adjust:exact}}</style></head><body><div style="position:fixed;top:50%;left:50%;transform:translate(-50%,-50%) rotate(-35deg);font-size:52px;font-weight:900;color:rgba(0,27,67,0.07);white-space:nowrap;pointer-events:none;z-index:9999;letter-spacing:.12em;font-family:Arial,sans-serif;text-align:center;line-height:1.3;">TS Suite<br>Created by M.&#8201;G.</div>'
     +'<div style="background:'+ac2+';padding:18px 22px;display:flex;justify-content:space-between;align-items:center;border-radius:6px 6px 0 0">'
     +'<div style="display:flex;align-items:center;gap:10px"><div style="width:5px;height:32px;background:'+(isDK()?'#fff':isRC()?'#fff':isGI()?'#fff':'#FFC72C')+';border-radius:2px"></div>'
     +'<div><div style="color:#fff;font-size:17px;font-weight:800">'+hs+' '+prod+'</div>'
@@ -1517,7 +1517,7 @@ function exportPDF(){
     +'<div style="flex:1;border-top:2px solid '+ac2+';padding-top:6px"><div style="font-size:10px;color:#6B7A8D">Geprüft von</div><div style="font-size:10px;color:#6B7A8D;margin-top:18px">Unterschrift</div></div>'
     +'<div style="flex:1;border-top:2px solid '+ac2+';padding-top:6px"><div style="font-size:10px;color:#6B7A8D">Datum</div><div style="font-size:13px;font-weight:600;margin-top:2px">'+datum+'</div></div></div>'
     +'<div style="margin-top:18px;padding-top:8px;border-top:1px solid #D2DAE3;display:flex;justify-content:space-between">'
-    +'<span style="font-size:9px;color:#8BA3BA">'+hs+' &middot; Schiebetürantrieb</span>'+'<span style="font-size:9px;color:#8BA3BA;font-weight:700"> &nbsp;|&nbsp; STOBER Karlsruhe</span>'
+    +'<span style="font-size:9px;color:#8BA3BA">'+hs+' &middot; Schiebetürantrieb</span>'+'<span style="font-size:9px;color:#8BA3BA;font-weight:700"> &nbsp;|&nbsp; TS Suite</span>'
     +'<span style="font-size:9px;color:#8BA3BA">KONF &middot; '+datum+'</span></div></body></html>';
   // Blob-URL Ansatz – kein document.write, kein Popup-Problem
   var blob=new Blob([html],{type:'text/html;charset=utf-8'});
@@ -1581,8 +1581,8 @@ function render(){
     var bw=document.createElement('div');
     bw.id='bug-report-wrap';
     bw.className='bug-btn-wrap';
-    var subj=encodeURIComponent('Fehlerbericht – STOBER Schiebetür Konfigurator');
-    var body=encodeURIComponent('Hallo M. Gerdau,\n\nFehler-Beschreibung:\n[Bitte hier beschreiben]\n\nApp: STOBER Schiebetür Konfigurator\nDatum: '+new Date().toLocaleDateString('de-DE')+'\nGerät: '+navigator.userAgent.substring(0,60)+'\n\nMit freundlichen Grüßen');
+    var subj=encodeURIComponent('Fehlerbericht – TS Suite Schiebetür Konfigurator');
+    var body=encodeURIComponent('Hallo M. Gerdau,\n\nFehler-Beschreibung:\n[Bitte hier beschreiben]\n\nApp: TS Suite Schiebetür Konfigurator\nDatum: '+new Date().toLocaleDateString('de-DE')+'\nGerät: '+navigator.userAgent.substring(0,60)+'\n\nMit freundlichen Grüßen');
     bw.innerHTML='<a class="bug-btn" href="mailto:gerdau1979@gmail.com?subject='+subj+'&body='+body+'">🐛 Fehlerbericht an Entwickler senden</a>';
     document.getElementById('content').insertAdjacentElement('afterend', bw);
   }
@@ -1833,7 +1833,7 @@ window.downloadMaLogs = function(){
   var url = URL.createObjectURL(blob);
   var a = document.createElement('a');
   a.href = url;
-  a.download = 'stober-ma-logs-'+new Date().toISOString().split('T')[0]+'.csv';
+  a.download = 'ts-suite-ma-logs-'+new Date().toISOString().split('T')[0]+'.csv';
   document.body.appendChild(a);
   a.click();
   document.body.removeChild(a);
