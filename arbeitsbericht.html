@@ -290,11 +290,16 @@
   .wg-meta-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px;}
   .wg-meta-grid input{background:var(--panel);border:1px solid var(--line);border-radius:8px;color:var(--text);padding:7px 9px;font-size:13px;}
   .wg-meta-grid label{display:block;font-size:10.5px;color:var(--muted);margin-bottom:3px;}
-  .wg-photopick{display:flex;gap:8px;flex-wrap:wrap;margin:6px 0 14px;}
-  .wg-photopick .ph{position:relative;width:56px;height:56px;border-radius:8px;overflow:hidden;border:2px solid var(--line);cursor:pointer;opacity:.55;}
-  .wg-photopick .ph.sel{border-color:var(--blue); opacity:1;}
-  .wg-photopick .ph img{width:100%;height:100%;object-fit:cover;display:block;}
-  .wg-photopick .empty{font-size:12px;color:var(--muted);font-style:italic;}
+  .wg-fotoslots{display:flex;gap:8px;margin:6px 0 14px;}
+  .wg-fotoslot{position:relative;width:88px;height:88px;border-radius:10px;overflow:hidden;flex:0 0 auto;}
+  .wg-fotoslot.leer{border:2px dashed var(--line);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;cursor:pointer;color:var(--muted);background:rgba(74,144,184,0.04);}
+  .wg-fotoslot.leer:active{background:rgba(74,144,184,0.1);}
+  .wg-fotoslot.leer .icon{font-size:20px;}
+  .wg-fotoslot.leer .lbl{font-size:9.5px;text-align:center;line-height:1.2;padding:0 4px;}
+  .wg-fotoslot.leer input{position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;height:100%;}
+  .wg-fotoslot.voll{border:2px solid var(--blue);}
+  .wg-fotoslot.voll img{width:100%;height:100%;object-fit:cover;display:block;}
+  .wg-fotoslot .rm{position:absolute;top:2px;right:2px;width:20px;height:20px;border-radius:50%;background:rgba(0,0,0,.65);color:#fff;border:none;font-size:13px;line-height:1;cursor:pointer;}
   .wg-betrieb-row{display:flex;gap:6px;margin-bottom:9px;}
   .wg-maengel-field{margin-bottom:12px;}
   .wg-maengel-field textarea{min-height:46px;}
@@ -372,6 +377,27 @@
     <div style="border-top:1px solid var(--line);padding-top:14px;">
       <button class="add-btn" id="switchTechBtn" style="width:100%;text-align:center;margin-bottom:8px;">Techniker dieses Geräts ändern</button>
       <button class="clear-link" id="closeAdmin">schließen</button>
+    </div>
+  </div>
+</div>
+
+<!-- Anlagen-Checkliste der Wartungsposition — nur sichtbar, wenn ein
+     "Vorgang" (Wartungsposition) mit hinterlegter Soll-Liste gewählt ist. -->
+<div class="card" id="checklistePanel" style="display:none;">
+  <p class="card-title" style="display:flex;align-items:center;justify-content:space-between;">
+    <span>Anlagen-Checkliste</span>
+    <span id="checklisteFortschritt" style="font-size:12px;color:var(--muted);font-weight:normal;"></span>
+  </p>
+  <div id="checklisteListe"></div>
+  <div style="margin-top:10px;">
+    <div class="clear-link" id="checklisteVerwaltenToggle" style="display:inline-block;cursor:pointer;">Anlagen verwalten</div>
+    <div id="checklisteVerwalten" style="display:none;margin-top:10px;">
+      <div style="display:flex;gap:8px;">
+        <input type="text" id="checklisteNeueIdent" placeholder="Ident-Nr." style="flex:1;">
+        <input type="text" id="checklisteNeueBezeichnung" placeholder="Bezeichnung (optional)" style="flex:2;">
+        <button type="button" class="icon-btn" id="checklisteHinzufuegenBtn" style="width:44px;color:var(--ok);border-color:var(--ok);">+</button>
+      </div>
+      <div style="font-size:11.5px;color:var(--muted);margin-top:6px;">Einmal pro Wartungsposition gepflegt — gilt dann für alle künftigen Berichte zu diesem Vorgang.</div>
     </div>
   </div>
 </div>
@@ -1751,6 +1777,9 @@ async function ladeVorgaengeFuerKunde(kundeId, vorauswahlTyp, vorauswahlId){
   if(vorauswahlTyp && vorauswahlId){
     const wert = (vorauswahlTyp === 'wartungsposition' ? 'wartung:' : 'wv:') + vorauswahlId;
     if([...sel.options].some(o => o.value === wert)) sel.value = wert;
+    if(vorauswahlTyp === 'wartungsposition' && typeof ladeChecklistePanel === 'function'){
+      ladeChecklistePanel(vorauswahlId);
+    }
   }
 }
 
@@ -2309,7 +2338,7 @@ function wgAddInstance(typeKey){
     maengel: '', hinweis: '',
     betrieb: { elektrisch: null, mechanisch: null },
     extraValue: '',
-    photoIds: [],
+    protokollFotos: [null, null, null],
     vorjahr: null,
     vorjahrStatus: 'idle',
     collapsed: false
@@ -2505,21 +2534,30 @@ function wgRenderInstances(){
 
       const photoTitle = document.createElement('div');
       photoTitle.className = 'wg-sub-title';
-      photoTitle.textContent = 'Fotos für dieses Protokoll';
+      photoTitle.textContent = 'Fotos für dieses Protokoll (live aufnehmen)';
       body.appendChild(photoTitle);
 
-      const photoPick = document.createElement('div');
-      photoPick.className = 'wg-photopick';
-      if(photos.length === 0){
-        photoPick.innerHTML = `<div class="empty">Noch keine Fotos hochgeladen (Abschnitt "05 Fotos").</div>`;
-      } else {
-        photoPick.innerHTML = photos.map(p => `
-          <div class="ph${inst.photoIds.includes(p.id) ? ' sel' : ''}" data-inst-photo="${inst.id}" data-photo-id="${p.id}">
-            <img src="${p.dataUrl}">
-          </div>
-        `).join('');
-      }
-      body.appendChild(photoPick);
+      const photoSlots = document.createElement('div');
+      photoSlots.className = 'wg-fotoslots';
+      photoSlots.innerHTML = [0, 1, 2].map(idx => {
+        const foto = inst.protokollFotos[idx];
+        if(foto){
+          return `
+            <div class="wg-fotoslot voll">
+              <img src="${foto}">
+              <button type="button" class="rm" data-inst-foto-loeschen="${inst.id}" data-slot="${idx}">×</button>
+            </div>
+          `;
+        }
+        return `
+          <label class="wg-fotoslot leer">
+            <span class="icon">📷</span>
+            <span class="lbl">Foto ${idx + 1}</span>
+            <input type="file" accept="image/*" capture="environment" data-inst-foto-aufnehmen="${inst.id}" data-slot="${idx}">
+          </label>
+        `;
+      }).join('');
+      body.appendChild(photoSlots);
     } else {
       const h = document.createElement('div');
       h.className = 'wg-sub-title';
@@ -2687,18 +2725,29 @@ function wgRenderInstances(){
     });
   });
 
-  // Foto-Auswahl je Protokoll
-  wgInstancesEl.querySelectorAll('[data-inst-photo]').forEach(div => {
-    div.addEventListener('click', () => {
-      const inst = wgState.instances.find(i => i.id == div.dataset.instPhoto);
-      const pid = div.dataset.photoId;
-      const has = inst.photoIds.includes(pid);
-      if(has){ inst.photoIds = inst.photoIds.filter(x => x != pid); }
-      else {
-        if(inst.photoIds.length >= 3){ inst.photoIds.shift(); }
-        inst.photoIds.push(pid);
-      }
-      div.classList.toggle('sel', inst.photoIds.includes(pid));
+  // Foto-Aufnahme je Protokoll-Slot (live, direkt von der Kamera)
+  wgInstancesEl.querySelectorAll('[data-inst-foto-aufnehmen]').forEach(input => {
+    input.addEventListener('change', e => {
+      const file = e.target.files && e.target.files[0];
+      if(!file) return;
+      const inst = wgState.instances.find(i => i.id == e.target.dataset.instFotoAufnehmen);
+      const slot = parseInt(e.target.dataset.slot);
+      const reader = new FileReader();
+      reader.onload = ev => {
+        inst.protokollFotos[slot] = ev.target.result;
+        wgRenderInstances();
+      };
+      reader.readAsDataURL(file);
+    });
+  });
+
+  // Foto aus einem Slot wieder entfernen
+  wgInstancesEl.querySelectorAll('[data-inst-foto-loeschen]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const inst = wgState.instances.find(i => i.id == btn.dataset.instFotoLoeschen);
+      const slot = parseInt(btn.dataset.slot);
+      inst.protokollFotos[slot] = null;
+      wgRenderInstances();
     });
   });
 
@@ -2713,6 +2762,7 @@ function wgRenderInstances(){
   });
 
   wgUpdateStatus();
+  if(typeof aktualisiereChecklisteAbgleich === 'function') aktualisiereChecklisteAbgleich();
 }
 
 function wgUpdateStatus(){
@@ -2938,13 +2988,13 @@ function wgExportProtokollePdf(){
     });
     y += metaH + 6;
 
-    // Fotos (max. 3, wie im Original)
-    const instPhotos = photos.filter(p => inst.photoIds.includes(String(p.id)));
+    // Fotos (bis zu 3, live vor Ort mit der Kamera aufgenommen)
+    const instPhotos = (inst.protokollFotos || []).filter(Boolean);
     if(instPhotos.length){
       const imgW = 55, imgH = 42;
       let x = margin;
-      instPhotos.slice(0, 3).forEach(p => {
-        try{ doc.addImage(p.dataUrl, 'JPEG', x, y, imgW, imgH); }catch(e){}
+      instPhotos.slice(0, 3).forEach(dataUrl => {
+        try{ doc.addImage(dataUrl, 'JPEG', x, y, imgW, imgH); }catch(e){}
         x += imgW + 6;
       });
       y += imgH + 8;
@@ -3085,6 +3135,150 @@ function wgExportProtokollePdf(){
 }
 
 wgExportPdfBtn.addEventListener('click', wgExportProtokollePdf);
+
+/* ============================================================
+   Anlagen-Checkliste je Wartungsposition. Die Soll-Liste (welche
+   Ident-Nrn zu dieser Wartungsposition gehören) liegt fest in
+   crm_wartungsposition_anlagen. Der Ist-Abgleich läuft rein im
+   Browser gegen die aktuell im Wartungs-Generator erfassten
+   Ident-Nrn dieser Sitzung — kein Datenbank-Roundtrip nötig, und
+   reagiert live, während der Techniker Anlagen einträgt.
+   ============================================================ */
+let checklisteAktuellePosId = null;
+let checklisteAnlagen = [];
+
+async function ladeChecklistePanel(posId){
+  checklisteAktuellePosId = posId;
+  const panel = document.getElementById('checklistePanel');
+  if(!posId || !SUPABASE_CONFIGURED){ panel.style.display = 'none'; return; }
+
+  try{
+    const res = await fetch(
+      `${SUPABASE_URL}/rest/v1/crm_wartungsposition_anlagen?wartungsposition_id=eq.${posId}&select=*&order=ident_nr`,
+      { headers: supabaseHeaders() }
+    );
+    if(!res.ok) throw new Error('HTTP ' + res.status);
+    checklisteAnlagen = await res.json();
+  } catch(err){
+    console.error('Checkliste laden fehlgeschlagen:', err);
+    checklisteAnlagen = [];
+  }
+
+  panel.style.display = 'block';
+  renderChecklisteListe();
+}
+
+function gesammelteWgIdentNrs(){
+  if(typeof wgState === 'undefined' || !wgState.instances) return new Set();
+  return new Set(
+    wgState.instances
+      .filter(i => i.mode === 'wartung' && i.meta && i.meta.identNr)
+      .map(i => i.meta.identNr.trim().toLowerCase())
+      .filter(Boolean)
+  );
+}
+
+function renderChecklisteListe(){
+  const listeEl = document.getElementById('checklisteListe');
+  const fortschrittEl = document.getElementById('checklisteFortschritt');
+
+  if(!checklisteAnlagen.length){
+    listeEl.innerHTML = `<div style="font-size:12.5px;color:var(--muted);font-style:italic;">Noch keine Anlagen für diese Wartungsposition hinterlegt — unten unter "Anlagen verwalten" eintragen.</div>`;
+    fortschrittEl.textContent = '';
+    return;
+  }
+
+  const erledigt = gesammelteWgIdentNrs();
+  let anzahlErledigt = 0;
+
+  listeEl.innerHTML = checklisteAnlagen.map(a => {
+    const ok = erledigt.has((a.ident_nr || '').trim().toLowerCase());
+    if(ok) anzahlErledigt++;
+    return `
+      <div style="display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid var(--line);font-size:13px;">
+        <span style="width:20px;height:20px;flex:0 0 auto;border-radius:50%;display:flex;align-items:center;justify-content:center;
+          font-size:12px;font-weight:700;
+          background:${ok ? 'var(--ok)' : 'transparent'};
+          border:1px solid ${ok ? 'var(--ok)' : 'var(--line)'};
+          color:${ok ? 'var(--bg)' : 'var(--muted)'};">${ok ? '✓' : ''}</span>
+        <span style="flex:1;color:${ok ? 'var(--text)' : 'var(--muted)'};">
+          <span class="mono">${a.ident_nr}</span>${a.bezeichnung ? ' — ' + a.bezeichnung : ''}
+        </span>
+        <span class="clear-link" data-checkliste-entfernen="${a.id}" style="font-size:11px;">entfernen</span>
+      </div>
+    `;
+  }).join('');
+
+  fortschrittEl.textContent = `${anzahlErledigt} / ${checklisteAnlagen.length} erledigt`;
+
+  listeEl.querySelectorAll('[data-checkliste-entfernen]').forEach(el => {
+    el.addEventListener('click', () => checklisteEintragEntfernen(el.dataset.checklisteEntfernen));
+  });
+}
+
+// Wird nach jedem Render des Wartungs-Generators aufgerufen (siehe
+// Ende von wgRenderInstances) — hält den grünen Haken live aktuell,
+// während der Techniker Ident-Nrn einträgt.
+function aktualisiereChecklisteAbgleich(){
+  if(!checklisteAktuellePosId || !checklisteAnlagen.length) return;
+  renderChecklisteListe();
+}
+
+async function checklisteEintragHinzufuegen(){
+  const identEl = document.getElementById('checklisteNeueIdent');
+  const bezEl = document.getElementById('checklisteNeueBezeichnung');
+  const identNr = identEl.value.trim();
+  if(!identNr){ identEl.focus(); return; }
+  if(!checklisteAktuellePosId) return;
+
+  try{
+    const res = await fetch(`${SUPABASE_URL}/rest/v1/crm_wartungsposition_anlagen`, {
+      method: 'POST',
+      headers: supabaseHeaders({ 'Prefer': 'return=representation' }),
+      body: JSON.stringify([{
+        wartungsposition_id: checklisteAktuellePosId,
+        ident_nr: identNr,
+        bezeichnung: bezEl.value.trim() || null
+      }])
+    });
+    if(!res.ok) throw new Error('HTTP ' + res.status);
+    identEl.value = ''; bezEl.value = '';
+    await ladeChecklistePanel(checklisteAktuellePosId);
+  } catch(err){
+    alert('Konnte nicht hinzugefügt werden (evtl. Ident-Nr. schon in der Liste): ' + (err.message || err));
+  }
+}
+
+async function checklisteEintragEntfernen(id){
+  if(!confirm('Diese Anlage aus der Checkliste der Wartungsposition entfernen?')) return;
+  try{
+    const res = await fetch(`${SUPABASE_URL}/rest/v1/crm_wartungsposition_anlagen?id=eq.${id}`, {
+      method: 'DELETE',
+      headers: supabaseHeaders()
+    });
+    if(!res.ok) throw new Error('HTTP ' + res.status);
+    await ladeChecklistePanel(checklisteAktuellePosId);
+  } catch(err){
+    alert('Entfernen fehlgeschlagen: ' + (err.message || err));
+  }
+}
+
+document.getElementById('checklisteVerwaltenToggle').addEventListener('click', () => {
+  const el = document.getElementById('checklisteVerwalten');
+  el.style.display = el.style.display === 'none' ? 'block' : 'none';
+});
+document.getElementById('checklisteHinzufuegenBtn').addEventListener('click', checklisteEintragHinzufuegen);
+
+document.getElementById('fVorgang').addEventListener('change', (e) => {
+  const wert = e.target.value;
+  if(wert.startsWith('wartung:')){
+    ladeChecklistePanel(wert.slice(8));
+  } else {
+    checklisteAktuellePosId = null;
+    checklisteAnlagen = [];
+    document.getElementById('checklistePanel').style.display = 'none';
+  }
+});
 
 </script>
 </body>
