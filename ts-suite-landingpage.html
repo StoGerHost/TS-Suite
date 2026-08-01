@@ -1,0 +1,397 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TS-Suite — Wartungsdokumentation für Türsystem-Techniker</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Oswald:wght@400;500;600;700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --graphite: #1b1e22;
+    --panel: #24282e;
+    --panel-light: #2e333a;
+    --paper: #e9e6df;
+    --paper-dim: #a9a89f;
+    --yellow: #f2b705;
+    --steel: #5b83b3;
+    --ok: #6fae5c;
+    --line: #3a3f47;
+  }
+  *{box-sizing:border-box; margin:0; padding:0;}
+  html{scroll-behavior:smooth;}
+  body{
+    background:var(--graphite);
+    color:var(--paper);
+    font-family:'IBM Plex Sans', sans-serif;
+    line-height:1.55;
+    -webkit-font-smoothing:antialiased;
+  }
+  h1,h2,h3{
+    font-family:'Oswald', sans-serif;
+    text-transform:uppercase;
+    letter-spacing:0.02em;
+    font-weight:600;
+  }
+  .mono{font-family:'IBM Plex Mono', monospace;}
+  a{color:inherit;}
+  .wrap{max-width:1080px; margin:0 auto; padding:0 28px;}
+
+  /* norm stripe */
+  .norm-stripe{
+    background:repeating-linear-gradient(45deg, var(--yellow), var(--yellow) 10px, #1b1e22 10px, #1b1e22 20px);
+    height:6px;
+  }
+  .norm-strip-text{
+    background:var(--panel);
+    border-bottom:1px solid var(--line);
+    padding:8px 0;
+    font-size:11px;
+    letter-spacing:0.12em;
+    color:var(--paper-dim);
+    text-align:center;
+    text-transform:uppercase;
+  }
+  .norm-strip-text span{margin:0 14px;}
+
+  /* header */
+  header{padding:22px 0;}
+  .header-row{display:flex; justify-content:space-between; align-items:center;}
+  .logo{font-family:'Oswald'; font-size:20px; letter-spacing:0.08em; text-transform:uppercase;}
+  .logo b{color:var(--yellow);}
+  nav a{margin-left:26px; font-size:14px; text-decoration:none; color:var(--paper-dim); transition:color .15s;}
+  nav a:hover{color:var(--paper);}
+
+  /* hero */
+  .hero{padding:64px 0 80px; display:grid; grid-template-columns:1.1fr 0.9fr; gap:56px; align-items:center;}
+  .eyebrow{font-family:'IBM Plex Mono'; font-size:12px; color:var(--yellow); letter-spacing:0.14em; text-transform:uppercase; margin-bottom:16px; display:flex; align-items:center; gap:10px;}
+  .eyebrow::before{content:''; width:22px; height:2px; background:var(--yellow); display:inline-block;}
+  h1{font-size:44px; line-height:1.12; margin-bottom:20px;}
+  h1 em{font-style:normal; color:var(--yellow);}
+  .hero p.lead{font-size:17px; color:var(--paper-dim); max-width:480px; margin-bottom:30px;}
+  .cta-row{display:flex; gap:14px; align-items:center;}
+  .btn{
+    display:inline-block; padding:14px 26px; font-family:'IBM Plex Mono'; font-size:13px;
+    text-transform:uppercase; letter-spacing:0.08em; text-decoration:none; border-radius:2px;
+    transition:transform .15s, background .15s;
+  }
+  .btn-primary{background:var(--yellow); color:#1b1e22; font-weight:600;}
+  .btn-primary:hover{transform:translateY(-1px); background:#ffc933;}
+  .btn-ghost{border:1px solid var(--line); color:var(--paper);}
+  .btn-ghost:hover{border-color:var(--paper-dim);}
+
+  /* protocol card - signature element */
+  .protocol{
+    background:var(--panel);
+    border:1px solid var(--line);
+    border-radius:3px;
+    box-shadow:0 24px 60px -20px rgba(0,0,0,.6);
+    overflow:hidden;
+  }
+  .protocol-head{
+    background:var(--panel-light);
+    padding:14px 18px;
+    display:flex; justify-content:space-between; align-items:center;
+    border-bottom:1px solid var(--line);
+    font-family:'IBM Plex Mono'; font-size:11px; color:var(--paper-dim); letter-spacing:0.06em;
+  }
+  .protocol-head .dot{width:8px; height:8px; border-radius:50%; background:var(--ok); display:inline-block; margin-right:6px; animation:pulse 2s infinite;}
+  @keyframes pulse{0%,100%{opacity:1;}50%{opacity:.4;}}
+  .protocol-body{padding:20px 18px;}
+  .protocol-title{font-family:'IBM Plex Mono'; font-size:12px; color:var(--paper-dim); margin-bottom:14px;}
+  .protocol-title b{color:var(--paper); font-weight:500;}
+  .check-item{
+    display:flex; align-items:center; gap:12px; padding:10px 0;
+    border-bottom:1px dashed var(--line);
+    font-family:'IBM Plex Mono'; font-size:13px;
+    opacity:0; transform:translateX(-6px);
+    animation:reveal .4s forwards;
+  }
+  .check-item:last-child{border-bottom:none;}
+  .box{
+    width:18px; height:18px; border:1.5px solid var(--paper-dim); border-radius:2px;
+    flex-shrink:0; display:flex; align-items:center; justify-content:center;
+    position:relative;
+  }
+  .box svg{opacity:0; transform:scale(.5); animation:tick .3s forwards;}
+  @keyframes reveal{to{opacity:1; transform:translateX(0);}}
+  @keyframes tick{to{opacity:1; transform:scale(1);}}
+  .ci1{animation-delay:.2s;} .ci1 .box svg{animation-delay:.55s;}
+  .ci2{animation-delay:.5s;} .ci2 .box svg{animation-delay:.85s;}
+  .ci3{animation-delay:.8s;} .ci3 .box svg{animation-delay:1.15s;}
+  .ci4{animation-delay:1.1s;} .ci4 .box svg{animation-delay:1.45s;}
+  .check-label b{color:var(--paper);} .check-label{color:var(--paper-dim);}
+  .protocol-foot{
+    padding:14px 18px; background:var(--panel-light); border-top:1px solid var(--line);
+    display:flex; justify-content:space-between; font-family:'IBM Plex Mono'; font-size:11px; color:var(--paper-dim);
+  }
+
+  /* problem section */
+  section{padding:70px 0;}
+  .section-head{max-width:560px; margin-bottom:44px;}
+  .section-head .eyebrow{margin-bottom:14px;}
+  h2{font-size:30px; margin-bottom:14px;}
+  .section-head p{color:var(--paper-dim); font-size:16px;}
+
+  .problem-grid{display:grid; grid-template-columns:repeat(3,1fr); gap:22px;}
+  .problem-card{background:var(--panel); border:1px solid var(--line); border-radius:3px; padding:26px 22px;}
+  .problem-card .num{font-family:'IBM Plex Mono'; font-size:12px; color:var(--yellow); margin-bottom:12px;}
+  .problem-card h3{font-family:'IBM Plex Sans'; text-transform:none; font-size:17px; font-weight:600; letter-spacing:0; margin-bottom:8px;}
+  .problem-card p{color:var(--paper-dim); font-size:14px;}
+
+  /* features - checklist form aesthetic */
+  .feat-section{background:var(--panel); border-top:1px solid var(--line); border-bottom:1px solid var(--line);}
+  .feat-list{border:1px solid var(--line); border-radius:3px; overflow:hidden;}
+  .feat-row{
+    display:grid; grid-template-columns:44px 1fr 1fr; gap:20px;
+    padding:22px 20px; border-bottom:1px solid var(--line); align-items:start;
+  }
+  .feat-row:last-child{border-bottom:none;}
+  .feat-row .tag{font-family:'IBM Plex Mono'; font-size:11px; color:var(--yellow); background:rgba(242,183,5,.1); border:1px solid rgba(242,183,5,.3); width:32px; height:32px; display:flex; align-items:center; justify-content:center; border-radius:2px;}
+  .feat-row h3{font-family:'IBM Plex Sans'; text-transform:none; font-size:16px; font-weight:600; letter-spacing:0; margin-bottom:6px;}
+  .feat-row p{color:var(--paper-dim); font-size:14px;}
+
+  /* process - real sequence, numbering justified */
+  .process{display:grid; grid-template-columns:repeat(4,1fr); gap:0; position:relative;}
+  .process::before{
+    content:''; position:absolute; top:19px; left:8%; right:8%; height:1px; background:var(--line);
+  }
+  .process-step{position:relative; padding-top:0; text-align:left;}
+  .process-num{
+    width:40px; height:40px; border-radius:50%; background:var(--panel); border:1.5px solid var(--yellow);
+    color:var(--yellow); font-family:'IBM Plex Mono'; font-size:14px; display:flex; align-items:center; justify-content:center;
+    margin-bottom:18px; position:relative; z-index:1;
+  }
+  .process-step h3{font-family:'IBM Plex Sans'; text-transform:none; font-size:15px; font-weight:600; letter-spacing:0; margin-bottom:6px;}
+  .process-step p{font-size:13.5px; color:var(--paper-dim);}
+
+  /* norms footer band */
+  .norms-band{background:var(--graphite); border-top:1px solid var(--line);}
+  .norms-band .wrap{padding:40px 28px; text-align:center;}
+  .norms-band .label{font-family:'IBM Plex Mono'; font-size:11px; color:var(--paper-dim); letter-spacing:.14em; text-transform:uppercase; margin-bottom:16px;}
+  .norms-tags{display:flex; flex-wrap:wrap; justify-content:center; gap:10px;}
+  .norms-tags span{
+    font-family:'IBM Plex Mono'; font-size:12px; color:var(--paper-dim); border:1px solid var(--line);
+    padding:6px 12px; border-radius:2px;
+  }
+
+  /* cta band */
+  .cta-band{padding:80px 0; text-align:center;}
+  .cta-band h2{font-size:32px; margin-bottom:14px;}
+  .cta-band p{color:var(--paper-dim); font-size:16px; max-width:480px; margin:0 auto 30px;}
+
+  footer{border-top:1px solid var(--line); padding:26px 0; font-size:12px; color:var(--paper-dim); text-align:center;}
+
+  @media (max-width:860px){
+    .hero{grid-template-columns:1fr; padding-top:36px;}
+    h1{font-size:32px;}
+    .problem-grid{grid-template-columns:1fr;}
+    .feat-row{grid-template-columns:36px 1fr; grid-template-areas:"tag title" "tag desc";}
+    .process{grid-template-columns:1fr 1fr; row-gap:32px;}
+    .process::before{display:none;}
+  }
+</style>
+</head>
+<body>
+
+<div class="norm-stripe"></div>
+<div class="norm-strip-text">
+  <span>EN 16005</span><span>DIN 18650-1/2</span><span>ASR A1.7</span><span>AutSchR</span><span>DIN 14677-1/2</span><span>DIBt</span>
+</div>
+
+<header>
+  <div class="wrap header-row">
+    <div class="logo">TS<b>·</b>SUITE</div>
+    <nav>
+      <a href="#problem">Problem</a>
+      <a href="#funktionen">Funktionen</a>
+      <a href="#ablauf">Ablauf</a>
+      <a href="#kontakt">Kontakt</a>
+    </nav>
+  </div>
+</header>
+
+<div class="wrap">
+  <section class="hero" style="padding-top:20px;">
+    <div>
+      <div class="eyebrow">Software für Türsystem-Wartungsteams</div>
+      <h1>Der Wartungsbericht ist fertig, <em>bevor Sie die Baustelle verlassen.</em></h1>
+      <p class="lead">TS-Suite dokumentiert Wartung und Störungsbehebung an Dreh- und Schiebetürantrieben, Feststellanlagen und Feuerschutztüren normkonform, per Vorlage, ohne Zettelwirtschaft.</p>
+      <div class="cta-row">
+        <a href="#kontakt" class="btn btn-primary">Demo anfragen</a>
+        <a href="#funktionen" class="btn btn-ghost">Funktionen ansehen</a>
+      </div>
+    </div>
+
+    <div class="protocol">
+      <div class="protocol-head">
+        <span><span class="dot"></span>LIVE — WARTUNGSPROTOKOLL</span>
+        <span>#A-2291</span>
+      </div>
+      <div class="protocol-body">
+        <div class="protocol-title">Anlage: <b>Automatik-Schiebetür, Haupteingang</b><br>Modus: <b>Wartung nach EN 16005</b></div>
+
+        <div class="check-item ci1">
+          <div class="box"><svg width="11" height="11" viewBox="0 0 11 11"><path d="M1 5.5L4 8.5L10 1.5" stroke="#6fae5c" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+          <div class="check-label">Sicherheitssensorik geprüft — <b>i.O.</b></div>
+        </div>
+        <div class="check-item ci2">
+          <div class="box"><svg width="11" height="11" viewBox="0 0 11 11"><path d="M1 5.5L4 8.5L10 1.5" stroke="#6fae5c" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+          <div class="check-label">Schließkraft gemessen — <b>i.O.</b></div>
+        </div>
+        <div class="check-item ci3">
+          <div class="box"><svg width="11" height="11" viewBox="0 0 11 11"><path d="M1 5.5L4 8.5L10 1.5" stroke="#6fae5c" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+          <div class="check-label">Notentriegelung funktionsfähig — <b>i.O.</b></div>
+        </div>
+        <div class="check-item ci4">
+          <div class="box"><svg width="11" height="11" viewBox="0 0 11 11"><path d="M1 5.5L4 8.5L10 1.5" stroke="#6fae5c" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+          <div class="check-label">Bericht generiert, Kunde informiert</div>
+        </div>
+      </div>
+      <div class="protocol-foot">
+        <span>Techniker: M. GER</span>
+        <span>Dauer: 4 Min. Dokumentation</span>
+      </div>
+    </div>
+  </section>
+</div>
+
+<section id="problem">
+  <div class="wrap">
+    <div class="section-head">
+      <div class="eyebrow">Der Alltag ohne TS-Suite</div>
+      <h2>Der Antrieb ist in zehn Minuten gewartet. Der Bericht dauert eine halbe Stunde.</h2>
+      <p>Die eigentliche technische Arbeit ist selten das Problem. Die Dokumentation danach schon.</p>
+    </div>
+    <div class="problem-grid">
+      <div class="problem-card">
+        <div class="num">01</div>
+        <h3>Papier oder lose Word-Vorlagen</h3>
+        <p>Jeder Techniker dokumentiert etwas anders. Prüfpunkte fehlen, Vorlagen sind veraltet, Norm-Referenzen werden händisch nachgetragen.</p>
+      </div>
+      <div class="problem-card">
+        <div class="num">02</div>
+        <h3>Normkonformität schwer belegbar</h3>
+        <p>Im Fall einer Prüfung oder Reklamation fehlt oft der lückenlose, nachvollziehbare Nachweis nach EN 16005 oder DIN 18650.</p>
+      </div>
+      <div class="problem-card">
+        <div class="num">03</div>
+        <h3>Kundendaten verstreut</h3>
+        <p>Ansprechpartner, Anlagenhistorie und Wiedervorlagen liegen in drei verschiedenen Systemen — oder in niemandes System.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="feat-section" id="funktionen">
+  <div class="wrap">
+    <div class="section-head">
+      <div class="eyebrow">Was TS-Suite übernimmt</div>
+      <h2>Ein System für Wartung, Störung und Kundenhistorie</h2>
+    </div>
+    <div class="feat-list">
+      <div class="feat-row">
+        <div class="tag">✓</div>
+        <div>
+          <h3>Anlagenbericht-Generator</h3>
+          <p>Vorlagenbasierte Berichte für Wartung und Störungsbehebung, mit Statusverfolgung pro Bauteil und normbasierten Checklisten.</p>
+        </div>
+        <div>
+          <p style="color:var(--paper-dim); font-size:13.5px;">Deckt Dreh- und Schiebetürantriebe, Feststellanlagen und Feuerschutztüren ab — inklusive der jeweils relevanten Normreferenzen.</p>
+        </div>
+      </div>
+      <div class="feat-row">
+        <div class="tag">✓</div>
+        <div>
+          <h3>Kunden- und Anlagenverwaltung</h3>
+          <p>Ansprechpartner, Bauvorhaben und Anlagenhistorie an einem Ort, automatisch aus dem Arbeitsbericht befüllt.</p>
+        </div>
+        <div>
+          <p style="color:var(--paper-dim); font-size:13.5px;">Ähnliche Bauvorhaben werden erkannt, bevor versehentlich Duplikate entstehen.</p>
+        </div>
+      </div>
+      <div class="feat-row">
+        <div class="tag">✓</div>
+        <div>
+          <h3>Terminplanung</h3>
+          <p>Wartungstermine mit realistischer Zeitplanung, direkt aus der Anlagenliste heraus angelegt.</p>
+        </div>
+        <div>
+          <p style="color:var(--paper-dim); font-size:13.5px;">Jede Wartung wird automatisch mit einem realistischen Zeitfenster im Kalender berücksichtigt.</p>
+        </div>
+      </div>
+      <div class="feat-row">
+        <div class="tag">✓</div>
+        <div>
+          <h3>Privacy-first, ohne externe API</h3>
+          <p>Alle Daten bleiben im eigenen Supabase-Projekt. Keine Kundendaten wandern zu Drittanbietern.</p>
+        </div>
+        <div>
+          <p style="color:var(--paper-dim); font-size:13.5px;">Relevant für Betriebe, die mit sicherheitsrelevanten Anlagendaten arbeiten.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="ablauf">
+  <div class="wrap">
+    <div class="section-head">
+      <div class="eyebrow">So läuft eine Wartung</div>
+      <h2>Vier Schritte von der Anlage bis zur Kundenübergabe</h2>
+    </div>
+    <div class="process">
+      <div class="process-step">
+        <div class="process-num">1</div>
+        <h3>Anlage öffnen</h3>
+        <p>Techniker wählt die Anlage vor Ort, Historie ist sofort sichtbar.</p>
+      </div>
+      <div class="process-step">
+        <div class="process-num">2</div>
+        <h3>Wartung durchführen</h3>
+        <p>Checkliste nach relevanter Norm wird direkt am Gerät abgehakt.</p>
+      </div>
+      <div class="process-step">
+        <div class="process-num">3</div>
+        <h3>Bericht generieren</h3>
+        <p>Vorlage füllt sich automatisch, Zustand und Auffälligkeiten inklusive.</p>
+      </div>
+      <div class="process-step">
+        <div class="process-num">4</div>
+        <h3>Kunde erhält Nachweis</h3>
+        <p>Dokumentation ist sofort ablagefähig — ohne Nacharbeit im Büro.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="norms-band">
+  <div class="wrap">
+    <div class="label">Berücksichtigte Regelwerke</div>
+    <div class="norms-tags">
+      <span>EN 16005</span>
+      <span>DIN 18650-1</span>
+      <span>DIN 18650-2</span>
+      <span>ASR A1.7</span>
+      <span>AutSchR</span>
+      <span>DIN 14677-1</span>
+      <span>DIN 14677-2</span>
+      <span>DIBt</span>
+    </div>
+  </div>
+</div>
+
+<section class="cta-band" id="kontakt">
+  <div class="wrap">
+    <h2>Testen Sie TS-Suite mit Ihrem eigenen Wartungsteam</h2>
+    <p>Kein Rollout auf Zuruf. Wir richten TS-Suite gemeinsam mit Ihnen für Ihre Anlagentypen und Regelwerke ein.</p>
+    <a href="mailto:kontakt@ts-suite.de" class="btn btn-primary">Demo anfragen</a>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap">TS-Suite — Wartungsdokumentation für Türsystem-Techniker</div>
+</footer>
+
+</body>
+</html>
