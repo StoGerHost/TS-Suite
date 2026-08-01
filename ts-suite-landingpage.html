@@ -143,12 +143,13 @@
   .feat-section{background:var(--panel); border-top:1px solid var(--line); border-bottom:1px solid var(--line);}
   .feat-list{border:1px solid var(--line); border-radius:3px; overflow:hidden;}
   .feat-row{
-    display:grid; grid-template-columns:44px 1fr 1fr; gap:20px;
+    display:grid; grid-template-columns:240px 1fr; gap:24px;
     padding:22px 20px; border-bottom:1px solid var(--line); align-items:start;
   }
   .feat-row:last-child{border-bottom:none;}
-  .feat-row .tag{font-family:'IBM Plex Mono'; font-size:11px; color:var(--yellow); background:rgba(242,183,5,.1); border:1px solid rgba(242,183,5,.3); width:32px; height:32px; display:flex; align-items:center; justify-content:center; border-radius:2px;}
-  .feat-row h3{font-family:'IBM Plex Sans'; text-transform:none; font-size:16px; font-weight:600; letter-spacing:0; margin-bottom:6px;}
+  .feat-head{display:flex; align-items:center; gap:14px;}
+  .feat-row .tag{font-family:'IBM Plex Mono'; font-size:11px; color:var(--yellow); background:rgba(242,183,5,.1); border:1px solid rgba(242,183,5,.3); width:32px; height:32px; flex-shrink:0; display:flex; align-items:center; justify-content:center; border-radius:2px;}
+  .feat-row h3{font-family:'IBM Plex Sans'; text-transform:none; font-size:16px; font-weight:600; letter-spacing:0; margin:0;}
   .feat-row p{color:var(--paper-dim); font-size:14px;}
 
   /* process - real sequence, numbering justified */
@@ -186,7 +187,7 @@
     .hero{grid-template-columns:1fr; padding-top:36px;}
     h1{font-size:32px;}
     .problem-grid{grid-template-columns:1fr;}
-    .feat-row{grid-template-columns:36px 1fr; grid-template-areas:"tag title" "tag desc";}
+    .feat-row{grid-template-columns:1fr;}
     .process{grid-template-columns:1fr 1fr; row-gap:32px;}
     .process::before{display:none;}
   }
@@ -291,44 +292,20 @@
     </div>
     <div class="feat-list">
       <div class="feat-row">
-        <div class="tag">✓</div>
-        <div>
-          <h3>Anlagenbericht-Generator</h3>
-          <p>Vorlagenbasierte Berichte für Wartung und Störungsbehebung, mit Statusverfolgung pro Bauteil und normbasierten Checklisten.</p>
-        </div>
-        <div>
-          <p style="color:var(--paper-dim); font-size:13.5px;">Deckt Dreh- und Schiebetürantriebe, Feststellanlagen und Feuerschutztüren ab — inklusive der jeweils relevanten Normreferenzen.</p>
-        </div>
+        <div class="feat-head"><div class="tag">✓</div><h3>Anlagenbericht-Generator</h3></div>
+        <p>Vorlagenbasierte Berichte für Wartung und Störungsbehebung, mit Statusverfolgung pro Bauteil und normbasierten Checklisten. Deckt Dreh- und Schiebetürantriebe, Feststellanlagen und Feuerschutztüren ab — inklusive der jeweils relevanten Normreferenzen.</p>
       </div>
       <div class="feat-row">
-        <div class="tag">✓</div>
-        <div>
-          <h3>Kunden- und Anlagenverwaltung</h3>
-          <p>Ansprechpartner, Bauvorhaben und Anlagenhistorie an einem Ort, automatisch aus dem Arbeitsbericht befüllt.</p>
-        </div>
-        <div>
-          <p style="color:var(--paper-dim); font-size:13.5px;">Ähnliche Bauvorhaben werden erkannt, bevor versehentlich Duplikate entstehen.</p>
-        </div>
+        <div class="feat-head"><div class="tag">✓</div><h3>Kunden- und Anlagenverwaltung</h3></div>
+        <p>Ansprechpartner, Bauvorhaben und Anlagenhistorie an einem Ort, automatisch aus dem Arbeitsbericht befüllt. Ähnliche Bauvorhaben werden erkannt, bevor versehentlich Duplikate entstehen.</p>
       </div>
       <div class="feat-row">
-        <div class="tag">✓</div>
-        <div>
-          <h3>Terminplanung</h3>
-          <p>Wartungstermine mit realistischer Zeitplanung, direkt aus der Anlagenliste heraus angelegt.</p>
-        </div>
-        <div>
-          <p style="color:var(--paper-dim); font-size:13.5px;">Jede Wartung wird automatisch mit einem realistischen Zeitfenster im Kalender berücksichtigt.</p>
-        </div>
+        <div class="feat-head"><div class="tag">✓</div><h3>Terminplanung</h3></div>
+        <p>Wartungstermine mit realistischer Zeitplanung, direkt aus der Anlagenliste heraus angelegt. Jede Wartung wird automatisch mit einem realistischen Zeitfenster im Kalender berücksichtigt.</p>
       </div>
       <div class="feat-row">
-        <div class="tag">✓</div>
-        <div>
-          <h3>Privacy-first, ohne externe API</h3>
-          <p>Alle Daten bleiben im eigenen Supabase-Projekt. Keine Kundendaten wandern zu Drittanbietern.</p>
-        </div>
-        <div>
-          <p style="color:var(--paper-dim); font-size:13.5px;">Relevant für Betriebe, die mit sicherheitsrelevanten Anlagendaten arbeiten.</p>
-        </div>
+        <div class="feat-head"><div class="tag">✓</div><h3>Privacy-first, ohne externe API</h3></div>
+        <p>Alle Daten bleiben im eigenen Supabase-Projekt. Keine Kundendaten wandern zu Drittanbietern — relevant für Betriebe, die mit sicherheitsrelevanten Anlagendaten arbeiten.</p>
       </div>
     </div>
   </div>
@@ -385,7 +362,7 @@
   <div class="wrap">
     <h2>Testen Sie TS-Suite mit Ihrem eigenen Wartungsteam</h2>
     <p>Kein Rollout auf Zuruf. Wir richten TS-Suite gemeinsam mit Ihnen für Ihre Anlagentypen und Regelwerke ein.</p>
-    <a href="mailto:kontakt@ts-suite.de" class="btn btn-primary">Demo anfragen</a>
+    <a href="mailto:Gerdau1979@Gmail.com" class="btn btn-primary">Demo anfragen</a>
   </div>
 </section>
 
